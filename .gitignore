@@ -1,0 +1,15 @@
+node_modules/
+.DS_Store
+.vercel
+
+# generic third-party dev-tool skills (installed via `npx skills add`, not project-specific)
+.agents/
+skills-lock.json
+.claude/skills/grill-me
+.claude/skills/grilling
+.claude/skills/tdd
+.claude/skills/vercel-react-best-practices
+.claude/skills/design-taste-frontend
+
+# personal machine config, not project settings
+.claude/settings.json

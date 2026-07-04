@@ -1,0 +1,101 @@
+{
+  "topics": [
+    {
+      "id": "projectile-motion",
+      "title": "การเคลื่อนที่แบบโพรเจกไทล์",
+      "titleEn": "Projectile Motion",
+      "level": "ม.ปลาย",
+      "category": "กลศาสตร์",
+      "path": "topics/projectile-motion/",
+      "active": true
+    },
+    {
+      "id": "pendulum",
+      "title": "การแกว่งของลูกตุ้ม",
+      "titleEn": "Simple Pendulum",
+      "level": "ม.ต้น",
+      "category": "กลศาสตร์",
+      "active": false
+    },
+    {
+      "id": "ohm",
+      "title": "วงจรไฟฟ้าและกฎของโอห์ม",
+      "titleEn": "Ohm's Law Circuit",
+      "level": "ม.ต้น",
+      "category": "ไฟฟ้า-แม่เหล็ก",
+      "active": false
+    },
+    {
+      "id": "emfield",
+      "title": "สนามแม่เหล็กไฟฟ้า",
+      "titleEn": "Electromagnetic Field",
+      "level": "ม.ปลาย",
+      "category": "ไฟฟ้า-แม่เหล็ก",
+      "active": false
+    },
+    {
+      "id": "interference",
+      "title": "การแทรกสอดของคลื่น",
+      "titleEn": "Wave Interference",
+      "level": "ม.ปลาย",
+      "category": "คลื่น-เสียง",
+      "active": false
+    },
+    {
+      "id": "soundwave",
+      "title": "คลื่นเสียงและความถี่",
+      "titleEn": "Sound Waves & Frequency",
+      "level": "ม.ต้น",
+      "category": "คลื่น-เสียง",
+      "active": false
+    },
+    {
+      "id": "heattransfer",
+      "title": "การถ่ายโอนความร้อน",
+      "titleEn": "Heat Transfer",
+      "level": "ม.ต้น",
+      "category": "ความร้อน",
+      "active": false
+    },
+    {
+      "id": "boyle",
+      "title": "แก๊สและกฎของบอยล์",
+      "titleEn": "Boyle's Law",
+      "level": "ม.ปลาย",
+      "category": "ความร้อน",
+      "active": false
+    },
+    {
+      "id": "refraction",
+      "title": "การหักเหของแสง",
+      "titleEn": "Refraction",
+      "level": "ม.ปลาย",
+      "category": "แสง",
+      "active": false
+    },
+    {
+      "id": "mirrors",
+      "title": "กระจกและเลนส์",
+      "titleEn": "Mirrors & Lenses",
+      "level": "ม.ต้น",
+      "category": "แสง",
+      "active": false
+    },
+    {
+      "id": "renewable",
+      "title": "พลังงานทดแทน",
+      "titleEn": "Renewable Energy",
+      "level": "ม.ต้น",
+      "category": "อื่นๆ",
+      "active": false
+    },
+    {
+      "id": "particle",
+      "title": "ฟิสิกส์อนุภาค",
+      "titleEn": "Particle Physics",
+      "level": "ม.ปลาย",
+      "category": "อื่นๆ",
+      "active": false
+    }
+  ]
+}

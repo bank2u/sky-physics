@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>การเคลื่อนที่แบบโพรเจกไทล์ — PHYSICS-SIM</title>
+<link rel="stylesheet" href="../../shared/styles.css">
+<script src="../../shared/layout.js"></script>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="page">
+  <!-- 1. หัวเรื่อง + คำอธิบายสั้น -->
+  <div class="topic-header">
+    <div class="topic-header__left">
+      <a class="back-btn" href="../../" aria-label="กลับสารบัญ">←</a>
+      <h1 class="topic-title">การเคลื่อนที่แบบโพรเจกไทล์ <span class="en">PROJECTILE MOTION</span></h1>
+    </div>
+    <span class="badge-level is-filled">ม.ปลาย</span>
+  </div>
+  <p class="topic-desc">ปรับมุมยิงและความเร็วต้น แล้วกด "ปล่อย" เพื่อดูวิถีการเคลื่อนที่แบบโพรเจกไทล์แบบ realtime</p>
+
+  <div class="sim-row">
+    <!-- 2. โซน simulation -->
+    <div class="sim-zone" id="sim-zone"></div>
+
+    <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
+    <div class="controls">
+      <div class="tile-grid">
+        <div class="tile tile--yellow">
+          <div class="tile__label">ความสูง · HEIGHT</div>
+          <div class="tile__value" id="tile-height">0.0<span class="tile__unit">m</span></div>
+        </div>
+        <div class="tile tile--cyan">
+          <div class="tile__label">ระยะ · RANGE</div>
+          <div class="tile__value" id="tile-range">0.0<span class="tile__unit">m</span></div>
+        </div>
+        <div class="tile tile--magenta">
+          <div class="tile__label">VELOCITY</div>
+          <div class="tile__value" id="tile-velocity">22.0<span class="tile__unit">m/s</span></div>
+        </div>
+        <div class="tile">
+          <div class="tile__label">TIME</div>
+          <div class="tile__value" id="tile-time">0.0<span class="tile__unit">s</span></div>
+        </div>
+      </div>
+
+      <div class="sliders">
+        <div class="slider--angle">
+          <div class="slider__row">
+            <span>มุมยิง · ANGLE</span>
+            <span class="slider__value" id="angle-value">42°</span>
+          </div>
+          <div class="slider__track" id="angle-track">
+            <div class="slider__fill" id="angle-fill"></div>
+            <div class="slider__thumb" id="angle-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--velocity">
+          <div class="slider__row">
+            <span>ความเร็วต้น · INIT. VELOCITY</span>
+            <span class="slider__value" id="v0-value">22.0 m/s</span>
+          </div>
+          <div class="slider__track" id="v0-track">
+            <div class="slider__fill" id="v0-fill"></div>
+            <div class="slider__thumb" id="v0-thumb"></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn-play" id="play-btn">▶ ปล่อย</button>
+          <button type="button" class="btn-reset" id="reset-btn">RESET</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. คำอธิบายแนวคิด / สมการ -->
+  <div class="equations">
+    <div class="equation-card">
+      <span class="equation-card__label">ระยะทาง · RANGE</span>
+      <span class="equation-card__formula">R = (v<sub>0</sub><sup>2</sup> sin 2θ) / g</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">ความสูงสูงสุด · MAX HEIGHT</span>
+      <span class="equation-card__formula">h = (v<sub>0</sub><sup>2</sup> sin<sup>2</sup>θ) / 2g</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">เวลาบิน · TIME OF FLIGHT</span>
+      <span class="equation-card__formula">t = (2v<sub>0</sub> sinθ) / g</span>
+    </div>
+  </div>
+
+  <div class="concept">
+    <h2>คำอธิบายแนวคิด</h2>
+    <p>
+      เมื่อยิงวัตถุออกไปเป็นมุม θ ด้วยความเร็วต้น v₀ วัตถุจะเคลื่อนที่เป็นเส้นโค้งพาราโบลาภายใต้แรงโน้มถ่วง g = 9.8 m/s²
+      กุญแจสำคัญคือแยกความเร็วต้นเป็นสองแกน: แนวราบ vₓ = v₀cosθ (คงที่ตลอดการเคลื่อนที่ เพราะไม่มีแรงกระทำในแกนนี้)
+      และแนวดิ่ง v_y = v₀sinθ (ลดลงเรื่อยๆ ด้วยอัตราเร่ง g จนเป็นศูนย์ที่จุดสูงสุด แล้วกลับเป็นลบ)
+      มุมยิง 45° ให้ระยะทางไกลที่สุดเมื่อความเร็วต้นเท่ากัน เพราะ sin(2θ) มีค่าสูงสุดเมื่อ θ = 45°
+    </p>
+  </div>
+</main>
+
+<script src="../../shared/sim/projectile.js"></script>
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), '../../');
+
+  var ANGLE_MIN = 10, ANGLE_MAX = 80;
+  var V0_MIN = 5, V0_MAX = 30;
+
+  var sim = SimPatterns.projectile.create(document.getElementById('sim-zone'), {
+    angle: 42,
+    v0: 22,
+    angleRange: [ANGLE_MIN, ANGLE_MAX],
+    v0Range: [V0_MIN, V0_MAX],
+    onUpdate: function (vals) {
+      document.getElementById('tile-height').innerHTML = vals.H.toFixed(1) + '<span class="tile__unit">m</span>';
+      document.getElementById('tile-range').innerHTML = vals.R.toFixed(1) + '<span class="tile__unit">m</span>';
+      document.getElementById('tile-velocity').innerHTML = vals.v0.toFixed(1) + '<span class="tile__unit">m/s</span>';
+      document.getElementById('tile-time').innerHTML = vals.t.toFixed(1) + '<span class="tile__unit">s</span>';
+
+      document.getElementById('angle-value').textContent = Math.round(vals.angle) + '°';
+      document.getElementById('v0-value').textContent = vals.v0.toFixed(1) + ' m/s';
+
+      var anglePct = ((vals.angle - ANGLE_MIN) / (ANGLE_MAX - ANGLE_MIN)) * 100;
+      var v0Pct = ((vals.v0 - V0_MIN) / (V0_MAX - V0_MIN)) * 100;
+      document.getElementById('angle-fill').style.width = anglePct + '%';
+      document.getElementById('angle-thumb').style.left = anglePct + '%';
+      document.getElementById('v0-fill').style.width = v0Pct + '%';
+      document.getElementById('v0-thumb').style.left = v0Pct + '%';
+
+      document.getElementById('play-btn').textContent = vals.playing ? '❚❚ หยุด' : '▶ ปล่อย';
+    }
+  });
+
+  function wireTrack(trackEl, min, max, onDrag) {
+    trackEl.addEventListener('pointerdown', function (e) {
+      var rect = trackEl.getBoundingClientRect();
+      function update(clientX) {
+        var frac = (clientX - rect.left) / rect.width;
+        frac = Math.max(0, Math.min(1, frac));
+        onDrag(min + frac * (max - min));
+      }
+      update(e.clientX);
+      function onMove(ev) { update(ev.clientX); }
+      function onUp() {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  }
+
+  wireTrack(document.getElementById('angle-track'), ANGLE_MIN, ANGLE_MAX, function (v) {
+    sim.setAngle(Math.round(v));
+  });
+  wireTrack(document.getElementById('v0-track'), V0_MIN, V0_MAX, function (v) {
+    sim.setV0(Math.round(v * 10) / 10);
+  });
+
+  document.getElementById('play-btn').addEventListener('click', function () { sim.play(); });
+  document.getElementById('reset-btn').addEventListener('click', function () { sim.reset(); });
+</script>
+</body>
+</html>

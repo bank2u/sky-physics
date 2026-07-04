@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHYSICS-SIM — สารบัญ</title>
+<link rel="stylesheet" href="shared/styles.css">
+<script src="shared/layout.js"></script>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="directory page" id="directory">
+  <div class="directory-header">
+    <h1>สารบัญ <span class="en">TOPICS</span></h1>
+    <div class="filter-chips" id="filter-chips">
+      <button type="button" class="chip is-active" data-level="all">ทั้งหมด · ALL</button>
+      <button type="button" class="chip" data-level="ม.ต้น">ม.ต้น</button>
+      <button type="button" class="chip" data-level="ม.ปลาย">ม.ปลาย</button>
+    </div>
+  </div>
+  <div id="categories"></div>
+</main>
+
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), './');
+
+  var CATEGORIES = [
+    { key: 'กลศาสตร์',       en: 'MECHANICS',              accent: 'cyan',    compact: false },
+    { key: 'ไฟฟ้า-แม่เหล็ก', en: 'ELECTRICITY & MAGNETISM', accent: 'magenta', compact: false },
+    { key: 'คลื่น-เสียง',    en: 'WAVES & SOUND',           accent: 'yellow',  compact: false },
+    { key: 'ความร้อน',       en: 'HEAT',                    accent: 'cyan',    compact: true },
+    { key: 'แสง',            en: 'LIGHT',                   accent: 'magenta', compact: true },
+    { key: 'อื่นๆ',          en: 'OTHERS',                  accent: 'yellow',  compact: true }
+  ];
+
+  var levelFilter = 'all';
+  var topics = [];
+
+  function levelBadgeHtml(level) {
+    var filled = level === 'ม.ปลาย';
+    return '<span class="badge-level' + (filled ? ' is-filled' : '') + '">' + level + '</span>';
+  }
+
+  function cardHtml(t) {
+    var tag = t.active ? 'a' : 'div';
+    var hrefAttr = t.active ? ' href="' + t.path + '"' : '';
+    return (
+      '<' + tag + ' class="card' + (t.active ? '' : ' is-inactive') + '"' + hrefAttr + '>' +
+        '<div class="card__top">' +
+          '<span class="card__badge">' + t.category + '</span>' +
+          levelBadgeHtml(t.level) +
+        '</div>' +
+        '<div class="card__title">' + t.title + '</div>' +
+        '<div class="card__bottom">' +
+          '<span class="card__subtitle">' + (t.titleEn || '') + '</span>' +
+          '<span class="card__soon">' + (t.active ? 'พร้อมใช้งาน' : 'เร็วๆ นี้') + '</span>' +
+        '</div>' +
+      '</' + tag + '>'
+    );
+  }
+
+  function compactCardHtml(t) {
+    var tag = t.active ? 'a' : 'div';
+    var hrefAttr = t.active ? ' href="' + t.path + '"' : '';
+    return (
+      '<' + tag + ' class="card--compact' + (t.active ? '' : ' is-inactive') + '"' + hrefAttr + '>' +
+        '<div class="card__top">' +
+          levelBadgeHtml(t.level) +
+          '<span class="card__soon">' + (t.active ? 'พร้อมใช้งาน' : 'เร็วๆ นี้') + '</span>' +
+        '</div>' +
+        '<div class="card__title">' + t.title + '</div>' +
+      '</' + tag + '>'
+    );
+  }
+
+  function render() {
+    var filtered = topics.filter(function (t) {
+      return levelFilter === 'all' || t.level === levelFilter;
+    });
+    var byCategory = function (key) {
+      return filtered.filter(function (t) { return t.category === key; });
+    };
+
+    var big = CATEGORIES.filter(function (c) { return !c.compact; });
+    var small = CATEGORIES.filter(function (c) { return c.compact; });
+
+    var html = '';
+    big.forEach(function (cat) {
+      html +=
+        '<div class="category">' +
+          '<div class="category__head">' +
+            '<span class="category__dot category__dot--' + cat.accent + '"></span>' +
+            '<span class="category__th">' + cat.key + ' <span class="category__en">' + cat.en + '</span></span>' +
+          '</div>' +
+          '<div class="card-grid">' + byCategory(cat.key).map(cardHtml).join('') + '</div>' +
+        '</div>';
+    });
+
+    html += '<div class="card-grid--compact-group">';
+    small.forEach(function (cat) {
+      html +=
+        '<div class="category category--compact">' +
+          '<div class="category__head">' +
+            '<span class="category__dot category__dot--' + cat.accent + '"></span>' +
+            '<span class="category__th">' + cat.key + ' <span class="category__en">' + cat.en + '</span></span>' +
+          '</div>' +
+          '<div class="card-grid--compact">' + byCategory(cat.key).map(compactCardHtml).join('') + '</div>' +
+        '</div>';
+    });
+    html += '</div>';
+
+    document.getElementById('categories').innerHTML = html;
+  }
+
+  document.querySelectorAll('.chip').forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      levelFilter = chip.dataset.level;
+      document.querySelectorAll('.chip').forEach(function (c) {
+        c.classList.toggle('is-active', c === chip);
+      });
+      render();
+    });
+  });
+
+  fetch('_system/topics.json')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      topics = data.topics;
+      render();
+    });
+</script>
+</body>
+</html>
