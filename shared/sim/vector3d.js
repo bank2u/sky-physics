@@ -20,6 +20,10 @@
   var resolveCtx = resolveCanvas.getContext('2d');
   var resolveCache = {};
 
+  function clearResolveCache() {
+    resolveCache = {};
+  }
+
   function resolveVarToHex(varName, fallbackHex) {
     if (resolveCache[varName] != null) return resolveCache[varName];
     var raw = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
@@ -74,6 +78,7 @@
       cone.quaternion.setFromUnitVectors(UP, tangent);
       group.add(cone);
     });
+    group.userData.mats = [mat, headMat];
     return group;
   }
 
@@ -91,6 +96,7 @@
       head.position.y = shaftLen;
     };
     group.userData.setLength(1);
+    group.userData.mats = [mat];
     return group;
   }
 
@@ -138,15 +144,25 @@
     options = options || {};
     var reducedMotion = options.reducedMotion || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
-    var COLORS = {
-      thumb: resolveVarToHex('--magenta', 0xF0665B),
-      fingers: resolveVarToHex('--cyan', 0x4FC3C3),
-      palm: resolveVarToHex('--yellow', 0xE8A33D),
-      hand: resolveVarToHex('--surface', 0xDCEDF7),
-      edge: resolveVarToHex('--ink', 0x0B2545),
-      grid: resolveVarToHex('--ink', 0x1E4A72)
-    };
-    var labelBg = hexToRgba(resolveVarToHex('--surface', 0x0B2545), 0.82);
+    function resolveColors() {
+      return {
+        thumb: resolveVarToHex('--magenta', 0xF0665B),
+        fingers: resolveVarToHex('--cyan', 0x4FC3C3),
+        palm: resolveVarToHex('--yellow', 0xE8A33D),
+        hand: resolveVarToHex('--surface', 0xDCEDF7),
+        edge: resolveVarToHex('--ink', 0x0B2545),
+        grid: resolveVarToHex('--ink', 0x1E4A72)
+      };
+    }
+    var COLORS = resolveColors();
+    var labelBg = hexToRgba(COLORS.hand, 0.82);
+
+    /* registry สี: ทุก material ที่ผูกกับ token ลงทะเบียนที่นี่ เพื่อ re-color ตอน theme เปลี่ยน */
+    var themedMats = []; // { mat: THREE.Material, role: key ใน COLORS }
+    function reg(mat, role) {
+      themedMats.push({ mat: mat, role: role });
+      return mat;
+    }
 
     container.innerHTML = '';
     var canvas = document.createElement('canvas');
@@ -243,11 +259,12 @@
     grid.position.y = -0.98;
     grid.material.transparent = true;
     grid.material.opacity = 0.28;
+    reg(grid.material, 'grid');
     scene.add(grid);
 
     /* ---------- hand geometry ---------- */
-    var handMat = new THREE.MeshStandardMaterial({ color: COLORS.hand, roughness: 0.55, metalness: 0.06 });
-    var edgeMat = new THREE.LineBasicMaterial({ color: COLORS.edge });
+    var handMat = reg(new THREE.MeshStandardMaterial({ color: COLORS.hand, roughness: 0.55, metalness: 0.06 }), 'hand');
+    var edgeMat = reg(new THREE.LineBasicMaterial({ color: COLORS.edge }), 'edge');
 
     var handRoot = new THREE.Group();
     handRoot.position.set(0, 0.35, 0);
@@ -290,6 +307,7 @@
     applyCurl(0);
 
     var arrowThumb = makeArrow(COLORS.thumb);
+    arrowThumb.userData.mats.forEach(function (m) { reg(m, 'thumb'); });
     arrowThumb.quaternion.setFromUnitVectors(UP, new THREE.Vector3(1, 0, 0));
     arrowThumb.position.set(0.5, -0.38, 0.15);
     arrowThumb.userData.setLength(1.2);
@@ -299,6 +317,7 @@
     handRoot.add(labelThumb);
 
     var arrowFingers = makeArrow(COLORS.fingers);
+    arrowFingers.userData.mats.forEach(function (m) { reg(m, 'fingers'); });
     arrowFingers.position.set(0, 0.65, 0);
     arrowFingers.userData.setLength(1.55);
     handRoot.add(arrowFingers);
@@ -307,6 +326,7 @@
     handRoot.add(labelFingers);
 
     var arrowPalm = makeArrow(COLORS.palm);
+    arrowPalm.userData.mats.forEach(function (m) { reg(m, 'palm'); });
     var palmBaseQuat = new THREE.Quaternion().setFromUnitVectors(UP, new THREE.Vector3(0, 0, 1));
     var palmFlipQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI);
     arrowPalm.quaternion.copy(palmBaseQuat);
@@ -318,12 +338,14 @@
     handRoot.add(labelPalm);
 
     var circleLoop = buildLoop(0.62, 0.55, true, COLORS.fingers);
+    circleLoop.userData.mats.forEach(function (m) { reg(m, 'fingers'); });
     handRoot.add(circleLoop);
     var labelCircle = makeTextSprite(labelBg);
     labelCircle.position.set(0.55, 0.62, 0.7);
     handRoot.add(labelCircle);
 
     var arc = buildLoop(0.5, 0.0, false, COLORS.thumb);
+    arc.userData.mats.forEach(function (m) { reg(m, 'thumb'); });
     handRoot.add(arc);
 
     var targetQuaternion = new THREE.Quaternion();
@@ -338,9 +360,12 @@
 
     var LABEL_MAP = { thumb: labelThumb, fingers: labelFingers, palm: labelPalm, circle: labelCircle };
     var COLOR_MAP = { thumb: COLORS.thumb, fingers: COLORS.fingers, palm: COLORS.palm, circle: COLORS.fingers };
+    var lastLabelText = {};
     function setLabel(part, text) {
       var sprite = LABEL_MAP[part];
-      if (sprite) updateTextSprite(sprite, text, COLOR_MAP[part]);
+      if (!sprite) return;
+      lastLabelText[part] = text;
+      updateTextSprite(sprite, text, COLOR_MAP[part]);
     }
 
     var VISIBLE_MAP = { palm: [arrowPalm, labelPalm], fingers: [arrowFingers, labelFingers], circle: [circleLoop, labelCircle], arc: [arc] };
@@ -364,6 +389,25 @@
       spherical.phi = DEFAULT_SPHERICAL.phi;
       updateCamera();
     }
+
+    function refreshTheme() {
+      clearResolveCache();
+      COLORS = resolveColors();
+      labelBg = hexToRgba(COLORS.hand, 0.82);
+      COLOR_MAP.thumb = COLORS.thumb;
+      COLOR_MAP.fingers = COLORS.fingers;
+      COLOR_MAP.palm = COLORS.palm;
+      COLOR_MAP.circle = COLORS.fingers;
+      themedMats.forEach(function (t) {
+        t.mat.color.setHex(COLORS[t.role]);
+      });
+      Object.keys(lastLabelText).forEach(function (part) {
+        var sprite = LABEL_MAP[part];
+        sprite.userData.bg = labelBg;
+        updateTextSprite(sprite, lastLabelText[part], COLOR_MAP[part]);
+      });
+    }
+    document.addEventListener('physics-sim:themechange', refreshTheme);
 
     var rafId = null;
     function animate() {
@@ -392,6 +436,7 @@
       destroy: function () {
         if (rafId) cancelAnimationFrame(rafId);
         window.removeEventListener('resize', onWindowResize);
+        document.removeEventListener('physics-sim:themechange', refreshTheme);
         renderer.dispose();
       }
     };
