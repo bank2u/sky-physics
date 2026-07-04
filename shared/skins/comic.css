@@ -1,0 +1,68 @@
+/* Skin: Comic Lab — pop-art comic บนพื้นสว่าง (light เท่านั้น — ประกาศใน shared/config.js)
+   Scope ทุก rule ใต้ [data-skin="comic"] — ห้ามมี rule นอก scope นี้
+   Token contract: override เฉพาะค่า ห้ามเพิ่มชื่อ token ใหม่นอกเหนือจากที่ :root ใน styles.css ประกาศ */
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700;800;900&family=Bungee&display=swap');
+
+:root[data-skin="comic"] {
+  --ink: #14161f;
+  --paper: #eef2fb;
+  --surface: #ffffff;
+
+  /* palette comic แมปลง token กลาง: cyan→น้ำเงิน, magenta→แดง, yellow→เหลืองทอง */
+  --cyan: #2f6bff;
+  --magenta: #ff3b5c;
+  --yellow: #ffc93c;
+  --cyan-fg: #1e4dc4;
+  --magenta-fg: #c41f3f;
+  --yellow-fg: #8a6a00;
+
+  --font: 'Kanit', 'Noto Sans Thai', sans-serif;
+
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+}
+
+/* พื้นกระดาษ halftone แบบ comic (ทับ dot ปกติของ dot-matrix) */
+:root[data-skin="comic"] body {
+  background-image: radial-gradient(color-mix(in oklab, var(--ink) 22%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+  background-attachment: fixed;
+}
+
+/* โลโก้ topbar เป็นสติกเกอร์เหลือง */
+:root[data-skin="comic"] .topbar__logo {
+  background: var(--yellow);
+  color: var(--ink);
+  border: var(--border-w-sm) solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+/* ป้ายภาษาอังกฤษ (.en) เป็นสติกเกอร์เอียงสไตล์ comic */
+:root[data-skin="comic"] .directory-header h1 .en,
+:root[data-skin="comic"] .topic-title .en {
+  font-family: 'Bungee', var(--font);
+  opacity: 1;
+  font-size: 12px;
+  background: var(--yellow);
+  border: var(--border-w-sm) solid var(--ink);
+  border-radius: 8px;
+  padding: 4px 10px;
+  display: inline-block;
+  transform: rotate(-3deg);
+  box-shadow: 3px 3px 0 var(--ink);
+  vertical-align: middle;
+}
+
+/* การ์ดสารบัญ: เงา offset เป็นสีตามหมวด (ผ่าน accent ของ category dot ที่การ์ดอยู่ใต้) */
+:root[data-skin="comic"] .card:hover {
+  transform: translate(-2px, -2px) rotate(0deg);
+}
+:root[data-skin="comic"] .card--compact:hover {
+  transform: translate(-2px, -2px) rotate(0deg);
+}
+
+/* กรอบสรุปสั้น/คำอธิบาย ใช้เส้นประหนาแบบช่องการ์ตูน */
+:root[data-skin="comic"] .recap-strip {
+  border-style: dashed;
+}
