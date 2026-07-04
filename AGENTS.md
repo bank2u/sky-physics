@@ -12,6 +12,7 @@
 ## โครงสร้าง
 - `topics/<id>/` — 1 เรื่อง: `index.html` (page) + `spec.md` (content spec, เก็บคู่ไว้เพื่อ regenerate)
 - `shared/styles.css` — design system | `shared/layout.js` — โครง 5 ส่วน | `shared/sim/*.js` — คลัง simulation ใช้ซ้ำ
+- `shared/config.js` — เลือก skin ระดับ deploy | `shared/skins/<name>.css` — skin เป็น CSS ล้วน scope ใต้ `[data-skin]` ต้องใช้ token contract เดิม ห้ามแตะ DOM
 - `_system/spec-format.md` — ฟอร์มมาตรฐาน | `_system/topics.json` — ทะเบียนเรื่อง
 - `.claude/skills/` — workflow + knowledge skills (อ่านได้ทั้ง Claude Code และ opencode)
 - `_system/ARCHITECTURE.md` — tech stack, git strategy, verify/test flow, guardrails (รายละเอียดเบื้องหลังไฟล์นี้)
