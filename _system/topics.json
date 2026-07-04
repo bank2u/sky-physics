@@ -10,6 +10,15 @@
       "active": true
     },
     {
+      "id": "motion-graphs",
+      "title": "กราฟการเคลื่อนที่ (x-t, v-t, a-t)",
+      "titleEn": "Motion Graphs",
+      "level": "ม.ปลาย",
+      "category": "กลศาสตร์",
+      "path": "topics/motion-graphs/",
+      "active": true
+    },
+    {
       "id": "pendulum",
       "title": "การแกว่งของลูกตุ้ม",
       "titleEn": "Simple Pendulum",
@@ -32,7 +41,8 @@
       "titleEn": "Ohm's Law Circuit",
       "level": "ม.ต้น",
       "category": "ไฟฟ้า-แม่เหล็ก",
-      "active": false
+      "path": "topics/ohm/",
+      "active": true
     },
     {
       "id": "emfield",
@@ -44,11 +54,12 @@
     },
     {
       "id": "interference",
-      "title": "การแทรกสอดของคลื่น",
-      "titleEn": "Wave Interference",
+      "title": "การแทรกสอดและการซ้อนทับของคลื่น",
+      "titleEn": "Wave Interference & Superposition",
       "level": "ม.ปลาย",
       "category": "คลื่น-เสียง",
-      "active": false
+      "path": "topics/interference/",
+      "active": true
     },
     {
       "id": "soundwave",
@@ -76,11 +87,12 @@
     },
     {
       "id": "refraction",
-      "title": "การหักเหของแสง",
-      "titleEn": "Refraction",
+      "title": "การหักเหของแสงและมุมวิกฤต",
+      "titleEn": "Refraction & Critical Angle",
       "level": "ม.ปลาย",
       "category": "แสง",
-      "active": false
+      "path": "topics/refraction/",
+      "active": true
     },
     {
       "id": "mirrors",

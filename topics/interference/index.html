@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>การแทรกสอดและการซ้อนทับของคลื่น — PHYSICS-SIM</title>
+<script src="../../shared/config.js"></script>
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="../../shared/skins/comic.css">
+<script src="../../shared/layout.js"></script>
+<style>
+  /* ---- ส่วนขยายเฉพาะเรื่องนี้ — ใช้ design token เท่านั้น ห้ามฝัง hex/ฟอนต์ใหม่ ---- */
+  .slider--freq { --slider-accent: var(--cyan);    --slider-accent-fg: var(--cyan-fg); }
+  .slider--amp  { --slider-accent: var(--magenta); --slider-accent-fg: var(--magenta-fg); }
+  .slider--gap  { --slider-accent: var(--yellow);  --slider-accent-fg: var(--yellow-fg); }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="page">
+  <!-- 1. หัวเรื่อง + คำอธิบายสั้น -->
+  <div class="topic-header">
+    <div class="topic-header__left">
+      <a class="back-btn" href="../../" aria-label="กลับสารบัญ">←</a>
+      <h1 class="topic-title">การแทรกสอดและการซ้อนทับของคลื่น <span class="en">WAVE INTERFERENCE</span></h1>
+    </div>
+    <span class="badge-level is-filled">ม.ปลาย</span>
+  </div>
+  <p class="topic-desc">ปรับความถี่ แอมพลิจูด และระยะห่างช่องคู่ แล้วดูคลื่นสองขบวนซ้อนทับกัน (แผงบน) และแถบแทรกสอดบนจอที่เกิดจากสองแหล่งกำเนิดอาพันธ์ (แผงล่าง) แบบ realtime</p>
+
+  <div class="sim-row">
+    <!-- 2. โซน simulation -->
+    <div class="sim-zone" id="sim-zone"></div>
+
+    <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
+    <div class="controls">
+      <div class="tile-grid">
+        <div class="tile tile--cyan">
+          <div class="tile__label">Δ · ผลต่างระยะทาง</div>
+          <div class="tile__value" id="tile-delta">0.00<span class="tile__unit">mm</span></div>
+        </div>
+        <div class="tile tile--magenta">
+          <div class="tile__label">y ณ จุดสังเกต · SUM</div>
+          <div class="tile__value" id="tile-yobs">0.0<span class="tile__unit">cm</span></div>
+        </div>
+        <div class="tile tile--yellow">
+          <div class="tile__label">ปฏิบัพ 1 · ANTINODE</div>
+          <div class="tile__value" id="tile-antinode">0.0<span class="tile__unit">mm</span></div>
+        </div>
+        <div class="tile">
+          <div class="tile__label">บัพ 1 · NODE</div>
+          <div class="tile__value" id="tile-node">0.0<span class="tile__unit">mm</span></div>
+        </div>
+      </div>
+
+      <div class="sliders">
+        <div class="slider--freq">
+          <div class="slider__row">
+            <span>ความถี่คลื่น · FREQUENCY (f)</span>
+            <span class="slider__value" id="f-value">4 Hz</span>
+          </div>
+          <div class="slider__track" id="f-track">
+            <div class="slider__fill" id="f-fill"></div>
+            <div class="slider__thumb" id="f-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--amp">
+          <div class="slider__row">
+            <span>แอมพลิจูด · AMPLITUDE (A)</span>
+            <span class="slider__value" id="a-value">1.0 cm</span>
+          </div>
+          <div class="slider__track" id="a-track">
+            <div class="slider__fill" id="a-fill"></div>
+            <div class="slider__thumb" id="a-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--gap">
+          <div class="slider__row">
+            <span>ระยะห่างช่องคู่ · SLIT SEPARATION (d)</span>
+            <span class="slider__value" id="d-value">2.0 mm</span>
+          </div>
+          <div class="slider__track" id="d-track">
+            <div class="slider__fill" id="d-fill"></div>
+            <div class="slider__thumb" id="d-thumb"></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn-play" id="play-btn">❚❚ หยุด</button>
+          <button type="button" class="btn-reset" id="reset-btn">RESET</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. คำอธิบายแนวคิด / สมการ -->
+  <div class="equations">
+    <div class="equation-card">
+      <span class="equation-card__label">การซ้อนทับ · SUPERPOSITION</span>
+      <span class="equation-card__formula">y = y<sub>1</sub> + y<sub>2</sub></span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">ผลต่างระยะทาง · PATH DIFFERENCE</span>
+      <span class="equation-card__formula">Δ = d sinθ</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">แทรกสอดเสริม · CONSTRUCTIVE</span>
+      <span class="equation-card__formula">Δ = nλ</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">แทรกสอดหักล้าง · DESTRUCTIVE</span>
+      <span class="equation-card__formula">Δ = (n + ½)λ</span>
+    </div>
+  </div>
+
+  <div class="concept">
+    <h2>คำอธิบายแนวคิด</h2>
+    <p>
+      หลักการซ้อนทับ (superposition) กล่าวว่าเมื่อคลื่นสองขบวนเคลื่อนที่ผ่านกัน แต่ละจุดบนตัวกลางจะมีการกระจัดเท่ากับผลรวมทางพีชคณิตของการกระจัดของคลื่นแต่ละขบวน ณ จุดนั้น (y = y₁ + y₂)
+      โดยคลื่นแต่ละขบวนจะเดินทางต่อไปตามเดิมหลังผ่านกัน ไม่ได้ "ชนกัน" แต่อย่างใด — แผงบนของ simulation แสดงคลื่นสองขบวนที่มีความถี่และแอมพลิจูดเท่ากันเคลื่อนที่สวนทางกัน
+      สังเกตเส้นผลรวม (เส้นทึบหนา) จะแบนราบเมื่อยอดคลื่นซ้อนกับท้องคลื่นพอดี (หักล้าง) และสูงเป็นสองเท่าเมื่อยอดซ้อนยอด (เสริม) สลับกันไปตามเวลา
+    </p>
+    <p>
+      เมื่อคลื่นอาพันธ์ (coherent) จากสองแหล่งกำเนิดที่ห่างกันเป็นระยะ d แผ่ออกไปพร้อมกัน (เช่น การทดลองช่องคู่ของ Young หรือถังคลื่น) จุดใดบนจอที่ผลต่างระยะทางจากสองแหล่ง (Δ = d sinθ)
+      เท่ากับจำนวนเต็มเท่าของความยาวคลื่น (Δ = nλ) จะเกิดการแทรกสอดเสริม (ปฏิบัพ, สว่าง) ส่วนจุดที่ Δ เท่ากับจำนวนเต็มบวกครึ่งของความยาวคลื่น (Δ = (n+½)λ) จะเกิดการแทรกสอดหักล้าง (บัพ, มืด)
+      แผงล่างแสดงคลื่นวงกลมจากสองแหล่งกำเนิดและลวดลายแถบมืด-สว่างที่เกิดขึ้นจริงบนจอ ปรับความถี่หรือระยะห่างช่องคู่แล้วจะเห็นแถบเลื่อนและบีบ/ขยายทันที เพราะระยะห่างระหว่างแถบ (Δy) แปรผันตรงกับ λ และแปรผกผันกับ d
+    </p>
+  </div>
+</main>
+
+<script src="../../shared/sim/wave-interference.js"></script>
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), '../../');
+
+  var F_MIN = 1, F_MAX = 10;
+  var A_MIN = 0.5, A_MAX = 2;
+  var D_MIN = 0.5, D_MAX = 5;
+
+  var sim = SimPatterns.waveInterference.create(document.getElementById('sim-zone'), {
+    f: 4,
+    A: 1,
+    d: 2,
+    fRange: [F_MIN, F_MAX],
+    aRange: [A_MIN, A_MAX],
+    dRange: [D_MIN, D_MAX],
+    onUpdate: function (vals) {
+      document.getElementById('tile-delta').innerHTML = vals.delta.toFixed(2) + '<span class="tile__unit">mm</span>';
+      document.getElementById('tile-yobs').innerHTML = vals.yObs.toFixed(1) + '<span class="tile__unit">cm</span>';
+      document.getElementById('tile-antinode').innerHTML = vals.yAntinode1.toFixed(2) + '<span class="tile__unit">mm</span>';
+      document.getElementById('tile-node').innerHTML = vals.yNode1.toFixed(2) + '<span class="tile__unit">mm</span>';
+
+      document.getElementById('f-value').textContent = vals.f.toFixed(1) + ' Hz';
+      document.getElementById('a-value').textContent = vals.A.toFixed(1) + ' cm';
+      document.getElementById('d-value').textContent = vals.d.toFixed(1) + ' mm';
+
+      var fPct = ((vals.f - F_MIN) / (F_MAX - F_MIN)) * 100;
+      var aPct = ((vals.A - A_MIN) / (A_MAX - A_MIN)) * 100;
+      var dPct = ((vals.d - D_MIN) / (D_MAX - D_MIN)) * 100;
+      document.getElementById('f-fill').style.width = fPct + '%';
+      document.getElementById('f-thumb').style.left = fPct + '%';
+      document.getElementById('a-fill').style.width = aPct + '%';
+      document.getElementById('a-thumb').style.left = aPct + '%';
+      document.getElementById('d-fill').style.width = dPct + '%';
+      document.getElementById('d-thumb').style.left = dPct + '%';
+
+      document.getElementById('play-btn').textContent = vals.playing ? '❚❚ หยุด' : '▶ เล่นต่อ';
+    }
+  });
+
+  function wireTrack(trackEl, min, max, onDrag) {
+    trackEl.addEventListener('pointerdown', function (e) {
+      var rect = trackEl.getBoundingClientRect();
+      function update(clientX) {
+        var frac = (clientX - rect.left) / rect.width;
+        frac = Math.max(0, Math.min(1, frac));
+        onDrag(min + frac * (max - min));
+      }
+      update(e.clientX);
+      function onMove(ev) { update(ev.clientX); }
+      function onUp() {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  }
+
+  wireTrack(document.getElementById('f-track'), F_MIN, F_MAX, function (v) {
+    sim.setF(Math.round(v * 2) / 2);
+  });
+  wireTrack(document.getElementById('a-track'), A_MIN, A_MAX, function (v) {
+    sim.setA(Math.round(v * 10) / 10);
+  });
+  wireTrack(document.getElementById('d-track'), D_MIN, D_MAX, function (v) {
+    sim.setD(Math.round(v * 10) / 10);
+  });
+
+  document.getElementById('play-btn').addEventListener('click', function () { sim.toggle(); });
+  document.getElementById('reset-btn').addEventListener('click', function () { sim.reset(); });
+</script>
+</body>
+</html>

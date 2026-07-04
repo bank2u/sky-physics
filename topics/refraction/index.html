@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>การหักเหของแสงและมุมวิกฤต — PHYSICS-SIM</title>
+<script src="../../shared/config.js"></script>
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="../../shared/skins/comic.css">
+<script src="../../shared/layout.js"></script>
+<style>
+  /* ---- ส่วนขยายเฉพาะเรื่องนี้ — ใช้ design token เท่านั้น ห้ามฝัง hex/ฟอนต์ใหม่ ---- */
+  .medium-group { margin-bottom: var(--space-3); }
+  .medium-group__label { font: 800 var(--fs-label) var(--font); letter-spacing: .04em; text-transform: uppercase; opacity: .6; margin-bottom: var(--space-2); }
+  .medium-group__chips { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+  .status-line { font: 800 13px var(--font); text-align: center; }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="page">
+  <!-- 1. หัวเรื่อง + คำอธิบายสั้น -->
+  <div class="topic-header">
+    <div class="topic-header__left">
+      <a class="back-btn" href="../../" aria-label="กลับสารบัญ">←</a>
+      <h1 class="topic-title">การหักเหของแสงและมุมวิกฤต <span class="en">REFRACTION &amp; CRITICAL ANGLE</span></h1>
+    </div>
+    <span class="badge-level is-filled">ม.ปลาย</span>
+  </div>
+  <p class="topic-desc">ปรับมุมตกกระทบและเลือกคู่ตัวกลาง แล้วดูรังสีหักเหเบนไปตามกฎของสเนลล์ จนถึงมุมวิกฤตที่รังสีหักเห "หายไป" กลายเป็นสะท้อนกลับหมดภายใน</p>
+
+  <div class="sim-row">
+    <!-- 2. โซน simulation -->
+    <div class="sim-zone" id="sim-zone"></div>
+
+    <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
+    <div class="controls">
+      <div class="tile-grid">
+        <div class="tile tile--cyan">
+          <div class="tile__label">มุมตกกระทบ · INCIDENT θ₁</div>
+          <div class="tile__value" id="tile-theta1">30<span class="tile__unit">°</span></div>
+        </div>
+        <div class="tile tile--magenta">
+          <div class="tile__label">มุมหักเห · REFRACTED θ₂</div>
+          <div class="tile__value" id="tile-theta2">—<span class="tile__unit" id="tile-theta2-unit"></span></div>
+        </div>
+        <div class="tile tile--yellow">
+          <div class="tile__label">มุมวิกฤต · CRITICAL θc</div>
+          <div class="tile__value" id="tile-thetac">—<span class="tile__unit" id="tile-thetac-unit"></span></div>
+        </div>
+        <div class="tile" id="tile-status">
+          <div class="tile__label">สถานะ · STATUS</div>
+          <div class="status-line" id="status-text">หักเหปกติ</div>
+        </div>
+      </div>
+
+      <div class="sliders">
+        <div class="slider--angle">
+          <div class="slider__row">
+            <span>มุมตกกระทบ · INCIDENT ANGLE</span>
+            <span class="slider__value" id="angle-value">30°</span>
+          </div>
+          <div class="slider__track" id="angle-track">
+            <div class="slider__fill" id="angle-fill"></div>
+            <div class="slider__thumb" id="angle-thumb"></div>
+          </div>
+        </div>
+
+        <div class="medium-group">
+          <div class="medium-group__label">ตัวกลางต้นทาง · SOURCE MEDIUM</div>
+          <div class="medium-group__chips" id="n1-chips"></div>
+        </div>
+
+        <div class="medium-group">
+          <div class="medium-group__label">ตัวกลางปลายทาง · DESTINATION MEDIUM</div>
+          <div class="medium-group__chips" id="n2-chips"></div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn-reset" id="reset-btn">RESET</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. คำอธิบายแนวคิด / สมการ -->
+  <div class="equations">
+    <div class="equation-card">
+      <span class="equation-card__label">กฎของสเนลล์ · SNELL'S LAW</span>
+      <span class="equation-card__formula">n<sub>1</sub> sinθ<sub>1</sub> = n<sub>2</sub> sinθ<sub>2</sub></span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">มุมวิกฤต · CRITICAL ANGLE (n₁ &gt; n₂)</span>
+      <span class="equation-card__formula">sinθ<sub>c</sub> = n<sub>2</sub> / n<sub>1</sub></span>
+    </div>
+  </div>
+
+  <div class="concept">
+    <h2>คำอธิบายแนวคิด</h2>
+    <p>
+      เมื่อแสงเดินทางจากตัวกลางหนึ่งไปยังอีกตัวกลางหนึ่ง ทิศทางของรังสีจะเบนไปตามกฎของสเนลล์ (n₁ sinθ₁ = n₂ sinθ₂):
+      ถ้าแสงเข้าตัวกลางที่มีดัชนีหักเหมากกว่า (n₂ &gt; n₁) รังสีหักเหจะเบน "เข้าหา" เส้นแนวฉาก
+      แต่ถ้าเข้าตัวกลางที่มีดัชนีหักเหน้อยกว่า (n₂ &lt; n₁) รังสีหักเหจะเบน "ออกจาก" เส้นแนวฉาก และเบนเร็วกว่ามุมตกกระทบเสมอ
+      เมื่อแสงเดินทางจากตัวกลางหนาแน่นไปเบาบางและมุมตกกระทบเพิ่มขึ้นเรื่อยๆ มุมหักเหจะเพิ่มเร็วกว่าจนถึง "มุมวิกฤต" (θc)
+      ซึ่งมุมหักเหเท่ากับ 90° พอดี — เลยจุดนี้ไปรังสีหักเหจะหายไปทั้งหมดและกลายเป็นการสะท้อนกลับหมดภายใน (Total Internal Reflection)
+      แทน โดยพลังงานแสงทั้งหมดสะท้อนกลับเข้าตัวกลางเดิม มุมวิกฤตขึ้นกับอัตราส่วนดัชนีหักเหของตัวกลางทั้งสอง (sinθc = n₂/n₁)
+      — ยิ่งตัวกลางต้นทางมีดัชนีหักเหสูงเทียบกับตัวกลางปลายทางมากเท่าไร มุมวิกฤตก็ยิ่งแคบลง เช่น เพชร (n ≈ 2.42) เทียบกับอากาศ
+      มีมุมวิกฤตแคบเพียง ~24° ทำให้แสงที่เข้าไปในเพชรสะท้อนกลับไปมาหลายครั้งก่อนออกมา นี่คือเหตุผลที่เพชรเจียระไนแล้ววาววับ
+    </p>
+  </div>
+</main>
+
+<script src="../../shared/sim/refraction.js"></script>
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), '../../');
+
+  var ANGLE_MIN = 0, ANGLE_MAX = 90;
+  var MATERIALS = [
+    { key: 'air', label: 'อากาศ', n: 1.00 },
+    { key: 'water', label: 'น้ำ', n: 1.33 },
+    { key: 'glass', label: 'แก้ว', n: 1.50 },
+    { key: 'diamond', label: 'เพชร', n: 2.42 }
+  ];
+  var n1Key = 'glass';
+  var n2Key = 'air';
+
+  function materialByKey(key) {
+    for (var i = 0; i < MATERIALS.length; i++) {
+      if (MATERIALS[i].key === key) return MATERIALS[i];
+    }
+    return MATERIALS[0];
+  }
+
+  function renderChips(containerId, groupRole, selectedKey) {
+    var el = document.getElementById(containerId);
+    el.innerHTML = MATERIALS.map(function (m) {
+      var active = m.key === selectedKey ? ' is-active' : '';
+      return '<button type="button" class="chip' + active + '" data-role="' + groupRole + '" data-key="' + m.key + '">' +
+        m.label + ' (' + m.n.toFixed(2) + ')</button>';
+    }).join('');
+  }
+
+  renderChips('n1-chips', 'n1', n1Key);
+  renderChips('n2-chips', 'n2', n2Key);
+
+  var sim = SimPatterns.refraction.create(document.getElementById('sim-zone'), {
+    angle: 30,
+    n1: materialByKey(n1Key).n,
+    n2: materialByKey(n2Key).n,
+    angleRange: [ANGLE_MIN, ANGLE_MAX],
+    onUpdate: function (vals) {
+      document.getElementById('tile-theta1').innerHTML = vals.theta1.toFixed(0) + '<span class="tile__unit">°</span>';
+      document.getElementById('angle-value').textContent = vals.theta1.toFixed(0) + '°';
+
+      var theta2El = document.getElementById('tile-theta2');
+      if (vals.tir) {
+        theta2El.innerHTML = '—';
+      } else {
+        theta2El.innerHTML = vals.theta2.toFixed(0) + '<span class="tile__unit">°</span>';
+      }
+
+      var thetaCEl = document.getElementById('tile-thetac');
+      if (vals.thetaC != null) {
+        thetaCEl.innerHTML = vals.thetaC.toFixed(0) + '<span class="tile__unit">°</span>';
+      } else {
+        thetaCEl.innerHTML = '—';
+      }
+
+      var statusTile = document.getElementById('tile-status');
+      var statusText = document.getElementById('status-text');
+      if (vals.tir) {
+        statusTile.className = 'tile tile--magenta';
+        statusText.textContent = 'สะท้อนกลับหมดภายใน · TOTAL INTERNAL REFLECTION';
+      } else {
+        statusTile.className = 'tile';
+        statusText.textContent = 'หักเหปกติ · NORMAL REFRACTION';
+      }
+
+      var anglePct = ((vals.theta1 - ANGLE_MIN) / (ANGLE_MAX - ANGLE_MIN)) * 100;
+      document.getElementById('angle-fill').style.width = anglePct + '%';
+      document.getElementById('angle-thumb').style.left = anglePct + '%';
+    }
+  });
+
+  function wireTrack(trackEl, min, max, onDrag) {
+    trackEl.addEventListener('pointerdown', function (e) {
+      var rect = trackEl.getBoundingClientRect();
+      function update(clientX) {
+        var frac = (clientX - rect.left) / rect.width;
+        frac = Math.max(0, Math.min(1, frac));
+        onDrag(min + frac * (max - min));
+      }
+      update(e.clientX);
+      function onMove(ev) { update(ev.clientX); }
+      function onUp() {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  }
+
+  wireTrack(document.getElementById('angle-track'), ANGLE_MIN, ANGLE_MAX, function (v) {
+    sim.setAngle(Math.round(v));
+  });
+
+  document.getElementById('n1-chips').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-key]');
+    if (!btn) return;
+    n1Key = btn.dataset.key;
+    renderChips('n1-chips', 'n1', n1Key);
+    sim.setN1(materialByKey(n1Key).n);
+  });
+
+  document.getElementById('n2-chips').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-key]');
+    if (!btn) return;
+    n2Key = btn.dataset.key;
+    renderChips('n2-chips', 'n2', n2Key);
+    sim.setN2(materialByKey(n2Key).n);
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', function () {
+    n1Key = 'glass';
+    n2Key = 'air';
+    renderChips('n1-chips', 'n1', n1Key);
+    renderChips('n2-chips', 'n2', n2Key);
+    sim.reset();
+  });
+</script>
+</body>
+</html>

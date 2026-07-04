@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>กราฟการเคลื่อนที่ (x-t, v-t, a-t) — PHYSICS-SIM</title>
+<script src="../../shared/config.js"></script>
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="../../shared/skins/comic.css">
+<script src="../../shared/layout.js"></script>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="page">
+  <!-- 1. หัวเรื่อง + คำอธิบายสั้น -->
+  <div class="topic-header">
+    <div class="topic-header__left">
+      <a class="back-btn" href="../../" aria-label="กลับสารบัญ">←</a>
+      <h1 class="topic-title">กราฟการเคลื่อนที่ <span class="en">MOTION GRAPHS (x-t, v-t, a-t)</span></h1>
+    </div>
+    <span class="badge-level is-filled">ม.ปลาย</span>
+  </div>
+  <p class="topic-desc">ปรับความเร็วต้นและความเร่ง แล้วกด "ปล่อย" เพื่อดูรถวิ่งบนถนนตรงคู่ไปกับกราฟ x-t, v-t, a-t ที่วาดสดตามเวลาจริง</p>
+
+  <div class="sim-row">
+    <!-- 2. โซน simulation -->
+    <div class="sim-zone" id="sim-zone"></div>
+
+    <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
+    <div class="controls">
+      <div class="tile-grid">
+        <div class="tile tile--cyan">
+          <div class="tile__label">ตำแหน่ง · POSITION</div>
+          <div class="tile__value" id="tile-x">0.0<span class="tile__unit">m</span></div>
+        </div>
+        <div class="tile tile--magenta">
+          <div class="tile__label">ความเร็ว · VELOCITY</div>
+          <div class="tile__value" id="tile-v">5.0<span class="tile__unit">m/s</span></div>
+        </div>
+        <div class="tile tile--yellow">
+          <div class="tile__label">ความเร่ง · ACCELERATION</div>
+          <div class="tile__value" id="tile-a">2.0<span class="tile__unit">m/s²</span></div>
+        </div>
+        <div class="tile">
+          <div class="tile__label">TIME</div>
+          <div class="tile__value" id="tile-time">0.0<span class="tile__unit">s</span></div>
+        </div>
+      </div>
+
+      <div class="sliders">
+        <div class="slider--velocity">
+          <div class="slider__row">
+            <span>ความเร็วต้น · INIT. VELOCITY (v₀)</span>
+            <span class="slider__value" id="v0-value">5.0 m/s</span>
+          </div>
+          <div class="slider__track" id="v0-track">
+            <div class="slider__fill" id="v0-fill"></div>
+            <div class="slider__thumb" id="v0-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--angle">
+          <div class="slider__row">
+            <span>ความเร่ง · ACCELERATION (a)</span>
+            <span class="slider__value" id="a-value">2.0 m/s²</span>
+          </div>
+          <div class="slider__track" id="a-track">
+            <div class="slider__fill" id="a-fill"></div>
+            <div class="slider__thumb" id="a-thumb"></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn-play" id="play-btn">▶ ปล่อย</button>
+          <button type="button" class="btn-reset" id="reset-btn">RESET</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. คำอธิบายแนวคิด / สมการ -->
+  <div class="equations">
+    <div class="equation-card">
+      <span class="equation-card__label">ตำแหน่ง · POSITION</span>
+      <span class="equation-card__formula">x = x<sub>0</sub> + v<sub>0</sub>t + ½at<sup>2</sup></span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">ความเร็ว · VELOCITY</span>
+      <span class="equation-card__formula">v = v<sub>0</sub> + at</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">ระยะทาง · DISTANCE</span>
+      <span class="equation-card__formula">ระยะทาง = พื้นที่ใต้กราฟ v-t</span>
+    </div>
+  </div>
+
+  <div class="concept">
+    <h2>คำอธิบายแนวคิด</h2>
+    <p>
+      เวลาดูกราฟ v-t เด็กจำนวนมากอ่านเป็น "เส้นทางที่วัตถุวิ่ง" — เห็นเส้นชันขึ้นก็คิดว่าวัตถุกำลังวิ่งขึ้นเนิน ทั้งที่จริงวัตถุอาจวิ่งอยู่บนถนนราบเส้นตรงเดียว
+      กราฟกับเส้นทางจริงเป็นคนละเรื่องกัน simulation นี้แสดงรถวิ่งบนถนนตรงคู่ไปกับกราฟ 3 เส้นที่วาดสดตามเวลาจริง เพื่อให้เห็นชัดว่ารถวิ่งไปข้างหน้าทางเดียว
+      แต่กราฟตำแหน่งกับความเร็วโค้งขึ้นลงได้อิสระตามความเร่งที่ปรับ ความชันของกราฟ x-t ณ จุดหนึ่งคือความเร็ว ณ เวลานั้น ความชันของกราฟ v-t คือความเร่ง
+      และพื้นที่แรเงาใต้กราฟ v-t (ไม่ใช่ความสูงของกราฟ) คือระยะทางที่เคลื่อนที่ได้ ลองปรับความเร็วต้นเป็นลบเพื่อดูกรณีวัตถุถอยหลังและกราฟ x-t ลดลงได้ด้วย
+    </p>
+  </div>
+</main>
+
+<script src="../../shared/sim/motion-graphs.js"></script>
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), '../../');
+
+  var V0_MIN = -20, V0_MAX = 20;
+  var A_MIN = -10, A_MAX = 10;
+
+  var sim = SimPatterns.motionGraphs.create(document.getElementById('sim-zone'), {
+    v0: 5,
+    a: 2,
+    v0Range: [V0_MIN, V0_MAX],
+    aRange: [A_MIN, A_MAX],
+    onUpdate: function (vals) {
+      document.getElementById('tile-x').innerHTML = vals.x.toFixed(1) + '<span class="tile__unit">m</span>';
+      document.getElementById('tile-v').innerHTML = vals.v.toFixed(1) + '<span class="tile__unit">m/s</span>';
+      document.getElementById('tile-a').innerHTML = vals.a.toFixed(1) + '<span class="tile__unit">m/s²</span>';
+      document.getElementById('tile-time').innerHTML = vals.t.toFixed(1) + '<span class="tile__unit">s</span>';
+
+      document.getElementById('v0-value').textContent = vals.v0.toFixed(1) + ' m/s';
+      document.getElementById('a-value').textContent = vals.a.toFixed(1) + ' m/s²';
+
+      var v0Pct = ((vals.v0 - V0_MIN) / (V0_MAX - V0_MIN)) * 100;
+      var aPct = ((vals.a - A_MIN) / (A_MAX - A_MIN)) * 100;
+      document.getElementById('v0-fill').style.width = v0Pct + '%';
+      document.getElementById('v0-thumb').style.left = v0Pct + '%';
+      document.getElementById('a-fill').style.width = aPct + '%';
+      document.getElementById('a-thumb').style.left = aPct + '%';
+
+      document.getElementById('play-btn').textContent = vals.playing ? '❚❚ หยุด' : '▶ ปล่อย';
+    }
+  });
+
+  function wireTrack(trackEl, min, max, onDrag) {
+    trackEl.addEventListener('pointerdown', function (e) {
+      var rect = trackEl.getBoundingClientRect();
+      function update(clientX) {
+        var frac = (clientX - rect.left) / rect.width;
+        frac = Math.max(0, Math.min(1, frac));
+        onDrag(min + frac * (max - min));
+      }
+      update(e.clientX);
+      function onMove(ev) { update(ev.clientX); }
+      function onUp() {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  }
+
+  wireTrack(document.getElementById('v0-track'), V0_MIN, V0_MAX, function (v) {
+    sim.setV0(Math.round(v * 10) / 10);
+  });
+  wireTrack(document.getElementById('a-track'), A_MIN, A_MAX, function (v) {
+    sim.setA(Math.round(v * 10) / 10);
+  });
+
+  document.getElementById('play-btn').addEventListener('click', function () { sim.play(); });
+  document.getElementById('reset-btn').addEventListener('click', function () { sim.reset(); });
+</script>
+</body>
+</html>

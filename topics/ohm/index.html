@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>วงจรไฟฟ้าและกฎของโอห์ม — PHYSICS-SIM</title>
+<script src="../../shared/config.js"></script>
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="../../shared/skins/comic.css">
+<script src="../../shared/layout.js"></script>
+<style>
+  /* ---- ส่วนขยายเฉพาะเรื่องนี้ — ใช้ design token เท่านั้น ห้ามฝัง hex/ฟอนต์ใหม่ ---- */
+  .mode-tabs { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-3); }
+  .slider--voltage    { --slider-accent: var(--cyan);    --slider-accent-fg: var(--cyan-fg); }
+  .slider--resistance { --slider-accent: var(--magenta); --slider-accent-fg: var(--magenta-fg); }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="page">
+  <!-- 1. หัวเรื่อง + คำอธิบายสั้น -->
+  <div class="topic-header">
+    <div class="topic-header__left">
+      <a class="back-btn" href="../../" aria-label="กลับสารบัญ">←</a>
+      <h1 class="topic-title">วงจรไฟฟ้าและกฎของโอห์ม <span class="en">OHM'S LAW</span></h1>
+    </div>
+    <span class="badge-level is-filled">ม.ต้น</span>
+  </div>
+  <p class="topic-desc">ปรับแรงดันไฟฟ้าและความต้านทาน แล้วสลับวงจรอนุกรม/ขนาน ดูจุดประจุไหลและความสว่างหลอดไฟเปลี่ยนแบบ realtime</p>
+
+  <div class="sim-row">
+    <!-- 2. โซน simulation -->
+    <div class="sim-zone" id="sim-zone"></div>
+
+    <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
+    <div class="controls">
+      <div class="tile-grid">
+        <div class="tile tile--cyan">
+          <div class="tile__label">กระแสรวม · TOTAL I</div>
+          <div class="tile__value" id="tile-current">0.30<span class="tile__unit">A</span></div>
+        </div>
+        <div class="tile tile--yellow">
+          <div class="tile__label">ความต้านทานรวม · R TOTAL</div>
+          <div class="tile__value" id="tile-rtotal">40<span class="tile__unit">Ω</span></div>
+        </div>
+        <div class="tile tile--magenta">
+          <div class="tile__label" id="label-branch1">กระแสผ่านหลอด 1</div>
+          <div class="tile__value" id="tile-branch1">0.30<span class="tile__unit">A</span></div>
+        </div>
+        <div class="tile">
+          <div class="tile__label" id="label-branch2">กระแสผ่านหลอด 2</div>
+          <div class="tile__value" id="tile-branch2">0.30<span class="tile__unit">A</span></div>
+        </div>
+      </div>
+
+      <div class="sliders">
+        <div class="mode-tabs" id="modeTabs">
+          <button type="button" class="chip is-active" data-mode="series">อนุกรม · SERIES</button>
+          <button type="button" class="chip" data-mode="parallel">ขนาน · PARALLEL</button>
+        </div>
+
+        <div class="slider--voltage">
+          <div class="slider__row">
+            <span>แรงดันไฟฟ้า · VOLTAGE (V)</span>
+            <span class="slider__value" id="v-value">6 V</span>
+          </div>
+          <div class="slider__track" id="v-track">
+            <div class="slider__fill" id="v-fill"></div>
+            <div class="slider__thumb" id="v-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--resistance">
+          <div class="slider__row">
+            <span>ความต้านทาน · RESISTANCE (R)</span>
+            <span class="slider__value" id="r-value">20 Ω</span>
+          </div>
+          <div class="slider__track" id="r-track">
+            <div class="slider__fill" id="r-fill"></div>
+            <div class="slider__thumb" id="r-thumb"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. คำอธิบายแนวคิด / สมการ -->
+  <div class="equations">
+    <div class="equation-card">
+      <span class="equation-card__label">กฎของโอห์ม · OHM'S LAW</span>
+      <span class="equation-card__formula">I = V / R</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">ความต้านทานรวม (อนุกรม) · SERIES</span>
+      <span class="equation-card__formula">R<sub>รวม</sub> = R<sub>1</sub> + R<sub>2</sub></span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">ความต้านทานรวม (ขนาน) · PARALLEL</span>
+      <span class="equation-card__formula">1/R<sub>รวม</sub> = 1/R<sub>1</sub> + 1/R<sub>2</sub></span>
+    </div>
+  </div>
+
+  <div class="concept">
+    <h2>คำอธิบายแนวคิด</h2>
+    <p>
+      กระแสไฟฟ้าคือการไหลของประจุในวงจรปิด ไม่ใช่สิ่งที่ถูก "ใช้หมด" ระหว่างทาง — จุดสีในภาพจำลองด้านบนแทนประจุไฟฟ้าที่วิ่งไปตามเส้นลวดจริง
+      ในวงจรอนุกรม จุดทุกจุดวิ่งด้วยอัตราเร็วเท่ากันทุกช่วงของวงจร แสดงว่ากระแส I มีค่าเท่ากันทุกจุด หลอดไฟทั้งสองดวงจึงสว่างพร้อมกันเสมอ
+      ไม่ใช่หลอดใกล้แหล่งจ่ายสว่างก่อน ปรับแรงดัน (V) หรือความต้านทาน (R) แล้วกระแสจะเปลี่ยนทันทีตามกฎของโอห์ม I = V/R
+      เมื่อสลับเป็นวงจรขนาน กระแสจะแยกไหลไปแต่ละกิ่งอิสระต่อกัน (สังเกตจุดสีฟ้ากับสีชมพูวิ่งคนละอัตราเร็วได้ถ้าปรับให้ไม่เท่ากัน)
+      และกระแสรวมจากแหล่งจ่ายเท่ากับผลรวมกระแสทุกกิ่ง — ความต้านทานรวมของวงจรขนานจึงน้อยกว่าของแต่ละกิ่งเดี่ยวๆ ทำให้กระแสรวมสูงกว่าวงจรอนุกรมที่ค่า V, R เท่ากัน
+    </p>
+  </div>
+</main>
+
+<script src="../../shared/sim/circuit-ohm.js"></script>
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), '../../');
+
+  var V_MIN = 1, V_MAX = 12;
+  var R_MIN = 1, R_MAX = 100;
+
+  function fmtCurrent(i) { return i.toFixed(2); }
+  function fmtR(r) { return (Math.round(r * 10) / 10).toString(); }
+
+  var sim = SimPatterns.circuitOhm.create(document.getElementById('sim-zone'), {
+    voltage: 6,
+    resistance: 20,
+    mode: 'series',
+    vRange: [V_MIN, V_MAX],
+    rRange: [R_MIN, R_MAX],
+    onUpdate: function (vals) {
+      document.getElementById('tile-current').innerHTML = fmtCurrent(vals.current) + '<span class="tile__unit">A</span>';
+      document.getElementById('tile-rtotal').innerHTML = fmtR(vals.rTotal) + '<span class="tile__unit">Ω</span>';
+      document.getElementById('tile-branch1').innerHTML = fmtCurrent(vals.branch[0]) + '<span class="tile__unit">A</span>';
+      document.getElementById('tile-branch2').innerHTML = fmtCurrent(vals.branch[1]) + '<span class="tile__unit">A</span>';
+
+      if (vals.mode === 'series') {
+        document.getElementById('label-branch1').textContent = 'กระแสผ่านหลอด 1';
+        document.getElementById('label-branch2').textContent = 'กระแสผ่านหลอด 2';
+      } else {
+        document.getElementById('label-branch1').textContent = 'กระแสกิ่งที่ 1';
+        document.getElementById('label-branch2').textContent = 'กระแสกิ่งที่ 2';
+      }
+
+      document.getElementById('v-value').textContent = vals.voltage + ' V';
+      document.getElementById('r-value').textContent = vals.resistance + ' Ω';
+
+      var vPct = ((vals.voltage - V_MIN) / (V_MAX - V_MIN)) * 100;
+      var rPct = ((vals.resistance - R_MIN) / (R_MAX - R_MIN)) * 100;
+      document.getElementById('v-fill').style.width = vPct + '%';
+      document.getElementById('v-thumb').style.left = vPct + '%';
+      document.getElementById('r-fill').style.width = rPct + '%';
+      document.getElementById('r-thumb').style.left = rPct + '%';
+    }
+  });
+
+  function wireTrack(trackEl, min, max, onDrag) {
+    trackEl.addEventListener('pointerdown', function (e) {
+      var rect = trackEl.getBoundingClientRect();
+      function update(clientX) {
+        var frac = (clientX - rect.left) / rect.width;
+        frac = Math.max(0, Math.min(1, frac));
+        onDrag(min + frac * (max - min));
+      }
+      update(e.clientX);
+      function onMove(ev) { update(ev.clientX); }
+      function onUp() {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  }
+
+  wireTrack(document.getElementById('v-track'), V_MIN, V_MAX, function (v) {
+    sim.setVoltage(Math.round(v));
+  });
+  wireTrack(document.getElementById('r-track'), R_MIN, R_MAX, function (r) {
+    sim.setResistance(Math.round(r));
+  });
+
+  var modeTabs = document.getElementById('modeTabs');
+  modeTabs.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-mode]');
+    if (!btn) return;
+    Array.prototype.forEach.call(modeTabs.querySelectorAll('button'), function (b) {
+      b.classList.toggle('is-active', b === btn);
+    });
+    sim.setMode(btn.dataset.mode);
+  });
+</script>
+</body>
+</html>
