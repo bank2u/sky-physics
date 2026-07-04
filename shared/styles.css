@@ -295,7 +295,14 @@ body {
   cursor: pointer; display: flex; align-items: center; justify-content: center; border: none;
   transition: transform var(--dur-fast) var(--ease-bounce);
 }
-.btn-play { flex: 2; background: var(--ink); color: var(--paper); font: 900 19px var(--font); box-shadow: var(--shadow-btn); }
+.btn-play {
+  flex: 2; font: 900 19px var(--font); box-shadow: var(--shadow-btn);
+  /* 30% cyan tint (ตามกฎ "อิ่มตัวเต็มเฉพาะ sim zone/value tile ที่อื่น tint 30-34%" ใน DESIGN.md) —
+     คำนวณสดแทนใช้ --tile-cyan-bg เพราะ token นั้นตั้งใจ flatten เป็น --surface ในโหมดมืด (สำหรับ value tile
+     ที่ให้ตัวเลขเรืองแสงแทน) ซึ่งจะทำให้ปุ่มหลักกลืนกับพื้นแผงควบคุมและเสียความโดดเด่นของปุ่มหลัก */
+  background: color-mix(in oklab, var(--cyan) 30%, var(--surface));
+  color: var(--cyan-fg);
+}
 .btn-reset { flex: 1; background: var(--surface); color: var(--ink); font: 900 15px var(--font); border: var(--border-w) solid var(--ink); }
 .btn-play:active, .btn-reset:active { transform: scale(.96); }
 

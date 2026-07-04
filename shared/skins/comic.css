@@ -22,6 +22,13 @@
   --radius: 10px;
   --radius-lg: 16px;
   --radius-xl: 22px;
+
+  /* เส้นตัดหนาแบบการ์ตูน (inked linework) — หนากว่า dot-matrix ทุกจุดที่ใช้ token นี้ */
+  --border-w: 4px;
+  --border-w-sm: 3px;
+
+  /* เงาปุ่มหลักเป็น solid ink แบบสติกเกอร์ แทน rgba โปร่งของ dot-matrix */
+  --shadow-btn: 4px 4px 0 var(--ink);
 }
 
 /* พื้นกระดาษ halftone แบบ comic (ทับ dot ปกติของ dot-matrix) */
@@ -66,4 +73,28 @@
 /* กรอบสรุปสั้น/คำอธิบาย ใช้เส้นประหนาแบบช่องการ์ตูน */
 :root[data-skin="comic"] .recap-strip {
   border-style: dashed;
+}
+
+/* สีหลัก 3 สีของ comic มีหน้าที่ตายตัว ไม่ใช่สุ่มแปะ: เหลือง = ป้าย/แท็ก (ต่อยอดจากโลโก้ + .en),
+   แดง = ปุ่มหลัก, ฟ้า = สถานะ active — ให้ตรงกับธรรมเนียมสีคอมิคฮีโร่ (แดง-น้ำเงิน-เหลือง)
+   แก้ปัญหาที่ปุ่ม/ป้ายเดิมใช้ var(--ink) ตรงๆ ทำให้ทั้งหน้าดูขาวดำแม้จะมี accent สีอื่นอยู่ */
+
+:root[data-skin="comic"] .btn-play {
+  background: var(--magenta-fg);
+  color: var(--surface);
+  border: var(--border-w-sm) solid var(--ink);
+}
+:root[data-skin="comic"] .btn-play:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+:root[data-skin="comic"] .chip.is-active {
+  background: var(--cyan-fg);
+  color: var(--surface);
+}
+
+:root[data-skin="comic"] .badge-level.is-filled {
+  background: var(--yellow);
+  color: var(--ink);
 }

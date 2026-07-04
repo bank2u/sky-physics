@@ -106,7 +106,8 @@ Responsive: ≥900px → `.sim-row` เป็น grid `1.6fr/1fr` (sim ซ้า
 - **Topic card**: `.card` (ใหญ่, shadow-lg) และ `.card--compact` (เล็ก, shadow-md) + `.badge-level`
 - **Value tile**: `.tile--cyan/--magenta/--yellow` (tint พื้นหลังใน light, glow ตัวเลขใน dark)
 - **Slider**: `.slider--angle` (cyan) / `.slider--velocity` (magenta) — track หนา 26px, thumb วงกลม 40px
-- **ปุ่ม**: `.btn-play` (fill ink), `.btn-reset` (outline)
+- **ปุ่ม**: `.btn-play` (tint cyan 30% + `--cyan-fg` ตามกฎ tile ด้านบน — ไม่ fill ink เหมือนเดิม เพื่อให้ปุ่มหลักมีสี
+  ไม่ใช่ดำ-ขาวล้วน), `.btn-reset` (outline)
 - **Equation card**: `.equation-card`
 
 ## กฎที่ห้ามฝ่าฝืน
