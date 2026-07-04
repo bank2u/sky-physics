@@ -1,7 +1,8 @@
 /* Skin: Comic Lab — pop-art comic บนพื้นสว่าง (light เท่านั้น — ประกาศใน shared/config.js)
    Scope ทุก rule ใต้ [data-skin="comic"] — ห้ามมี rule นอก scope นี้
-   Token contract: override เฉพาะค่า ห้ามเพิ่มชื่อ token ใหม่นอกเหนือจากที่ :root ใน styles.css ประกาศ */
-@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700;800;900&family=Bungee&display=swap');
+   Token contract: override เฉพาะค่า ห้ามเพิ่มชื่อ token ใหม่นอกเหนือจากที่ :root ใน styles.css ประกาศ
+   ฟอนต์ Kanit/Bungee โหลดผ่าน shared/layout.js (skins[skin].fontsUrl) ไม่ใช้ @import ที่นี่
+   เพราะ @import โหลดทุกหน้าไม่ว่า skin ไหนทำงานอยู่ ไม่ถูก scope ด้วย [data-skin] */
 
 :root[data-skin="comic"] {
   --ink: #14161f;

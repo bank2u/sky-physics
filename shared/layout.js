@@ -16,6 +16,14 @@
   // แสตมป์ skin ทันที (script นี้รัน sync ใน head) กัน flash ของ skin default
   document.documentElement.setAttribute('data-skin', skinName);
 
+  // โหลดฟอนต์ภายนอกเฉพาะ skin ที่ active (ไม่ใช้ @import ใน skin css เพราะจะโหลดทุกหน้าไม่ว่า skin ไหนทำงานอยู่)
+  if (skinDef.fontsUrl) {
+    var fontLink = document.createElement('link');
+    fontLink.rel = 'stylesheet';
+    fontLink.href = skinDef.fontsUrl;
+    document.head.appendChild(fontLink);
+  }
+
   function storedTheme() {
     var v = localStorage.getItem(STORAGE_KEY);
     return v === 'dark' || v === 'light' ? v : null;
