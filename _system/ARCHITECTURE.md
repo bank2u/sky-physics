@@ -8,9 +8,11 @@
 physics-sim/
 ├── index.html              # สารบัญ — render จาก _system/topics.json ห้ามแก้ตรงๆ
 ├── shared/
-│   ├── styles.css          # design tokens เดียว — ทุกเรื่องอ้างผ่านตรงนี้เท่านั้น
-│   ├── layout.js            # โครง 5 ส่วน + dark/light toggle
-│   └── sim/<pattern>.js     # คลัง simulation ใช้ซ้ำข้ามเรื่อง
+│   ├── config.js            # เลือก skin ระดับ deploy + ทะเบียน skin/modes/fontsUrl (ดู §7)
+│   ├── styles.css          # design tokens เดียว — ทุกเรื่องอ้างผ่านตรงนี้เท่านั้น (= dot-matrix skin)
+│   ├── skins/<name>.css     # skin อื่นนอกจาก dot-matrix — CSS ล้วน scope ใต้ [data-skin] (ดู §7)
+│   ├── layout.js            # โครง 5 ส่วน + dark/light toggle + stamp data-skin + dispatch themechange
+│   └── sim/<pattern>.js     # คลัง simulation ใช้ซ้ำข้ามเรื่อง — ต้อง resolve สีจาก token + ฟัง themechange
 ├── topics/<id>/
 │   ├── index.html           # 1 เรื่อง = 1 หน้า = 1 ระดับชั้น
 │   └── spec.md              # content spec เก็บคู่ไว้ regenerate หน้าใหม่ได้เสมอ
@@ -80,8 +82,28 @@ Skill map ปัจจุบัน:
 | กฎ | บังคับใช้ที่ |
 |----|--------------|
 | ห้ามฝัง hex/px ตรงๆ | build-workflow verify |
-| ห้าม external font/CDN/analytics | build-workflow verify |
+| ห้าม external font/CDN/analytics — **ยกเว้น** font ที่ skin ประกาศผ่าน `fontsUrl` ใน `shared/config.js` (โหลดแบบมีเงื่อนไขโดย `layout.js` เฉพาะตอน skin นั้น active เท่านั้น — ห้าม `@import` ตรงในไฟล์ skin css เพราะไม่ถูก scope ด้วย `[data-skin]`, ดู §7) | build-workflow verify + skin review |
 | `topics.json` schema ต้องถูก (level/category/id) | publish-workflow |
 | ลบเรื่อง = soft-delete (`active:false`) เท่านั้น | publish-workflow |
 | commit ตรง `main`, Conventional Commits prefix | ทุก commit |
 | ไม่มี `package.json`/build step ที่ commit | ทั้ง repo |
+
+## 7. Skin System (Theme)
+
+เพิ่มเข้ามา 2026-07 (ดู `docs/superpowers/plans/2026-07-04-theme-system.md`) — คนละ workflow กับการเพิ่ม/แก้เรื่อง
+ข้างบน: skin เป็น **การตัดสินใจระดับ deploy** ไม่ใช่เนื้อหา จึงไม่ผ่าน spec-workflow/build-workflow/publish-workflow
+
+**สองแกนที่แยกกัน:**
+- **Skin** = visual identity เต็มรูปแบบ (สี ฟอนต์ เงา ลวดลาย) — deployer เลือกครั้งเดียวทั้งเว็บผ่าน `shared/config.js`
+- **Mode** = light/dark ภายใน skin — ผู้ใช้กดปุ่ม toggle เอง, จำใน `localStorage`; skin ที่รองรับโหมดเดียวจะถูกบังคับโหมดนั้นและซ่อนปุ่ม toggle อัตโนมัติ
+
+**สถาปัตยกรรม (ไล่ตามลำดับโหลด):**
+1. `shared/config.js` — data ล้วน โหลด sync ก่อนทุกอย่าง: `{ skin, skins: { <name>: { modes, fontsUrl? } } }`
+2. `shared/layout.js` — อ่าน config แล้ว sync ก่อน paint: แสตมป์ `data-skin` บน `<html>`, บังคับ `data-theme` ถ้า skin รองรับโหมดเดียว, แทรก `<link rel="stylesheet">` จาก `fontsUrl` ถ้า skin นั้นประกาศไว้, และ dispatch `physics-sim:themechange` ทุกครั้งที่ skin/mode เปลี่ยน
+3. `shared/skins/<name>.css` — CSS ล้วน scope ใต้ `:root[data-skin="<name>"]` เท่านั้น override ได้เฉพาะ token ที่ `:root` ใน `shared/styles.css` ประกาศไว้แล้ว (token contract) ห้ามเพิ่มชื่อ token ใหม่ ห้ามแตะโครง DOM
+4. sim ที่วาดลง canvas (เช่น `shared/sim/vector3d.js`) resolve สีจาก CSS token ตอนสร้าง แล้วต้องฟัง `physics-sim:themechange` เพื่อล้าง cache + re-resolve สีใหม่ (ไม่งั้นสีจะค้างตอนสลับ skin/mode — เคยเป็นบั๊กจริงมาก่อน)
+5. ไม่ระบุ `data-skin` เลย (เช่น JS พัง) = ยัง fallback เป็น dot-matrix ได้จาก `:root` ของ `shared/styles.css` ตรงๆ โดยไม่พึ่ง JS
+
+**เปลี่ยน skin ที่ deploy อยู่:** แก้บรรทัด `skin: 'dot-matrix'` ใน `shared/config.js` เป็นชื่อ skin ที่ต้องการ แล้ว commit/push — ดูขั้นตอนเต็มใน `README.md` หัวข้อ "เปลี่ยน skin"
+
+**เพิ่ม skin ใหม่:** สร้าง `shared/skins/<name>.css` ตามกฎ token contract ข้างบน, ลิงก์ไฟล์นั้นในทุกหน้า (ต่อจาก `styles.css` ใน `<head>`), ลงทะเบียนใน `skins` ของ `config.js` (พร้อม `fontsUrl` ถ้าต้องใช้ฟอนต์ภายนอก) — รายละเอียดกฎเต็มอยู่ใน skill `page-template` ส่วน "Skin system"

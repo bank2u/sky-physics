@@ -1,5 +1,10 @@
 # Design System — "Dot-Matrix Lab"
 
+> ตั้งแต่เพิ่ม skin system (2026-07) เอกสารนี้อธิบายเฉพาะ **`dot-matrix`** — skin ค่าเริ่มต้นของเว็บ (ground truth
+> ของ token ทุกตัวที่ประกาศใน `:root` ของ `shared/styles.css`) skin อื่น (เช่น `comic`) อยู่ที่ `shared/skins/<name>.css`
+> override เฉพาะค่า token จากที่นี่ ไม่ประกาศ token ใหม่ — สถาปัตยกรรม skin/mode เต็มดูที่ `_system/ARCHITECTURE.md` §7,
+> วิธีสลับ skin ที่ deploy อยู่ดูที่ `README.md` หัวข้อ "เปลี่ยน skin"
+
 ทิศทางภาพที่เลือกใช้จริงสำหรับ physics-sim (direction 1b จาก design handoff บน claude.ai/design)
 neo-brutalist โทนสะอาด: การ์ดขอบมน + hard sticker shadow (offset ไม่มี blur) + พื้นผิว dot-grid ในโซน simulation
 + สีเน้นตามหมวดวิชา Light Mode เป็นค่าเริ่มต้น พร้อม Slate Dark Mode ผ่าน `prefers-color-scheme` และปุ่มสลับมือ

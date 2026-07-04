@@ -34,7 +34,7 @@
 - Produces: `window.PhysicsSimConfig = { skin: string, skins: { [name]: { modes: string[] } } }` — Task 2 (layout.js) อ่าน object นี้
 - ลำดับโหลดใน head: `config.js` → `styles.css` → `layout.js` (config ต้องมาก่อน layout.js เพราะ layout.js รันทันทีตอน parse)
 
-- [ ] **Step 1: สร้าง `shared/config.js`**
+- [x] **Step 1: สร้าง `shared/config.js`**
 
 ```js
 /* shared/config.js — ตั้งค่าระดับ deploy: เลือก skin ของทั้งเว็บ
@@ -52,12 +52,12 @@ window.PhysicsSimConfig = {
 };
 ```
 
-- [ ] **Step 2: ตรวจ syntax**
+- [x] **Step 2: ตรวจ syntax**
 
 Run: `node --check shared/config.js`
 Expected: ไม่มี output (ผ่าน)
 
-- [ ] **Step 3: แก้ head ของ `index.html`**
+- [x] **Step 3: แก้ head ของ `index.html`**
 
 เดิม (บรรทัด 7-8):
 ```html
@@ -71,7 +71,7 @@ Expected: ไม่มี output (ผ่าน)
 <script src="shared/layout.js"></script>
 ```
 
-- [ ] **Step 4: แก้ head ของ topic ทั้งสองหน้า (path ลึกกว่า ใช้ `../../`)**
+- [x] **Step 4: แก้ head ของ topic ทั้งสองหน้า (path ลึกกว่า ใช้ `../../`)**
 
 `topics/projectile-motion/index.html` และ `topics/right-hand-rule/index.html` — เดิม:
 ```html
@@ -85,17 +85,17 @@ Expected: ไม่มี output (ผ่าน)
 <script src="../../shared/layout.js"></script>
 ```
 
-- [ ] **Step 5: ตรวจว่า wire ครบและลำดับถูก**
+- [x] **Step 5: ตรวจว่า wire ครบและลำดับถูก**
 
 Run: `grep -B1 'shared/styles.css' index.html topics/projectile-motion/index.html topics/right-hand-rule/index.html`
 Expected: ทั้ง 3 หน้าเห็นบรรทัด `config.js` อยู่เหนือ `styles.css`
 
-- [ ] **Step 6: ตรวจหน้าเสิร์ฟได้**
+- [x] **Step 6: ตรวจหน้าเสิร์ฟได้**
 
 Run: `(npx --yes serve -l 5713 . >/tmp/serve.log 2>&1 &) ; sleep 2 ; for p in index.html shared/config.js topics/right-hand-rule/index.html topics/projectile-motion/index.html; do curl -sL -o /dev/null -w "$p %{http_code}\n" http://localhost:5713/$p; done`
 Expected: 200 ทั้ง 4 บรรทัด
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add shared/config.js index.html topics/projectile-motion/index.html topics/right-hand-rule/index.html
@@ -117,7 +117,7 @@ git commit -m "feat(theme): add deploy-level skin config and wire into page head
   - `CustomEvent('physics-sim:themechange')` บน `document` ทุกครั้งที่โหมดเปลี่ยน — Task 4 ฟัง event นี้
   - `window.PhysicsSimLayout = { mountTopbar, isDark, setTheme }` (API เดิม ไม่เปลี่ยน signature)
 
-- [ ] **Step 1: แทนที่เนื้อหา `shared/layout.js` ทั้งไฟล์**
+- [x] **Step 1: แทนที่เนื้อหา `shared/layout.js` ทั้งไฟล์**
 
 ```js
 /* shared/layout.js — โครง 5 ส่วนของ page: top bar ร่วม (โลโก้ Φ + toggle มืด/สว่าง)
@@ -192,17 +192,17 @@ git commit -m "feat(theme): add deploy-level skin config and wire into page head
 })();
 ```
 
-- [ ] **Step 2: ตรวจ syntax**
+- [x] **Step 2: ตรวจ syntax**
 
 Run: `node --check shared/layout.js`
 Expected: ไม่มี output (ผ่าน)
 
-- [ ] **Step 3: ตรวจพฤติกรรมด้วย grep (proxy test — ไม่มี DOM test framework)**
+- [x] **Step 3: ตรวจพฤติกรรมด้วย grep (proxy test — ไม่มี DOM test framework)**
 
 Run: `grep -c "data-skin\|physics-sim:themechange\|modes.length" shared/layout.js`
 Expected: ≥ 5 (แสตมป์ skin 1, dispatch 1, เช็คโหมดเดียว ≥ 3)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add shared/layout.js
@@ -219,7 +219,7 @@ git commit -m "feat(theme): stamp data-skin, per-skin mode lock, themechange eve
 **Interfaces:**
 - Produces: ทุกไฟล์ revalidate ผ่าน ETag ทุกโหลด ยกเว้น `shared/vendor/*` cache ถาวร — ไม่มี task ไหน consume โดยตรง แต่เป็น requirement จาก spec ("Cache strategy")
 
-- [ ] **Step 1: แทนที่ `vercel.json` ทั้งไฟล์**
+- [x] **Step 1: แทนที่ `vercel.json` ทั้งไฟล์**
 
 หมายเหตุ: ใน Vercel เมื่อหลาย source match path เดียวกัน entry ที่มา**ทีหลัง**ชนะสำหรับ header key เดียวกัน — จึงวาง rule ทั่วไปก่อน แล้ว vendor override ทีหลัง
 
@@ -245,12 +245,12 @@ git commit -m "feat(theme): stamp data-skin, per-skin mode lock, themechange eve
 }
 ```
 
-- [ ] **Step 2: ตรวจ JSON ถูกต้อง**
+- [x] **Step 2: ตรวจ JSON ถูกต้อง**
 
 Run: `python3 -c "import json; d=json.load(open('vercel.json')); assert len(d['headers'])==2; print('valid,', len(d['headers']), 'header rules')"`
 Expected: `valid, 2 header rules`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add vercel.json
@@ -270,7 +270,7 @@ git commit -m "chore(deploy): ETag revalidation for all files, immutable cache f
 
 โครงสร้างเดิมที่เกี่ยวข้อง (อ้างอิงตอนแก้): `resolveCache` เป็น object module-level ที่ไม่เคยล้าง; `create()` resolve `COLORS` ครั้งเดียว; material ถูกสร้างกระจายใน `makeArrow`/`buildLoop`/`boxWithEdges` โดยไม่เก็บ reference กลาง; label สีถูกฝังตอน `updateTextSprite`
 
-- [ ] **Step 1: ทำ `resolveCache` ล้างได้**
+- [x] **Step 1: ทำ `resolveCache` ล้างได้**
 
 เดิม (บรรทัด ~21):
 ```js
@@ -286,7 +286,7 @@ git commit -m "chore(deploy): ETag revalidation for all files, immutable cache f
 ```
 และใน `resolveVarToHex` ไม่ต้องแก้อะไร (อ่าน `resolveCache` ผ่าน closure ซึ่งชี้ object ใหม่หลังล้าง)
 
-- [ ] **Step 2: รวมการ resolve สีเป็นฟังก์ชัน แล้วเก็บ registry ของ material ตาม role**
+- [x] **Step 2: รวมการ resolve สีเป็นฟังก์ชัน แล้วเก็บ registry ของ material ตาม role**
 
 ใน `create()` เดิม:
 ```js
@@ -324,7 +324,7 @@ git commit -m "chore(deploy): ETag revalidation for all files, immutable cache f
 ```
 (หมายเหตุ: `labelBg` เดิม resolve `--surface` อยู่แล้ว — `COLORS.hand` คือค่าเดียวกัน)
 
-- [ ] **Step 3: ลงทะเบียน material ทุกจุดที่สร้าง**
+- [x] **Step 3: ลงทะเบียน material ทุกจุดที่สร้าง**
 
 `makeArrow`/`buildLoop`/`boxWithEdges` เป็น helper module-level — แก้จุดเรียกใน `create()` ให้ผ่าน `reg()` ไม่ได้โดยตรงเพราะ material อยู่ข้างใน helper ดังนั้นแก้ helper ให้ expose material ผ่าน `userData.mats` แล้วลงทะเบียนตอนเรียก:
 
@@ -364,7 +364,7 @@ grid ใน `create()`:
     reg(grid.material, 'grid');
 ```
 
-- [ ] **Step 4: จำข้อความ label ล่าสุด เพื่อ re-render ด้วยสีใหม่ได้**
+- [x] **Step 4: จำข้อความ label ล่าสุด เพื่อ re-render ด้วยสีใหม่ได้**
 
 ใน `setLabel` เดิม:
 ```js
@@ -384,7 +384,7 @@ grid ใน `create()`:
     }
 ```
 
-- [ ] **Step 5: ฟังก์ชัน `refreshTheme` + event listener + ถอดตอน destroy**
+- [x] **Step 5: ฟังก์ชัน `refreshTheme` + event listener + ถอดตอน destroy**
 
 วางหลังนิยาม `resetView` ใน `create()`:
 ```js
@@ -427,7 +427,7 @@ grid ใน `create()`:
       }
 ```
 
-- [ ] **Step 6: ตรวจ syntax + ตรวจว่าลงทะเบียนครบ**
+- [x] **Step 6: ตรวจ syntax + ตรวจว่าลงทะเบียนครบ**
 
 Run: `node --check shared/sim/vector3d.js && grep -c "reg(" shared/sim/vector3d.js`
 Expected: ผ่าน syntax และ `reg(` ≥ 6 จุด (handMat, edgeMat, grid, arrow×3 ผ่าน forEach — forEach นับรวมแล้วแต่ต้อง ≥ 6 เมื่อรวม loop 2 จุด)
@@ -435,7 +435,7 @@ Expected: ผ่าน syntax และ `reg(` ≥ 6 จุด (handMat, edgeMat
 Run: `grep -n "physics-sim:themechange" shared/sim/vector3d.js`
 Expected: 2 บรรทัด (addEventListener + removeEventListener)
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add shared/sim/vector3d.js
@@ -456,7 +456,7 @@ git commit -m "fix(sim): vector3d re-resolves theme colors on themechange (stale
 
 หมายเหตุขอบเขต (จาก spec): รายละเอียด DOM-เฉพาะของ index2 (speech bubble, D-pad) **ไม่ port** — comic v1 = palette + ฟอนต์ + ลวดลาย + accent บน component มาตรฐาน
 
-- [ ] **Step 1: สร้าง `shared/skins/comic.css`**
+- [x] **Step 1: สร้าง `shared/skins/comic.css`**
 
 ```css
 /* Skin: Comic Lab — pop-art comic บนพื้นสว่าง (light เท่านั้น — ประกาศใน shared/config.js)
@@ -529,7 +529,7 @@ git commit -m "fix(sim): vector3d re-resolves theme colors on themechange (stale
 }
 ```
 
-- [ ] **Step 2: เพิ่ม `<link>` ใน head ทั้ง 3 หน้า ต่อจาก styles.css**
+- [x] **Step 2: เพิ่ม `<link>` ใน head ทั้ง 3 หน้า ต่อจาก styles.css**
 
 `index.html`:
 ```html
@@ -542,12 +542,12 @@ git commit -m "fix(sim): vector3d re-resolves theme colors on themechange (stale
 <link rel="stylesheet" href="../../shared/skins/comic.css">
 ```
 
-- [ ] **Step 3: ตรวจทุก rule อยู่ใต้ scope**
+- [x] **Step 3: ตรวจทุก rule อยู่ใต้ scope**
 
 Run: `grep -cv '^\s*$\|^/\*\|^\s*\*\|^@import\|^:root\[data-skin\|^\s\|^}' shared/skins/comic.css`
 Expected: `0` (ทุกบรรทัดที่เป็น selector เริ่มด้วย `:root[data-skin` — ไม่มี rule หลุด scope)
 
-- [ ] **Step 4: ตรวจ token ที่ override เป็น subset ของ contract**
+- [x] **Step 4: ตรวจ token ที่ override เป็น subset ของ contract**
 
 Run:
 ```bash
@@ -563,12 +563,12 @@ EOF
 ```
 Expected: `extra tokens: none` + บรรทัด OK
 
-- [ ] **Step 5: ตรวจหน้าเสิร์ฟได้**
+- [x] **Step 5: ตรวจหน้าเสิร์ฟได้**
 
 Run: `curl -sL -o /dev/null -w "%{http_code}\n" http://localhost:5713/shared/skins/comic.css`
 Expected: `200`
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add shared/skins/comic.css index.html topics/projectile-motion/index.html topics/right-hand-rule/index.html
@@ -584,7 +584,7 @@ git commit -m "feat(theme): add comic skin as pure-CSS layer on standard DOM"
 **Interfaces:**
 - Consumes: ทุกอย่างจาก Task 1-5
 
-- [ ] **Step 1: รัน local server แล้วเปิดตามรายการ**
+- [x] **Step 1: รัน local server แล้วเปิดตามรายการ**
 
 Run: `npx --yes serve -l 5713 .` แล้วเปิด browser ตาม checklist:
 
@@ -595,14 +595,14 @@ Run: `npx --yes serve -l 5713 .` แล้วเปิด browser ตาม chec
 | 3 | แก้ config เป็น `skin:'comic'` | `/` | palette แดง/น้ำเงิน/เหลือง ฟอนต์ Kanit ป้าย .en เป็นสติกเกอร์ **ไม่มีปุ่ม toggle** |
 | 4 | config `skin:'comic'` + OS เป็น dark mode | `/topics/right-hand-rule/` | ยังเป็น light (โหมดถูกบังคับ) สี sim เป็นชุด comic |
 
-- [ ] **Step 2: เช็ค console ไม่มี error ทั้ง 4 ชุด** (DevTools → Console ระหว่างเปิดแต่ละหน้า)
+- [x] **Step 2: เช็ค console ไม่มี error ทั้ง 4 ชุด** (DevTools → Console ระหว่างเปิดแต่ละหน้า)
 
-- [ ] **Step 3: คืนค่า config เป็น `skin: 'dot-matrix'`** (default production ตาม Global Constraints)
+- [x] **Step 3: คืนค่า config เป็น `skin: 'dot-matrix'`** (default production ตาม Global Constraints)
 
 Run: `grep -n "skin: 'dot-matrix'" shared/config.js`
 Expected: 1 บรรทัด (ค่า default ถูกคืนแล้ว)
 
-- [ ] **Step 4: Commit (ถ้ามีการแก้บั๊กระหว่างทดสอบ)**
+- [x] **Step 4: Commit (ถ้ามีการแก้บั๊กระหว่างทดสอบ)**
 
 ```bash
 git add -A
@@ -622,13 +622,13 @@ git commit -m "fix(theme): issues found during 4-combo verification"
 **Interfaces:**
 - Consumes: comic skin จาก Task 5 ผ่านการทดสอบ Task 6 แล้ว (identity ของ index2 ถูกแทนที่สมบูรณ์)
 
-- [ ] **Step 1: ลบไฟล์ทดลอง**
+- [x] **Step 1: ลบไฟล์ทดลอง**
 
 ```bash
 git rm index2.html topics/right-hand-rule/index2.html
 ```
 
-- [ ] **Step 2: เพิ่มบรรทัดใน `AGENTS.md` section "โครงสร้าง"**
+- [x] **Step 2: เพิ่มบรรทัดใน `AGENTS.md` section "โครงสร้าง"**
 
 เดิม:
 ```markdown
@@ -640,7 +640,7 @@ git rm index2.html topics/right-hand-rule/index2.html
 - `shared/config.js` — เลือก skin ระดับ deploy | `shared/skins/<name>.css` — skin เป็น CSS ล้วน scope ใต้ `[data-skin]` ต้องใช้ token contract เดิม ห้ามแตะ DOM
 ```
 
-- [ ] **Step 3: Append ท้าย `.claude/skills/page-template/SKILL.md`**
+- [x] **Step 3: Append ท้าย `.claude/skills/page-template/SKILL.md`**
 
 ```markdown
 
@@ -653,12 +653,12 @@ git rm index2.html topics/right-hand-rule/index2.html
 - sim ที่วาดลง canvas ต้อง resolve สีจาก CSS token และฟัง event `physics-sim:themechange` เพื่อ re-resolve (ดู `shared/sim/vector3d.js` เป็นแบบ)
 ```
 
-- [ ] **Step 4: ตรวจไม่มีอะไรอ้าง index2 ค้าง**
+- [x] **Step 4: ตรวจไม่มีอะไรอ้าง index2 ค้าง**
 
 Run: `grep -rn "index2" --include="*.html" --include="*.js" --include="*.json" --include="*.md" . | grep -v docs/superpowers | grep -v node_modules`
 Expected: ไม่มี output
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -672,3 +672,19 @@ git commit -m "chore(theme): retire index2 experiments, document skin rules in A
 - **Spec coverage:** config 1 บรรทัด→T1, layout.js สามหน้าที่→T2, cache→T3, sim บั๊ก+event→T4, comic skin+ลิงก์ head→T5 (รวม head-wiring จาก migration ขั้น 1 ของ spec: config ใน T1, skin link ใน T5), ทดสอบ 4 ชุด→T6, ลบ index2+อัปเดตเอกสาร→T7 ✓
 - **Placeholder scan:** ทุก step มีโค้ด/คำสั่ง/ค่า expected จริง ✓
 - **Type consistency:** `window.PhysicsSimConfig` (T1=T2), `physics-sim:themechange` (T2=T4=skill doc T7), `data-skin` (T2=T5), ลำดับ head (T1=T5=skill doc T7) ✓
+
+---
+
+## สถานะ: เสร็จสมบูรณ์ — merge เข้า main แล้ว
+
+ดำเนินการผ่าน `superpowers:subagent-driven-development` (isolated worktree, fresh implementer/reviewer subagent ต่อ task) ครบทั้ง 7 task ข้างต้น รวม Task 6 (browser checklist) ที่ verify จริงผ่าน browser automation — ทั้ง 4 ชุดค่า (dot-matrix toggle, right-hand-rule dark-mode live re-color คือบั๊กเป้าหมาย, comic palette/font/no-toggle, comic + OS dark mode ถูกบังคับ light) ผ่านหมด ไม่มี console error
+
+**Final whole-branch review:** 0 Critical / 0 Important / 3 Minor — ready to merge
+
+**Post-review fix (นอกแผนเดิม):** พบว่า `shared/skins/comic.css` ใช้ `@import` โหลด Google Fonts (Kanit/Bungee) ซึ่งไม่ถูก scope ด้วย `[data-skin]` — ทำให้หน้าที่ใช้ skin อื่น (เช่น dot-matrix ค่าเริ่มต้น) โหลดฟอนต์ที่ไม่ได้ใช้ทุกครั้งโดยไม่จำเป็น แก้โดยย้าย font URL ไปเป็น `fontsUrl` ใน `skins` registry ของ `shared/config.js` แล้วให้ `shared/layout.js` แทรก `<link>` เองเฉพาะตอน skin นั้น active (ดูรายละเอียดกลไกใน `_system/ARCHITECTURE.md` §7 และกฎใน skill `page-template`) — verify ด้วยการอ่าน network request จริงว่า dot-matrix ไม่มี request ไป fonts.googleapis.com สำหรับ Kanit/Bungee อีกต่อไป ส่วน comic ยังโหลดถูกต้อง
+
+**Merge:** fast-forward `worktree-theme-system` → `main` ที่ commit `7cbbcc0`, worktree ถูกลบแล้ว
+
+Minor findings ที่เหลือ (ตัดสินใจไม่แก้ เพราะเป็นเรื่อง commit history ที่ merge แล้ว ไม่กระทบ production):
+- 6 commit แรกใช้ `Co-Authored-By: Claude Fable 5` ตามข้อความในแผนนี้เอง (ก่อนคุยกับครูเปลี่ยนเป็น Claude Sonnet 5 กลางเซสชัน) — commit หลังจากนั้น (รวม post-review fix) ใช้ Sonnet 5
+- commit `dd22e51` มีข้อความว่าลบ `index2.html` ทั้งสองไฟล์ แต่จริงๆ ไฟล์เหล่านั้นไม่เคยมีอยู่ใน git history เลย (เป็นแค่ text ใน `git rm` ที่ไม่มีผล) — ไม่กระทบ functionality

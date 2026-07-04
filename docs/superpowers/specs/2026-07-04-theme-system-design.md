@@ -1,7 +1,13 @@
 # Theme System Design — skin × mode
 
 วันที่: 2026-07-04
-สถานะ: อนุมัติแล้ว (รอ implementation plan)
+สถานะ: เสร็จสมบูรณ์ — implement + merge เข้า `main` แล้ว (`7cbbcc0`) ดูรายละเอียดใน
+`docs/superpowers/plans/2026-07-04-theme-system.md` (ส่วนท้าย "สถานะ: เสร็จสมบูรณ์")
+
+**ส่วนที่ต่างจาก design เดิม (พบระหว่าง implement):** `config.js` schema จริงมี key เพิ่ม
+`fontsUrl` ต่อ skin (ไม่มีใน draft `config.js` ด้านล่าง) — เพราะ comic skin ต้องใช้ฟอนต์ภายนอก
+(Kanit/Bungee) และ `@import` ตรงใน skin CSS ไม่ถูก scope ด้วย `[data-skin]` (โหลดทุกหน้าไม่ว่า skin
+ไหน active) จึงย้าย font loading ไปเป็น data ใน registry แล้วให้ `layout.js` แทรก `<link>` แบบมีเงื่อนไขแทน
 
 ## เป้าหมาย
 

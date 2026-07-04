@@ -8,6 +8,7 @@
 - ใช้ design tokens จาก `shared/styles.css` เท่านั้น ห้ามฝัง hex/ขนาด/ฟอนต์ใหม่ในไฟล์เรื่อง
 - 1 เรื่อง = 1 ระดับชั้น (ม.ต้น และ ม.ปลาย แยกเป็นคนละ content)
 - `_system/topics.json` คือแหล่งความจริงเดียวที่ขับสารบัญ — อย่าแก้ `index.html` ตรงๆ
+- skin (`shared/skins/<name>.css`) ต้องเป็น CSS ล้วน scope ใต้ `[data-skin="<name>"]` เท่านั้น ห้ามแตะโครง DOM และ override ได้เฉพาะ token ที่ `shared/styles.css` ประกาศไว้แล้ว — เปลี่ยน skin ทั้งเว็บแก้ที่ `shared/config.js` จุดเดียว (ดู README.md หัวข้อ "เปลี่ยน skin")
 
 ## โครงสร้าง
 - `topics/<id>/` — 1 เรื่อง: `index.html` (page) + `spec.md` (content spec, เก็บคู่ไว้เพื่อ regenerate)
