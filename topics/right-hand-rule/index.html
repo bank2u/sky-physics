@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>กฎมือขวา — PHYSICS-SIM</title>
+<link rel="stylesheet" href="../../shared/styles.css">
+<script src="../../shared/layout.js"></script>
+<style>
+  /* ---- ส่วนขยายเฉพาะเรื่องนี้ — ใช้ design token เท่านั้น ห้ามฝัง hex/ฟอนต์ใหม่ ---- */
+  .sim-col { display: flex; flex-direction: column; gap: var(--gap); }
+
+  .recap-strip {
+    border: 2px dashed var(--ink); border-radius: var(--radius); background: var(--surface);
+    padding: var(--space-3) var(--space-4); font: 700 var(--fs-desc) var(--font);
+  }
+  .recap-strip b { color: var(--magenta-fg); }
+
+  .mode-tabs { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-3); }
+
+  .vec-group { border-left: var(--border-w-sm) solid var(--vc, var(--ink)); padding-left: var(--space-3); margin-bottom: var(--space-3); }
+  .vec-title { font: 800 var(--fs-label) var(--font); text-transform: uppercase; letter-spacing: .04em; opacity: .7; margin-bottom: var(--space-2); }
+
+  .dirgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); }
+  .dirbtn {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    border: var(--border-w-sm) solid var(--ink); border-radius: var(--radius); background: var(--surface);
+    color: var(--ink); padding: var(--space-2) 4px; cursor: pointer; font-family: var(--font);
+  }
+  .dirbtn .dicon { font-size: 18px; line-height: 1; font-family: var(--mono); }
+  .dirbtn .dlabel { font: 800 var(--fs-label) var(--font); line-height: 1; }
+  .dirbtn.is-active { background: var(--ink); color: var(--paper); }
+
+  .segmented { display: flex; border: var(--border-w-sm) solid var(--ink); border-radius: var(--radius); overflow: hidden; }
+  .segbtn { flex: 1; background: var(--surface); color: var(--ink); border: none; padding: var(--space-2); font: 700 13px var(--font); cursor: pointer; }
+  .segbtn + .segbtn { border-left: var(--border-w-sm) solid var(--ink); }
+  .segbtn.is-active { background: var(--ink); color: var(--paper); }
+
+  .numrow { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-2); }
+  .numfield { flex: 1; min-width: 82px; display: flex; flex-direction: column; gap: 4px; font: 700 11px var(--mono); color: var(--text-muted); }
+  .numfield input {
+    border: var(--border-w-sm) solid var(--ink); border-radius: var(--radius); background: var(--surface);
+    color: var(--ink); padding: var(--space-2); font: 700 13px var(--mono); width: 100%;
+  }
+
+  .result-line { font: 700 var(--fs-body) var(--font); margin-top: var(--space-3); line-height: 1.5; }
+
+  .equation-card.is-active { box-shadow: var(--shadow-md); border-color: var(--magenta-fg); }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="page">
+  <!-- 1. หัวเรื่อง + คำอธิบายสั้น -->
+  <div class="topic-header">
+    <div class="topic-header__left">
+      <a class="back-btn" href="../../" aria-label="กลับสารบัญ">←</a>
+      <h1 class="topic-title">กฎมือขวา <span class="en">RIGHT-HAND RULE</span></h1>
+    </div>
+    <span class="badge-level is-filled">ม.ปลาย</span>
+  </div>
+  <p class="topic-desc">เลือกสถานการณ์ (แรง/สนาม/ทอร์ก) กำหนดทิศทางเวกเตอร์ แล้วดูมือขวาเสมือนจริง 3 มิติหมุนชี้คำตอบให้ แบบ realtime</p>
+
+  <div class="sim-row">
+    <!-- 2. โซน simulation -->
+    <div class="sim-col">
+      <div class="sim-zone sim-zone--3d" id="sim-zone"></div>
+      <div class="recap-strip"><b>สรุปสั้น:</b> <span id="recap"></span></div>
+    </div>
+
+    <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
+    <div class="controls">
+      <div class="tile-grid">
+        <div class="tile tile--yellow">
+          <div class="tile__label" id="tile-label">|F| · FORCE</div>
+          <div class="tile__value" id="tile-value">0.00<span class="tile__unit" id="tile-unit">N</span></div>
+        </div>
+      </div>
+
+      <div class="sliders">
+        <div class="mode-tabs" id="modeTabs">
+          <button type="button" class="chip is-active" data-mode="force">แรงบนกระแส/ประจุ</button>
+          <button type="button" class="chip" data-mode="field">สนามรอบเส้นลวด</button>
+          <button type="button" class="chip" data-mode="torque">ทอร์ก/โมเมนตัมเชิงมุม</button>
+        </div>
+
+        <div id="panelBody"></div>
+
+        <div class="result-line" id="resultLine"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. คำอธิบายแนวคิด / สมการ -->
+  <div class="equations">
+    <div class="equation-card" data-eq="force-I">
+      <span class="equation-card__label">แรงบนลวดตัวนำ · FORCE ON WIRE</span>
+      <span class="equation-card__formula">F = BIL sinθ &nbsp;|&nbsp; F<sup>→</sup> = IL<sup>→</sup> × B<sup>→</sup></span>
+    </div>
+    <div class="equation-card" data-eq="force-v">
+      <span class="equation-card__label">แรงบนประจุเคลื่อนที่ · FORCE ON CHARGE</span>
+      <span class="equation-card__formula">F = qvB sinθ &nbsp;|&nbsp; F<sup>→</sup> = qv<sup>→</sup> × B<sup>→</sup></span>
+    </div>
+    <div class="equation-card" data-eq="field">
+      <span class="equation-card__label">สนามรอบเส้นลวด · FIELD AROUND WIRE</span>
+      <span class="equation-card__formula">B = μ<sub>0</sub>I / (2πr)</span>
+    </div>
+    <div class="equation-card" data-eq="torque">
+      <span class="equation-card__label">ทอร์ก · TORQUE</span>
+      <span class="equation-card__formula">τ<sup>→</sup> = r<sup>→</sup> × F<sup>→</sup> &nbsp;|&nbsp; |τ| = rF sinθ</span>
+    </div>
+    <div class="equation-card" data-eq="angular">
+      <span class="equation-card__label">โมเมนตัมเชิงมุม · ANGULAR MOMENTUM</span>
+      <span class="equation-card__formula">L<sup>→</sup> = r<sup>→</sup> × p<sup>→</sup> &nbsp;|&nbsp; |L| = rp sinθ</span>
+    </div>
+  </div>
+
+  <div class="concept">
+    <h2>คำอธิบายแนวคิด</h2>
+    <p>
+      กฎมือขวาใช้หามุมและทิศทางของผลคูณไขว้ (cross product) ระหว่างเวกเตอร์สองตัว โดยไม่ต้องคำนวณเชิงพีชคณิต
+      มี 3 สถานการณ์หลักในแม่เหล็กไฟฟ้าที่ใช้หลักการเดียวกันนี้ แต่ตีความมือต่างกัน: (1) แรงบนกระแส/ประจุเคลื่อนที่ (F = IL×B หรือ F = qv×B)
+      นิ้วทั้งสี่ชี้ไปทาง B หัวแม่มือชี้ไปทาง I หรือ v ฝ่ามือจะดันไปในทิศทางของ F — ถ้าประจุเป็นลบ แรงจะกลับทิศ (สวนทางฝ่ามือ)
+      (2) สนามแม่เหล็กรอบเส้นลวด (B = μ₀I/2πr) กำมือขวาโดยให้หัวแม่มือชี้ทิศกระแส I ทิศที่นิ้วกำวนรอบคือทิศของสนาม B
+      สนามจะอ่อนลงเมื่อระยะ r จากลวดเพิ่มขึ้น (3) ทอร์กและโมเมนตัมเชิงมุม (τ = r×F, L = r×p) นิ้วชี้จากเวกเตอร์แรก (r) ไปทางเวกเตอร์ที่สอง (F หรือ p)
+      หัวแม่มือจะชี้ทิศผลลัพธ์ (τ หรือ L) ทุกกรณีมีขนาดเป็น (ขนาดเวกเตอร์ 1) × (ขนาดเวกเตอร์ 2) × sin θ — ถ้าเวกเตอร์ขนานกัน (θ = 0°) ผลคูณไขว้จะเป็นศูนย์
+    </p>
+  </div>
+</main>
+
+<script src="../../shared/vendor/three.min.js"></script>
+<script src="../../shared/sim/vector3d.js"></script>
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), '../../');
+
+  var DIRS = [
+    { key: '+x', vec: new THREE.Vector3(1, 0, 0), label: 'ขวา', icon: '→' },
+    { key: '-x', vec: new THREE.Vector3(-1, 0, 0), label: 'ซ้าย', icon: '←' },
+    { key: '+y', vec: new THREE.Vector3(0, 1, 0), label: 'บน', icon: '↑' },
+    { key: '-y', vec: new THREE.Vector3(0, -1, 0), label: 'ล่าง', icon: '↓' },
+    { key: '+z', vec: new THREE.Vector3(0, 0, 1), label: 'ออกจากจอ', icon: '⊙' },
+    { key: '-z', vec: new THREE.Vector3(0, 0, -1), label: 'เข้าหน้าจอ', icon: '⊗' }
+  ];
+  var DIRMAP = {};
+  DIRS.forEach(function (d) { DIRMAP[d.key] = d; });
+  function dirVec(key) { return DIRMAP[key].vec.clone(); }
+  function dirLabelFromVector(v) {
+    var best = 'x', bestAbs = Math.abs(v.x), val = v.x;
+    if (Math.abs(v.y) > bestAbs) { best = 'y'; bestAbs = Math.abs(v.y); val = v.y; }
+    if (Math.abs(v.z) > bestAbs) { best = 'z'; bestAbs = Math.abs(v.z); val = v.z; }
+    var key = (val >= 0 ? '+' : '-') + best;
+    return DIRMAP[key] ? DIRMAP[key].label : '-';
+  }
+
+  var state = {
+    mode: 'force',
+    force: { sourceType: 'I', dirI: '+x', dirB: '+y', charge: '+', I: 3, L: 0.4, B: 0.6, q: 2, v: 4 },
+    field: { dirI: '+x', I: 5, r: 0.1 },
+    torque: { kind: 'torque', dirR: '+y', dirF: '+z', r: 0.3, mag: 6 }
+  };
+
+  var RECAP = {
+    force: 'นิ้วชี้ทิศ B · หัวแม่มือชี้ทิศ I หรือ v · ฝ่ามือดันไปทาง F',
+    field: 'หัวแม่มือชี้ทิศ I · นิ้วกำรอบลวด คือทิศวนของ B',
+    torque: 'หัวแม่มือชี้ผลลัพธ์ (τ หรือ L) · นิ้วกำจากเวกเตอร์แรกไปเวกเตอร์ที่สอง'
+  };
+
+  var panelBody = document.getElementById('panelBody');
+  var resultLineEl = document.getElementById('resultLine');
+  var recapEl = document.getElementById('recap');
+  var tileLabelEl = document.getElementById('tile-label');
+  var tileValueEl = document.getElementById('tile-value');
+  var tileUnitEl = document.getElementById('tile-unit');
+
+  function dirPickerHTML(role, selected) {
+    return '<div class="dirgrid">' + DIRS.map(function (d) {
+      return '<button type="button" class="dirbtn' + (d.key === selected ? ' is-active' : '') + '" data-role="' + role + '" data-key="' + d.key + '">' +
+             '<span class="dicon">' + d.icon + '</span><span class="dlabel">' + d.label + '</span></button>';
+    }).join('') + '</div>';
+  }
+  function seg(role, options, selected) {
+    return '<div class="segmented" data-role="' + role + '">' + options.map(function (o) {
+      return '<button type="button" class="segbtn' + (o[0] === selected ? ' is-active' : '') + '" data-role="' + role + '" data-key="' + o[0] + '">' + o[1] + '</button>';
+    }).join('') + '</div>';
+  }
+  function numField(role, label, value, step) {
+    return '<label class="numfield">' + label + '<input type="number" data-role="' + role + '" value="' + value + '" step="' + step + '"></label>';
+  }
+
+  function renderPanel() {
+    var html = '';
+    if (state.mode === 'force') {
+      var f = state.force;
+      html += '<div class="field-row" style="margin-bottom:var(--space-3)">' + seg('sourceType', [['I', 'ลวดตัวนำ (I)'], ['v', 'ประจุเคลื่อนที่ (v)']], f.sourceType) + '</div>';
+      if (f.sourceType === 'v') {
+        html += '<div class="field-row" style="margin-bottom:var(--space-3)">' + seg('charge', [['+', 'ประจุบวก (+)'], ['-', 'ประจุลบ (−)']], f.charge) + '</div>';
+      }
+      html += '<div class="vec-group" style="--vc:var(--magenta)"><div class="vec-title">ทิศทาง ' + (f.sourceType === 'I' ? 'I (กระแสไฟฟ้า)' : 'v (ความเร็วประจุ)') + '</div>' + dirPickerHTML('dirI', f.dirI) + '</div>';
+      html += '<div class="vec-group" style="--vc:var(--cyan)"><div class="vec-title">ทิศทาง B (สนามแม่เหล็ก)</div>' + dirPickerHTML('dirB', f.dirB) + '</div>';
+      if (f.sourceType === 'I') {
+        html += '<div class="numrow">' + numField('numI', 'I (A)', f.I, 0.1) + numField('numL', 'L (m)', f.L, 0.05) + numField('numB', 'B (T)', f.B, 0.1) + '</div>';
+      } else {
+        html += '<div class="numrow">' + numField('numQ', 'q (C)', f.q, 0.1) + numField('numV', 'v (m/s)', f.v, 0.5) + numField('numB', 'B (T)', f.B, 0.1) + '</div>';
+      }
+    } else if (state.mode === 'field') {
+      var fl = state.field;
+      html += '<div class="vec-group" style="--vc:var(--magenta)"><div class="vec-title">ทิศทาง I (กระแสไฟฟ้า)</div>' + dirPickerHTML('dirI', fl.dirI) + '</div>';
+      html += '<div class="numrow">' + numField('numI2', 'I (A)', fl.I, 0.5) + numField('numR', 'r (m)', fl.r, 0.01) + '</div>';
+    } else {
+      var t = state.torque;
+      html += '<div class="field-row" style="margin-bottom:var(--space-3)">' + seg('kind', [['torque', 'ทอร์ก (τ = r×F)'], ['angular', 'โมเมนตัมเชิงมุม (L = r×p)']], t.kind) + '</div>';
+      html += '<div class="vec-group" style="--vc:var(--cyan)"><div class="vec-title">ทิศทาง r (ตำแหน่ง)</div>' + dirPickerHTML('dirR', t.dirR) + '</div>';
+      html += '<div class="vec-group" style="--vc:var(--yellow)"><div class="vec-title">ทิศทาง ' + (t.kind === 'torque' ? 'F (แรง)' : 'p (โมเมนตัม)') + '</div>' + dirPickerHTML('dirF', t.dirF) + '</div>';
+      html += '<div class="numrow">' + numField('numR3', 'r (m)', t.r, 0.05) + numField('numF3', t.kind === 'torque' ? 'F (N)' : 'p (kg·m/s)', t.mag, 0.5) + '</div>';
+    }
+    panelBody.innerHTML = html;
+  }
+
+  var sim = SimPatterns.vector3d.create(document.getElementById('sim-zone'));
+
+  function highlightEquation(key) {
+    Array.prototype.forEach.call(document.querySelectorAll('.equation-card'), function (card) {
+      card.classList.toggle('is-active', card.dataset.eq === key);
+    });
+  }
+
+  function computeAndApply() {
+    var X, Y, Z;
+    var curlTarget = 0;
+    var resultText = '';
+
+    if (state.mode === 'force') {
+      var f = state.force;
+      X = dirVec(f.dirI);
+      Y = dirVec(f.dirB);
+      var cross = new THREE.Vector3().crossVectors(X, Y);
+      var degenerate = cross.lengthSq() < 0.5;
+      var sign = (f.sourceType === 'v' && f.charge === '-') ? -1 : 1;
+
+      sim.setLabel('thumb', f.sourceType === 'I' ? 'I' : 'v');
+      sim.setLabel('fingers', 'B');
+      sim.setLabel('palm', 'F');
+      sim.setVisible('fingers', true);
+      sim.setVisible('circle', false);
+      sim.setVisible('arc', false);
+
+      var mag;
+      if (f.sourceType === 'I') {
+        mag = degenerate ? 0 : f.B * f.I * f.L;
+        tileLabelEl.textContent = '|F| · FORCE';
+      } else {
+        mag = degenerate ? 0 : Math.abs(f.q) * f.v * f.B;
+        tileLabelEl.textContent = '|F| · FORCE';
+      }
+      tileUnitEl.textContent = 'N';
+
+      if (!degenerate) {
+        Z = cross.clone().normalize();
+        var Fdir = Z.clone().multiplyScalar(sign);
+        sim.setVisible('palm', true);
+        sim.setPalmFlip(sign < 0);
+        resultText = '|F| ≈ ' + mag.toFixed(2) + ' N · ทิศ: ' + dirLabelFromVector(Fdir) + (sign < 0 ? ' (สวนทางฝ่ามือ เพราะประจุลบ)' : ' (ทิศเดียวกับที่ฝ่ามือดัน)');
+      } else {
+        Z = new THREE.Vector3(0, 0, 1);
+        sim.setVisible('palm', false);
+        sim.setPalmFlip(false);
+        resultText = 'ไม่มีแรงกระทำ — ทิศ ' + (f.sourceType === 'I' ? 'I' : 'v') + ' ขนานกับ B (sin θ = 0)';
+      }
+      tileValueEl.textContent = mag.toFixed(2);
+      highlightEquation(f.sourceType === 'I' ? 'force-I' : 'force-v');
+    }
+
+    else if (state.mode === 'field') {
+      var fl = state.field;
+      X = dirVec(fl.dirI);
+      var helper = Math.abs(X.y) > 0.9 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0);
+      Y = new THREE.Vector3().crossVectors(helper, X).normalize();
+      Z = new THREE.Vector3().crossVectors(X, Y).normalize();
+      curlTarget = 1;
+
+      sim.setLabel('thumb', 'I');
+      sim.setLabel('circle', 'B');
+      sim.setVisible('fingers', false);
+      sim.setVisible('circle', true);
+      sim.setVisible('palm', false);
+      sim.setVisible('arc', false);
+      sim.setPalmFlip(false);
+
+      var mu0 = 1.25663706e-6;
+      var Bmag = mu0 * fl.I / (2 * Math.PI * Math.max(fl.r, 0.001));
+      var BmicroT = Bmag * 1e6;
+      tileLabelEl.textContent = '|B| · FIELD';
+      tileUnitEl.textContent = 'µT';
+      tileValueEl.textContent = BmicroT.toFixed(2);
+      resultText = '|B| ≈ ' + BmicroT.toFixed(2) + ' µT · ทิศวนตามนิ้วที่กำรอบลวด (ทิศ I: ' + dirLabelFromVector(X) + ')';
+      highlightEquation('field');
+    }
+
+    else {
+      var t = state.torque;
+      Y = dirVec(t.dirR);
+      Z = dirVec(t.dirF);
+      curlTarget = 1;
+      var crossT = new THREE.Vector3().crossVectors(Y, Z);
+      var degenerateT = crossT.lengthSq() < 0.5;
+      var secondLabel = t.kind === 'torque' ? 'F' : 'p';
+      var resultLabel = t.kind === 'torque' ? 'τ' : 'L';
+
+      sim.setLabel('fingers', 'r');
+      sim.setLabel('palm', secondLabel);
+      sim.setVisible('fingers', true);
+      sim.setVisible('circle', false);
+      sim.setPalmFlip(false);
+
+      var unitT = t.kind === 'torque' ? 'N·m' : 'kg·m²/s';
+      tileLabelEl.textContent = '|' + resultLabel + '| · ' + (t.kind === 'torque' ? 'TORQUE' : 'ANGULAR MOMENTUM');
+      tileUnitEl.textContent = unitT;
+
+      if (!degenerateT) {
+        X = crossT.clone().normalize();
+        sim.setLabel('thumb', resultLabel);
+        sim.setVisible('palm', true);
+        sim.setVisible('arc', true);
+        var magT = t.r * t.mag;
+        tileValueEl.textContent = magT.toFixed(2);
+        resultText = '|' + resultLabel + '| ≈ ' + magT.toFixed(2) + ' ' + unitT + ' · ทิศ: ' + dirLabelFromVector(X);
+      } else {
+        X = new THREE.Vector3(1, 0, 0);
+        sim.setLabel('thumb', resultLabel);
+        sim.setVisible('palm', false);
+        sim.setVisible('arc', false);
+        tileValueEl.textContent = '0.00';
+        resultText = resultLabel + ' = 0 — r ขนานกับ ' + secondLabel + ' (sin θ = 0)';
+      }
+      highlightEquation(t.kind === 'torque' ? 'torque' : 'angular');
+    }
+
+    sim.setBasis(X, Y, Z);
+    sim.setCurl(curlTarget);
+    resultLineEl.textContent = resultText;
+    recapEl.textContent = RECAP[state.mode];
+  }
+
+  panelBody.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-role]');
+    if (!btn) return;
+    var role = btn.dataset.role, key = btn.dataset.key;
+    if (state.mode === 'force') {
+      if (role === 'dirI') state.force.dirI = key;
+      else if (role === 'dirB') state.force.dirB = key;
+      else if (role === 'sourceType') state.force.sourceType = key;
+      else if (role === 'charge') state.force.charge = key;
+    } else if (state.mode === 'field') {
+      if (role === 'dirI') state.field.dirI = key;
+    } else {
+      if (role === 'dirR') state.torque.dirR = key;
+      else if (role === 'dirF') state.torque.dirF = key;
+      else if (role === 'kind') state.torque.kind = key;
+    }
+    renderPanel();
+    computeAndApply();
+  });
+
+  panelBody.addEventListener('input', function (e) {
+    var role = e.target.dataset.role;
+    if (!role) return;
+    var val = parseFloat(e.target.value);
+    if (isNaN(val)) return;
+    if (role === 'numI') state.force.I = val;
+    else if (role === 'numL') state.force.L = val;
+    else if (role === 'numB') state.force.B = val;
+    else if (role === 'numQ') state.force.q = val;
+    else if (role === 'numV') state.force.v = val;
+    else if (role === 'numI2') state.field.I = val;
+    else if (role === 'numR') state.field.r = val;
+    else if (role === 'numR3') state.torque.r = val;
+    else if (role === 'numF3') state.torque.mag = val;
+    computeAndApply();
+  });
+
+  var modeTabs = document.getElementById('modeTabs');
+  modeTabs.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-mode]');
+    if (!btn) return;
+    state.mode = btn.dataset.mode;
+    Array.prototype.forEach.call(modeTabs.querySelectorAll('button'), function (b) {
+      b.classList.toggle('is-active', b === btn);
+    });
+    renderPanel();
+    computeAndApply();
+  });
+
+  renderPanel();
+  computeAndApply();
+</script>
+</body>
+</html>

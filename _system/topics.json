@@ -18,6 +18,15 @@
       "active": false
     },
     {
+      "id": "right-hand-rule",
+      "title": "กฎมือขวา",
+      "titleEn": "Right-Hand Rule",
+      "level": "ม.ปลาย",
+      "category": "ไฟฟ้า-แม่เหล็ก",
+      "path": "topics/right-hand-rule/",
+      "active": true
+    },
+    {
       "id": "ohm",
       "title": "วงจรไฟฟ้าและกฎของโอห์ม",
       "titleEn": "Ohm's Law Circuit",
