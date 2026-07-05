@@ -67,7 +67,8 @@
       "titleEn": "Sound Waves & Frequency",
       "level": "ม.ต้น",
       "category": "คลื่น-เสียง",
-      "active": false
+      "path": "topics/soundwave/",
+      "active": true
     },
     {
       "id": "heattransfer",
@@ -75,7 +76,8 @@
       "titleEn": "Heat Transfer",
       "level": "ม.ต้น",
       "category": "ความร้อน",
-      "active": false
+      "path": "topics/heattransfer/",
+      "active": true
     },
     {
       "id": "boyle",
@@ -83,7 +85,8 @@
       "titleEn": "Boyle's Law",
       "level": "ม.ปลาย",
       "category": "ความร้อน",
-      "active": false
+      "path": "topics/boyle/",
+      "active": true
     },
     {
       "id": "refraction",
@@ -100,7 +103,8 @@
       "titleEn": "Mirrors & Lenses",
       "level": "ม.ต้น",
       "category": "แสง",
-      "active": false
+      "path": "topics/mirrors/",
+      "active": true
     },
     {
       "id": "renewable",
