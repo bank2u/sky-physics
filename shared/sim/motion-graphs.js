@@ -5,7 +5,25 @@
    วาดด้วย design token เท่านั้น (var(--ink)/var(--cyan)/var(--magenta)/var(--yellow)/var(--grid)) ห้ามฝัง hex ตรงๆ */
 (function () {
   var SVG_NS = 'http://www.w3.org/2000/svg';
-  var T_MAX = 6; // หน้าต่างเวลาที่แสดง (วินาที) — คงที่ ไม่ผูกกับ v0/a
+
+  function computeMaxInterestingTime(v0Range, aRange) {
+    var maxT = 6; // baseline minimum
+    var scenarios = [
+      { v0: v0Range[0], a: aRange[0] },
+      { v0: v0Range[0], a: aRange[1] },
+      { v0: v0Range[1], a: aRange[0] },
+      { v0: v0Range[1], a: aRange[1] }
+    ];
+    scenarios.forEach(function(s) {
+      if (Math.abs(s.a) > 1e-9) {
+        var t_stop = Math.abs(-s.v0 / s.a);
+        if (t_stop > maxT) maxT = t_stop;
+      }
+    });
+    return maxT + 1;
+  }
+
+  var T_MAX = 6; // will be overridden in create()
 
   function clamp(v, min, max) {
     return Math.min(max, Math.max(min, v));
@@ -38,6 +56,8 @@
     var aRange = options.aRange || [-10, 10];
     var onUpdate = options.onUpdate || function () {};
 
+    T_MAX = options.T_MAX || computeMaxInterestingTime(v0Range, aRange);
+
     var state = {
       v0: clamp(options.v0 != null ? options.v0 : 5, v0Range[0], v0Range[1]),
       a: clamp(options.a != null ? options.a : 2, aRange[0], aRange[1]),
@@ -47,6 +67,12 @@
     var timer = null;
 
     container.innerHTML = '';
+
+    var label = document.createElement('div');
+    label.className = 'sim-label sim-label--cyan';
+    label.textContent = 'กราฟการเคลื่อนที่ / MOTION GRAPHS';
+    container.appendChild(label);
+
     var svg = document.createElementNS(SVG_NS, 'svg');
     svg.setAttribute('viewBox', '0 0 700 620');
     svg.setAttribute('width', '100%');
