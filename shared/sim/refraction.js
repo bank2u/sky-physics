@@ -64,7 +64,7 @@
     container.appendChild(svg);
 
     var legend = document.createElement('div');
-    legend.className = 'sim-legend sim-legend--magenta';
+    legend.className = 'sim-legend sim-legend--secondary';
     legend.textContent = 'รังสีตกกระทบ · รังสีหักเห · สะท้อนกลับหมด (TIR)';
     container.appendChild(legend);
 

@@ -88,7 +88,7 @@
     container.appendChild(svg);
 
     var legend = document.createElement('div');
-    legend.className = 'sim-legend sim-legend--magenta';
+    legend.className = 'sim-legend sim-legend--secondary';
     legend.textContent = 'จุด = ประจุไฟฟ้า · ความเร็วจุด ∝ กระแส I';
     container.appendChild(legend);
 

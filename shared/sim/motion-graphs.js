@@ -75,7 +75,7 @@
     container.appendChild(svg);
 
     var legend = document.createElement('div');
-    legend.className = 'sim-legend sim-legend--cyan';
+    legend.className = 'sim-legend sim-legend--primary';
     legend.textContent = 'x-t (ตำแหน่ง) · v-t (ความเร็ว) · a-t (ความเร่ง)';
     container.appendChild(legend);
 

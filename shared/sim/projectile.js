@@ -32,7 +32,7 @@
     container.appendChild(svg);
 
     var legend = document.createElement('div');
-    legend.className = 'sim-legend sim-legend--cyan';
+    legend.className = 'sim-legend sim-legend--primary';
     legend.textContent = 'ความเร็วต้น (v₀) · ความเร่งจากแรงโน้มถ่วง (g)';
     container.appendChild(legend);
 

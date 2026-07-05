@@ -249,9 +249,9 @@ body {
   color: var(--ink); background: var(--surface); border: var(--border-w-sm) solid var(--ink);
   border-radius: var(--radius-pill); padding: var(--space-2) var(--space-4);
 }
-.sim-legend--cyan { background: var(--cyan); color: white; border-color: var(--cyan); }
-.sim-legend--magenta { background: var(--magenta); color: white; border-color: var(--magenta); }
-.sim-legend--yellow { background: var(--yellow); color: var(--ink); border-color: var(--yellow); }
+.sim-legend--primary { background: var(--cyan); color: white; border-color: var(--cyan); }
+.sim-legend--secondary { background: var(--magenta); color: white; border-color: var(--magenta); }
+.sim-legend--tertiary { background: var(--yellow); color: var(--ink); border-color: var(--yellow); }
 
 .controls { display: flex; flex-direction: column; gap: var(--space-3); }
 

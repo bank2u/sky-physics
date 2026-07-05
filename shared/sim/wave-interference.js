@@ -63,7 +63,7 @@
     container.appendChild(svg);
 
     var legend = document.createElement('div');
-    legend.className = 'sim-legend sim-legend--yellow';
+    legend.className = 'sim-legend sim-legend--tertiary';
     legend.textContent = 'คลื่น 1 · คลื่น 2 · ผลรวม (superposition)';
     container.appendChild(legend);
 
