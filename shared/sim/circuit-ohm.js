@@ -87,6 +87,11 @@
     svg.setAttribute('height', '100%');
     container.appendChild(svg);
 
+    var label = document.createElement('div');
+    label.className = 'sim-label sim-label--magenta';
+    label.textContent = 'วงจรไฟฟ้า / CIRCUIT';
+    container.appendChild(label);
+
     var legend = document.createElement('div');
     legend.className = 'sim-legend';
     legend.textContent = 'จุด = ประจุไฟฟ้า · ความเร็วจุด ∝ กระแส I';

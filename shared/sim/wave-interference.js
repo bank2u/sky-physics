@@ -62,6 +62,11 @@
     svg.setAttribute('height', '100%');
     container.appendChild(svg);
 
+    var label = document.createElement('div');
+    label.className = 'sim-label sim-label--yellow';
+    label.textContent = 'คลื่นแทรกสอด / WAVE INTERFERENCE';
+    container.appendChild(label);
+
     var legend = document.createElement('div');
     legend.className = 'sim-legend';
     legend.textContent = 'คลื่น 1 · คลื่น 2 · ผลรวม (superposition)';

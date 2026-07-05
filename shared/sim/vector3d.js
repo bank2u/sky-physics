@@ -173,6 +173,11 @@
     canvas.style.touchAction = 'none';
     container.appendChild(canvas);
 
+    var label = document.createElement('div');
+    label.className = 'sim-label sim-label--cyan';
+    label.textContent = 'เวกเตอร์ 3 มิติ / 3D VECTOR';
+    container.appendChild(label);
+
     var legend = document.createElement('div');
     legend.className = 'sim-legend';
     legend.style.right = 'var(--space-3)';
