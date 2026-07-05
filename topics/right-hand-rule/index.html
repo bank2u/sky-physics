@@ -238,7 +238,7 @@
       X = dirVec(f.dirI);
       Y = dirVec(f.dirB);
       var cross = new THREE.Vector3().crossVectors(X, Y);
-      var degenerate = cross.lengthSq() < 0.5;
+      var degenerate = cross.lengthSq() < 1e-6;
       var sign = (f.sourceType === 'v' && f.charge === '-') ? -1 : 1;
 
       sim.setLabel('thumb', f.sourceType === 'I' ? 'I' : 'v');
@@ -306,7 +306,7 @@
       Z = dirVec(t.dirF);
       curlTarget = 1;
       var crossT = new THREE.Vector3().crossVectors(Y, Z);
-      var degenerateT = crossT.lengthSq() < 0.5;
+      var degenerateT = crossT.lengthSq() < 1e-6;
       var secondLabel = t.kind === 'torque' ? 'F' : 'p';
       var resultLabel = t.kind === 'torque' ? 'τ' : 'L';
 
