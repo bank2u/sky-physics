@@ -50,6 +50,36 @@
     return { min: dom.min - pad, max: dom.max + pad };
   }
 
+  /* โดเมนคงที่ของ x-t/v-t คำนวณครั้งเดียวจากช่วงสุดขั้วของ v0Range/aRange ทั้งหมด (เหมือนวิธีที่ aDom
+     ใช้ aRange ตรงๆ อยู่แล้ว) แทนการ auto-scale ต่อเฟรมจากค่า v0/a ปัจจุบัน — ถ้า auto-scale ทุกกราฟจะถูก
+     ยืด/หดให้เต็มกรอบเสมอ ทำให้ปรับ v0/a แค่ไหนก็ดูเหมือนเดิม (ต่างแค่ตัวเลขบนแกน) โดเมนคงที่ทำให้ค่ามาก
+     ทำให้เส้นชันขึ้น/รถวิ่งไกลขึ้นจริงในกรอบเดียวกัน ค่าน้อยทำให้ดูขยับน้อยจริง ตรงกับความหมายทางฟิสิกส์ */
+  function computeFixedDomains(v0Range, aRange, tMax) {
+    /* ใช้ค่าสุดขั้วทีละตัวแปร (อีกตัวเป็น 0) แทนสุดขั้วสองตัวพร้อมกัน — ถ้าคูณสุดขั้วทั้งคู่พร้อมกัน
+       โดเมนจะกว้างเกินไปจนค่ากลางๆ (เช่นค่าเริ่มต้น) ดูแบนราบเกือบเหมือนเดิม กรณีปรับสุดขั้วทั้งสองตัว
+       พร้อมกันจริงๆ (พบยาก) จะถูก clamp ให้ชิดขอบกราฟแทนล้นออกนอกกรอบ (ดู valuePy/xToRoadPx) */
+    var corners = [
+      { v0: v0Range[0], a: 0 },
+      { v0: v0Range[1], a: 0 },
+      { v0: 0, a: aRange[0] },
+      { v0: 0, a: aRange[1] }
+    ];
+    var xLo = 0, xHi = 0, vLo = 0, vHi = 0;
+    T_MAX = tMax; // sampleExtent reads module-level T_MAX; create() always passes its own T_MAX here
+    corners.forEach(function (c) {
+      var xE = sampleExtent(computeX, c.v0, c.a, 60);
+      var vE = sampleExtent(computeV, c.v0, c.a, 60);
+      if (xE.min < xLo) xLo = xE.min;
+      if (xE.max > xHi) xHi = xE.max;
+      if (vE.min < vLo) vLo = vE.min;
+      if (vE.max > vHi) vHi = vE.max;
+    });
+    return {
+      x: padDomain({ min: xLo, max: xHi }),
+      v: padDomain({ min: vLo, max: vHi })
+    };
+  }
+
   function create(container, options) {
     options = options || {};
     var v0Range = options.v0Range || [-20, 20];
@@ -57,6 +87,7 @@
     var onUpdate = options.onUpdate || function () {};
 
     T_MAX = options.T_MAX || computeMaxInterestingTime(v0Range, aRange);
+    var fixedDomains = computeFixedDomains(v0Range, aRange, T_MAX);
 
     var state = {
       v0: clamp(options.v0 != null ? options.v0 : 5, v0Range[0], v0Range[1]),
@@ -91,7 +122,7 @@
     function tPx(t) { return PLOT_LEFT + (t / T_MAX) * (PLOT_RIGHT - PLOT_LEFT); }
 
     function valuePy(val, top, dom) {
-      var frac = (val - dom.min) / (dom.max - dom.min);
+      var frac = clamp((val - dom.min) / (dom.max - dom.min), 0, 1);
       return (top + G_H) - frac * G_H;
     }
 
@@ -139,12 +170,8 @@
       function xFn(tt) { return computeX(tt, v0, a); }
       function vFn(tt) { return computeV(tt, v0, a); }
 
-      var xDom = sampleExtent(computeX, v0, a, 60);
-      xDom.min = Math.min(xDom.min, 0); xDom.max = Math.max(xDom.max, 0);
-      xDom = padDomain(xDom);
-
-      var vStart = v0, vEnd = computeV(T_MAX, v0, a);
-      var vDom = padDomain({ min: Math.min(vStart, vEnd, 0), max: Math.max(vStart, vEnd, 0) });
+      var xDom = fixedDomains.x;
+      var vDom = fixedDomains.v;
 
       var aDom = padDomain({ min: aRange[0], max: aRange[1] }, 0.15);
 
@@ -152,7 +179,7 @@
 
       /* ---- ถนน + รถ ---- */
       function xToRoadPx(xv) {
-        var frac = (xv - xDom.min) / (xDom.max - xDom.min);
+        var frac = clamp((xv - xDom.min) / (xDom.max - xDom.min), 0, 1);
         return PLOT_LEFT + frac * (PLOT_RIGHT - PLOT_LEFT);
       }
       var carPx = xToRoadPx(curX).toFixed(1);
