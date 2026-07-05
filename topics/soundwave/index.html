@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คลื่นเสียงและความถี่ — PHYSICS-SIM</title>
+<script src="../../shared/config.js"></script>
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="../../shared/skins/comic.css">
+<script src="../../shared/layout.js"></script>
+<style>
+  /* ---- ส่วนขยายเฉพาะเรื่องนี้ — ใช้ design token เท่านั้น ห้ามฝัง hex/ฟอนต์ใหม่ ---- */
+  .slider--freq { --slider-accent: var(--accent-primary);    --slider-accent-fg: var(--accent-primary-fg); }
+  .slider--amp  { --slider-accent: var(--accent-secondary); --slider-accent-fg: var(--accent-secondary-fg); }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="page">
+  <!-- 1. หัวเรื่อง + คำอธิบายสั้น -->
+  <div class="topic-header">
+    <div class="topic-header__left">
+      <a class="back-btn" href="../../" aria-label="กลับสารบัญ">←</a>
+      <h1 class="topic-title">คลื่นเสียงและความถี่ <span class="en">SOUND WAVES &amp; FREQUENCY</span></h1>
+    </div>
+    <span class="badge-level is-filled">ม.ต้น</span>
+  </div>
+  <p class="topic-desc">ปรับความถี่และแอมพลิจูด ดูโมเลกุลอากาศสั่นไปมาตามแนวคลื่น (ไม่ใช่ขึ้น-ลง) เกิดบริเวณอัดตัว-ขยายตัว พร้อมกราฟความดันเทียบตำแหน่ง แล้วกดฟังเสียงจริงประกอบ</p>
+
+  <div class="sim-row">
+    <!-- 2. โซน simulation -->
+    <div class="sim-zone" id="sim-zone"></div>
+
+    <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
+    <div class="controls">
+      <div class="tile-grid">
+        <div class="tile tile--cyan">
+          <div class="tile__label">ความถี่ · FREQUENCY (f)</div>
+          <div class="tile__value" id="tile-freq">440<span class="tile__unit">Hz</span></div>
+        </div>
+        <div class="tile tile--magenta">
+          <div class="tile__label">คาบ · PERIOD (T)</div>
+          <div class="tile__value" id="tile-period">0.0023<span class="tile__unit">s</span></div>
+        </div>
+        <div class="tile tile--yellow">
+          <div class="tile__label">ความยาวคลื่นสัมพัทธ์</div>
+          <div class="tile__value" id="tile-lambda">1.00<span class="tile__unit">เท่า</span></div>
+        </div>
+      </div>
+
+      <div class="sliders">
+        <div class="slider--freq">
+          <div class="slider__row">
+            <span>ความถี่ · FREQUENCY (f)</span>
+            <span class="slider__value" id="f-value">440 Hz</span>
+          </div>
+          <div class="slider__track" id="f-track">
+            <div class="slider__fill" id="f-fill"></div>
+            <div class="slider__thumb" id="f-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--amp">
+          <div class="slider__row">
+            <span>แอมพลิจูด · AMPLITUDE (A)</span>
+            <span class="slider__value" id="a-value">50%</span>
+          </div>
+          <div class="slider__track" id="a-track">
+            <div class="slider__fill" id="a-fill"></div>
+            <div class="slider__thumb" id="a-thumb"></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn-play" id="sound-btn">▶ เล่นเสียง</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. คำอธิบายแนวคิด / สมการ -->
+  <div class="equations">
+    <div class="equation-card">
+      <span class="equation-card__label">ความถี่ · FREQUENCY</span>
+      <span class="equation-card__formula">f = 1 / T</span>
+    </div>
+  </div>
+
+  <div class="concept">
+    <h2>คำอธิบายแนวคิด</h2>
+    <p>
+      เสียงเดินทางผ่านอากาศโดยโมเลกุลอากาศผลักกันเป็นทอดๆ ในแนวเดียวกับทิศที่เสียงเดินทาง (longitudinal wave) ไม่ได้ขยับขึ้นลงเหมือนคลื่นน้ำ
+      บริเวณที่โมเลกุลชิดกันเรียกว่า compression (ความดันสูง) บริเวณที่ห่างกันเรียกว่า rarefaction (ความดันต่ำ) — สังเกตแผงบนของ simulation
+      จุดแต่ละจุด (แทนโมเลกุลอากาศ) สั่นซ้าย-ขวาเท่านั้น แต่รวมกันแล้วเกิดแถบอัด-ขยายที่เคลื่อนที่ไปทางขวาได้
+    </p>
+    <p>
+      กราฟรูป sine ที่เห็นในหนังสือ (แผงล่าง) คือกราฟของความดันอากาศเทียบกับตำแหน่ง ไม่ใช่รูปร่างจริงของคลื่นหรือตำแหน่งของโมเลกุล
+      ความถี่ (f) กำหนดว่าอัด-ขยายถี่แค่ไหน — ความถี่สูงทำให้แถบอัด-ขยายถี่ขึ้น (เสียงแหลม, คาบ T = 1/f สั้นลง) ส่วนแอมพลิจูด (A)
+      กำหนดว่าความดันเปลี่ยนแปลงมากแค่ไหน — แอมพลิจูดมากทำให้เสียงดังขึ้น กดปุ่ม "เล่นเสียง" เพื่อฟังเสียงจริงที่ความถี่และความดังตามค่าที่ปรับ
+    </p>
+  </div>
+</main>
+
+<script src="../../shared/sim/sound-wave.js"></script>
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), '../../');
+
+  var F_MIN = 100, F_MAX = 1000;
+  var A_MIN = 0, A_MAX = 100;
+
+  var sim = SimPatterns.soundWave.create(document.getElementById('sim-zone'), {
+    freq: 440,
+    amp: 50,
+    freqRange: [F_MIN, F_MAX],
+    ampRange: [A_MIN, A_MAX],
+    onUpdate: function (vals) {
+      document.getElementById('tile-freq').innerHTML = Math.round(vals.freq) + '<span class="tile__unit">Hz</span>';
+      document.getElementById('tile-period').innerHTML = vals.period.toFixed(4) + '<span class="tile__unit">s</span>';
+      document.getElementById('tile-lambda').innerHTML = vals.relLambda.toFixed(2) + '<span class="tile__unit">เท่า</span>';
+
+      document.getElementById('f-value').textContent = Math.round(vals.freq) + ' Hz';
+      document.getElementById('a-value').textContent = Math.round(vals.amp) + '%';
+
+      var fPct = ((vals.freq - F_MIN) / (F_MAX - F_MIN)) * 100;
+      var aPct = ((vals.amp - A_MIN) / (A_MAX - A_MIN)) * 100;
+      document.getElementById('f-fill').style.width = fPct + '%';
+      document.getElementById('f-thumb').style.left = fPct + '%';
+      document.getElementById('a-fill').style.width = aPct + '%';
+      document.getElementById('a-thumb').style.left = aPct + '%';
+
+      document.getElementById('sound-btn').textContent = vals.soundOn ? '❚❚ หยุดเสียง' : '▶ เล่นเสียง';
+    }
+  });
+
+  function wireTrack(trackEl, min, max, onDrag) {
+    trackEl.addEventListener('pointerdown', function (e) {
+      var rect = trackEl.getBoundingClientRect();
+      function update(clientX) {
+        var frac = (clientX - rect.left) / rect.width;
+        frac = Math.max(0, Math.min(1, frac));
+        onDrag(min + frac * (max - min));
+      }
+      update(e.clientX);
+      function onMove(ev) { update(ev.clientX); }
+      function onUp() {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  }
+
+  wireTrack(document.getElementById('f-track'), F_MIN, F_MAX, function (v) {
+    sim.setFreq(Math.round(v));
+  });
+  wireTrack(document.getElementById('a-track'), A_MIN, A_MAX, function (v) {
+    sim.setAmp(Math.round(v));
+  });
+
+  document.getElementById('sound-btn').addEventListener('click', function () {
+    sim.toggleSound();
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>กระจกและเลนส์ — PHYSICS-SIM</title>
+<script src="../../shared/config.js"></script>
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="../../shared/skins/comic.css">
+<script src="../../shared/layout.js"></script>
+<style>
+  /* ---- ส่วนขยายเฉพาะเรื่องนี้ — ใช้ design token เท่านั้น ห้ามฝัง hex/ฟอนต์ใหม่ ---- */
+  .device-tabs { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-3); }
+  .slider--u-dist  { --slider-accent: var(--accent-primary);    --slider-accent-fg: var(--accent-primary-fg); }
+  .slider--f-len    { --slider-accent: var(--accent-secondary); --slider-accent-fg: var(--accent-secondary-fg); }
+  .tile--type .tile__value { font-size: var(--fs-eq); line-height: 1.3; }
+  .tile--full { grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="page">
+  <!-- 1. หัวเรื่อง + คำอธิบายสั้น -->
+  <div class="topic-header">
+    <div class="topic-header__left">
+      <a class="back-btn" href="../../" aria-label="กลับสารบัญ">←</a>
+      <h1 class="topic-title">กระจกและเลนส์ <span class="en">MIRRORS &amp; LENSES</span></h1>
+    </div>
+    <span class="badge-level is-filled">ม.ต้น</span>
+  </div>
+  <p class="topic-desc">เลือกชนิดกระจก/เลนส์ แล้วลากวัตถุหรือปรับระยะวัตถุและความยาวโฟกัส ดูรังสีหลักตัดกันเกิดภาพ สังเกตว่าภาพเปลี่ยนแบบต่อเนื่องแล้ว "กระโดด" ระหว่างภาพจริงกับภาพเสมือนตอนวัตถุผ่านจุดโฟกัส</p>
+
+  <div class="sim-row">
+    <!-- 2. โซน simulation -->
+    <div class="sim-zone" id="sim-zone"></div>
+
+    <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
+    <div class="controls">
+      <div class="tile-grid">
+        <div class="tile tile--cyan">
+          <div class="tile__label">ระยะภาพ · IMAGE DISTANCE v</div>
+          <div class="tile__value" id="tile-v">—<span class="tile__unit">cm</span></div>
+        </div>
+        <div class="tile tile--magenta">
+          <div class="tile__label">กำลังขยาย · MAGNIFICATION m</div>
+          <div class="tile__value" id="tile-m">—<span class="tile__unit">×</span></div>
+        </div>
+        <div class="tile tile--yellow tile--type tile--full">
+          <div class="tile__label">ชนิดภาพ · IMAGE TYPE</div>
+          <div class="tile__value" id="tile-type">—</div>
+        </div>
+      </div>
+
+      <div class="sliders">
+        <div class="device-tabs" id="deviceTabs">
+          <button type="button" class="chip is-active" data-device="concave-mirror">กระจกเว้า</button>
+          <button type="button" class="chip" data-device="convex-mirror">กระจกนูน</button>
+          <button type="button" class="chip" data-device="convex-lens">เลนส์นูน</button>
+          <button type="button" class="chip" data-device="concave-lens">เลนส์เว้า</button>
+        </div>
+
+        <div class="slider--u-dist">
+          <div class="slider__row">
+            <span>ระยะวัตถุจากอุปกรณ์ · OBJECT DISTANCE (u)</span>
+            <span class="slider__value" id="u-value">30 cm</span>
+          </div>
+          <div class="slider__track" id="u-track">
+            <div class="slider__fill" id="u-fill"></div>
+            <div class="slider__thumb" id="u-thumb"></div>
+          </div>
+        </div>
+
+        <div class="slider--f-len">
+          <div class="slider__row">
+            <span>ความยาวโฟกัส · FOCAL LENGTH (f)</span>
+            <span class="slider__value" id="f-value">20 cm</span>
+          </div>
+          <div class="slider__track" id="f-track">
+            <div class="slider__fill" id="f-fill"></div>
+            <div class="slider__thumb" id="f-thumb"></div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn-reset" id="reset-btn">RESET</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. คำอธิบายแนวคิด / สมการ -->
+  <div class="equations">
+    <div class="equation-card">
+      <span class="equation-card__label">สมการกระจก/เลนส์ · MIRROR-LENS EQUATION</span>
+      <span class="equation-card__formula">1/f = 1/v + 1/u</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">กำลังขยาย · MAGNIFICATION</span>
+      <span class="equation-card__formula">m = -v/u</span>
+    </div>
+  </div>
+
+  <div class="concept">
+    <h2>คำอธิบายแนวคิด</h2>
+    <p>
+      กระจกและเลนส์สร้างภาพด้วยการบังคับทิศทางแสง เราใช้ "รังสีหลัก" ไม่กี่เส้นที่รู้ทิศทางแน่นอนแทนแสงจริงทั้งหมดเพื่อหาตำแหน่งภาพได้ง่าย:
+      รังสีขนานแกนหลัก (สีฟ้า) จะสะท้อน/หักเหผ่านโฟกัส F, รังสีที่ผ่านศูนย์กลางความโค้ง C (กระจก) หรือศูนย์กลางเลนส์ (สีชมพู) จะเดินทางเป็นเส้นตรงไม่หักเห,
+      และรังสีที่มุ่งไปยัง/ผ่าน F (สีเหลือง) จะออกขนานแกนหลัง สะท้อน/หักเห
+      เมื่อวัตถุอยู่นอกโฟกัส (ไกลกว่า F) รังสีจริงจะตัดกันเกิด "ภาพจริง" หัวกลับ แต่เมื่อวัตถุอยู่ในโฟกัส (ใกล้กว่า F)
+      รังสีจริงไม่ตัดกัน ต้องต่อแนวย้อนกลับ (เส้นประ) จึงเกิด "ภาพเสมือน" หัวตั้งเสมอ — ลองลากวัตถุผ่านจุด F ของกระจกเว้าหรือเลนส์นูนดู
+      จะเห็นภาพโตขึ้นเรื่อยๆ เลือนหายที่ระยะอนันต์ตรงจุดโฟกัสพอดี แล้ว "กระโดด" กลับมาเป็นภาพเสมือนหัวตั้งขยายใหญ่อีกฝั่งหนึ่ง
+      ส่วนกระจกนูนและเลนส์เว้า (อุปกรณ์ลู่ออก) จะให้ภาพเสมือนหัวตั้งย่อเล็กเสมอไม่ว่าวัตถุจะอยู่ระยะใด
+    </p>
+  </div>
+</main>
+
+<script src="../../shared/sim/mirrors-lenses.js"></script>
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), '../../');
+
+  var U_MIN = 5, U_MAX = 100;
+  var F_MIN = 10, F_MAX = 50;
+
+  function fmt1(n) { return (Math.round(n * 10) / 10).toFixed(1); }
+
+  function imageTypeText(vals) {
+    if (vals.singular) return 'ภาพที่ระยะอนันต์ (ไม่เกิดภาพชัด)';
+    var real = vals.real ? 'ภาพจริง' : 'ภาพเสมือน';
+    var orient = vals.upright ? 'หัวตั้ง' : 'หัวกลับ';
+    var size = vals.magRatio > 1.02 ? 'ขยาย' : (vals.magRatio < 0.98 ? 'ย่อ' : 'เท่าตัว');
+    return real + ' · ' + orient + ' · ' + size;
+  }
+
+  var sim = SimPatterns.mirrorsLenses.create(document.getElementById('sim-zone'), {
+    device: 'concave-mirror',
+    u: 30,
+    f: 20,
+    uRange: [U_MIN, U_MAX],
+    fRange: [F_MIN, F_MAX],
+    onUpdate: function (vals) {
+      var vEl = document.getElementById('tile-v');
+      var mEl = document.getElementById('tile-m');
+      if (vals.singular) {
+        vEl.innerHTML = '≈ ∞';
+        mEl.innerHTML = '≈ ∞';
+      } else {
+        vEl.innerHTML = fmt1(Math.abs(vals.v)) + '<span class="tile__unit">cm</span>';
+        mEl.innerHTML = fmt1(vals.magRatio) + '<span class="tile__unit">×</span>';
+      }
+      document.getElementById('tile-type').textContent = imageTypeText(vals);
+
+      document.getElementById('u-value').textContent = Math.round(vals.u) + ' cm';
+      document.getElementById('f-value').textContent = Math.round(vals.f) + ' cm';
+
+      var uPct = ((vals.u - U_MIN) / (U_MAX - U_MIN)) * 100;
+      var fPct = ((vals.f - F_MIN) / (F_MAX - F_MIN)) * 100;
+      document.getElementById('u-fill').style.width = uPct + '%';
+      document.getElementById('u-thumb').style.left = uPct + '%';
+      document.getElementById('f-fill').style.width = fPct + '%';
+      document.getElementById('f-thumb').style.left = fPct + '%';
+    }
+  });
+
+  function wireTrack(trackEl, min, max, onDrag) {
+    trackEl.addEventListener('pointerdown', function (e) {
+      var rect = trackEl.getBoundingClientRect();
+      function update(clientX) {
+        var frac = (clientX - rect.left) / rect.width;
+        frac = Math.max(0, Math.min(1, frac));
+        onDrag(min + frac * (max - min));
+      }
+      update(e.clientX);
+      function onMove(ev) { update(ev.clientX); }
+      function onUp() {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  }
+
+  wireTrack(document.getElementById('u-track'), U_MIN, U_MAX, function (v) {
+    sim.setU(Math.round(v));
+  });
+  wireTrack(document.getElementById('f-track'), F_MIN, F_MAX, function (f) {
+    sim.setF(Math.round(f));
+  });
+
+  var deviceTabs = document.getElementById('deviceTabs');
+  deviceTabs.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-device]');
+    if (!btn) return;
+    Array.prototype.forEach.call(deviceTabs.querySelectorAll('button'), function (b) {
+      b.classList.toggle('is-active', b === btn);
+    });
+    sim.setDevice(btn.dataset.device);
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', function () {
+    Array.prototype.forEach.call(deviceTabs.querySelectorAll('button'), function (b) {
+      b.classList.toggle('is-active', b.dataset.device === 'concave-mirror');
+    });
+    sim.reset();
+  });
+</script>
+</body>
+</html>

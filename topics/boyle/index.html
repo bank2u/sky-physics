@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แก๊สและกฎของบอยล์ — PHYSICS-SIM</title>
+<script src="../../shared/config.js"></script>
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="../../shared/skins/comic.css">
+<script src="../../shared/layout.js"></script>
+<style>
+  /* ---- ส่วนขยายเฉพาะเรื่องนี้ — ใช้ design token เท่านั้น ห้ามฝัง hex/ฟอนต์ใหม่ ---- */
+  .slider--volume    { --slider-accent: var(--accent-primary);   --slider-accent-fg: var(--accent-primary-fg); }
+  .slider--molecules { --slider-accent: var(--accent-secondary); --slider-accent-fg: var(--accent-secondary-fg); }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="page">
+  <!-- 1. หัวเรื่อง + คำอธิบายสั้น -->
+  <div class="topic-header">
+    <div class="topic-header__left">
+      <a class="back-btn" href="../../" aria-label="กลับสารบัญ">←</a>
+      <h1 class="topic-title">แก๊สและกฎของบอยล์ <span class="en">BOYLE'S LAW</span></h1>
+    </div>
+    <span class="badge-level is-filled">ม.ปลาย</span>
+  </div>
+  <p class="topic-desc">ลากลูกสูบอัด/ขยายปริมาตรแก๊ส ดูโมเลกุลชนผนังถี่ขึ้น-น้อยลง พร้อมค่าความดัน P ที่คำนวณสดและกราฟ P-V ที่วาดตามจริง</p>
+
+  <div class="sim-row">
+    <!-- 2. โซน simulation -->
+    <div class="sim-zone" id="sim-zone"></div>
+
+    <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
+    <div class="controls">
+      <div class="tile-grid">
+        <div class="tile tile--cyan">
+          <div class="tile__label">ความดัน · PRESSURE (P)</div>
+          <div class="tile__value" id="tile-p">0<span class="tile__unit">kPa</span></div>
+        </div>
+        <div class="tile tile--magenta">
+          <div class="tile__label">ปริมาตร · VOLUME (V)</div>
+          <div class="tile__value" id="tile-v">60<span class="tile__unit">หน่วย</span></div>
+        </div>
+        <div class="tile tile--yellow">
+          <div class="tile__label">P × V</div>
+          <div class="tile__value" id="tile-pv">0<span class="tile__unit"></span></div>
+        </div>
+        <div class="tile">
+          <div class="tile__label">จำนวนโมเลกุล · COUNT</div>
+          <div class="tile__value" id="tile-count">25<span class="tile__unit">อนุภาค</span></div>
+        </div>
+      </div>
+
+      <div class="sliders">
+        <div class="slider--volume">
+          <div class="slider__row">
+            <span>ปริมาตร (ตำแหน่งลูกสูบ) · PISTON VOLUME</span>
+            <span class="slider__value" id="volume-value">60%</span>
+          </div>
+          <div class="slider__track" id="volume-track">
+            <div class="slider__fill" id="volume-fill"></div>
+            <div class="slider__thumb" id="volume-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--molecules">
+          <div class="slider__row">
+            <span>จำนวนโมเลกุล · MOLECULE COUNT</span>
+            <span class="slider__value" id="count-value">25</span>
+          </div>
+          <div class="slider__track" id="count-track">
+            <div class="slider__fill" id="count-fill"></div>
+            <div class="slider__thumb" id="count-thumb"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. คำอธิบายแนวคิด / สมการ -->
+  <div class="equations">
+    <div class="equation-card">
+      <span class="equation-card__label">กฎของบอยล์ (อุณหภูมิคงที่) · BOYLE'S LAW</span>
+      <span class="equation-card__formula">P<sub>1</sub>V<sub>1</sub> = P<sub>2</sub>V<sub>2</sub></span>
+    </div>
+  </div>
+
+  <div class="concept">
+    <h2>คำอธิบายแนวคิด</h2>
+    <p>
+      แก๊สประกอบด้วยโมเลกุลจำนวนมหาศาลที่เคลื่อนที่แบบสุ่มด้วยความเร็วสูง เมื่อโมเลกุลเหล่านี้ชนผนังภาชนะ แรงจากการชนสะสมกันกลายเป็นความดันที่เราวัดได้
+      ถ้าอัดปริมาตรให้เล็กลงโดยจำนวนโมเลกุลเท่าเดิมและอุณหภูมิไม่เปลี่ยน โมเลกุลจะมีพื้นที่ให้เคลื่อนที่น้อยลง จึงชนผนังถี่ขึ้นในเวลาเท่ากัน ทำให้ความดันเพิ่มขึ้น
+      ความสัมพันธ์นี้คือกฎของบอยล์: ที่อุณหภูมิคงที่ ผลคูณของความดันและปริมาตรจะคงที่เสมอ (P<sub>1</sub>V<sub>1</sub> = P<sub>2</sub>V<sub>2</sub>) ลองลากปริมาตรดูค่า P×V
+      ทางขวาว่าคงที่ตลอด และสังเกตกราฟ P-V ด้านล่างว่าเป็นเส้นโค้งไฮเพอร์โบลา ไม่ใช่เส้นตรง
+    </p>
+  </div>
+</main>
+
+<script src="../../shared/sim/gas-particles.js"></script>
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), '../../');
+
+  var VOL_MIN = 20, VOL_MAX = 100;
+  var COUNT_MIN = 10, COUNT_MAX = 50;
+
+  var sim = SimPatterns.gasParticles.create(document.getElementById('sim-zone'), {
+    volumeFraction: 0.6,
+    moleculeCount: 25,
+    volumeRange: [VOL_MIN / 100, VOL_MAX / 100],
+    countRange: [COUNT_MIN, COUNT_MAX],
+    onUpdate: function (vals) {
+      document.getElementById('tile-p').innerHTML = vals.pressure.toFixed(1) + '<span class="tile__unit">kPa</span>';
+      document.getElementById('tile-v').innerHTML = vals.volume.toFixed(0) + '<span class="tile__unit">หน่วย</span>';
+      document.getElementById('tile-pv').innerHTML = vals.pv.toFixed(0) + '<span class="tile__unit"></span>';
+      document.getElementById('tile-count').innerHTML = vals.moleculeCount + '<span class="tile__unit">อนุภาค</span>';
+
+      document.getElementById('volume-value').textContent = Math.round(vals.volumeFraction * 100) + '%';
+      document.getElementById('count-value').textContent = vals.moleculeCount;
+
+      var volPct = ((vals.volumeFraction * 100 - VOL_MIN) / (VOL_MAX - VOL_MIN)) * 100;
+      var countPct = ((vals.moleculeCount - COUNT_MIN) / (COUNT_MAX - COUNT_MIN)) * 100;
+      document.getElementById('volume-fill').style.width = volPct + '%';
+      document.getElementById('volume-thumb').style.left = volPct + '%';
+      document.getElementById('count-fill').style.width = countPct + '%';
+      document.getElementById('count-thumb').style.left = countPct + '%';
+    }
+  });
+
+  function wireTrack(trackEl, min, max, onDrag) {
+    trackEl.addEventListener('pointerdown', function (e) {
+      var rect = trackEl.getBoundingClientRect();
+      function update(clientX) {
+        var frac = (clientX - rect.left) / rect.width;
+        frac = Math.max(0, Math.min(1, frac));
+        onDrag(min + frac * (max - min));
+      }
+      update(e.clientX);
+      function onMove(ev) { update(ev.clientX); }
+      function onUp() {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  }
+
+  wireTrack(document.getElementById('volume-track'), VOL_MIN, VOL_MAX, function (v) {
+    sim.setVolumeFraction(Math.round(v) / 100);
+  });
+  wireTrack(document.getElementById('count-track'), COUNT_MIN, COUNT_MAX, function (n) {
+    sim.setMoleculeCount(Math.round(n));
+  });
+</script>
+</body>
+</html>

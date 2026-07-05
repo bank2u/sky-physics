@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>การถ่ายโอนความร้อน — PHYSICS-SIM</title>
+<script src="../../shared/config.js"></script>
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="../../shared/skins/comic.css">
+<script src="../../shared/layout.js"></script>
+<style>
+  /* ---- ส่วนขยายเฉพาะเรื่องนี้ — ใช้ design token เท่านั้น ห้ามฝัง hex/ฟอนต์ใหม่ ---- */
+  .mode-tabs { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-3); }
+  .slider--source { --slider-accent: var(--accent-secondary); --slider-accent-fg: var(--accent-secondary-fg); }
+  .slider--target { --slider-accent: var(--accent-primary);   --slider-accent-fg: var(--accent-primary-fg); }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="page">
+  <!-- 1. หัวเรื่อง + คำอธิบายสั้น -->
+  <div class="topic-header">
+    <div class="topic-header__left">
+      <a class="back-btn" href="../../" aria-label="กลับสารบัญ">←</a>
+      <h1 class="topic-title">การถ่ายโอนความร้อน <span class="en">HEAT TRANSFER</span></h1>
+    </div>
+    <span class="badge-level is-filled">ม.ต้น</span>
+  </div>
+  <p class="topic-desc">สลับโหมดการนำ/การพา ปรับอุณหภูมิต้นทางและปลายทาง แล้วดูโมเลกุลสั่น/ไหลเวียนถ่ายโอนพลังงานแบบ realtime</p>
+
+  <div class="sim-row">
+    <!-- 2. โซน simulation -->
+    <div class="sim-zone" id="sim-zone"></div>
+
+    <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
+    <div class="controls">
+      <div class="tile-grid">
+        <div class="tile tile--cyan">
+          <div class="tile__label">อุณหภูมิกลางแท่ง/ภาชนะ · MID T</div>
+          <div class="tile__value" id="tile-mid">50<span class="tile__unit">°C</span></div>
+        </div>
+        <div class="tile tile--magenta">
+          <div class="tile__label">อัตราการถ่ายโอนความร้อน · RATE</div>
+          <div class="tile__value" id="tile-rate">เร็วมาก</div>
+        </div>
+      </div>
+
+      <div class="sliders">
+        <div class="mode-tabs" id="modeTabs">
+          <button type="button" class="chip is-active" data-mode="conduction">การนำ · CONDUCTION</button>
+          <button type="button" class="chip" data-mode="convection">การพา · CONVECTION</button>
+        </div>
+
+        <div class="slider--source">
+          <div class="slider__row">
+            <span>อุณหภูมิต้นทาง · SOURCE (°C)</span>
+            <span class="slider__value" id="source-value">80 °C</span>
+          </div>
+          <div class="slider__track" id="source-track">
+            <div class="slider__fill" id="source-fill"></div>
+            <div class="slider__thumb" id="source-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--target">
+          <div class="slider__row">
+            <span>อุณหภูมิปลายทาง · TARGET (°C)</span>
+            <span class="slider__value" id="target-value">20 °C</span>
+          </div>
+          <div class="slider__track" id="target-track">
+            <div class="slider__fill" id="target-fill"></div>
+            <div class="slider__thumb" id="target-thumb"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. คำอธิบายแนวคิด (ม.ต้น — เน้นภาพกลไก ไม่มีสมการคำนวณ) -->
+  <div class="concept">
+    <h2>คำอธิบายแนวคิด</h2>
+    <p>
+      อุณหภูมิคือค่าเฉลี่ยของพลังงานจลน์การสั่น/เคลื่อนที่ของโมเลกุล ส่วนความร้อนคือพลังงานที่ไหลจากที่ร้อนไปยังที่เย็นกว่า — สองคำนี้ไม่ใช่สิ่งเดียวกัน
+      ในโหมด "การนำ" ด้านบน แท่งโลหะประกอบด้วยโมเลกุลที่สั่นอยู่กับที่ โมเลกุลฝั่งร้อนสั่นแรงกว่าจะชนโมเลกุลข้างเคียงที่เย็นกว่า ทำให้มันสั่นแรงขึ้นตาม
+      ส่งต่อพลังงานเป็นทอดๆ จากจุดหนึ่งไปอีกจุดหนึ่งโดยเนื้อวัตถุไม่เคลื่อนที่ไปไหน สังเกตได้ว่าอุณหภูมิจะค่อยๆ ไล่ระดับจากปลายร้อนไปปลายเย็นเมื่อเวลาผ่านไป
+      ในโหมด "การพา" ของไหลใกล้แหล่งความร้อนที่ก้นภาชนะจะขยายตัว ความหนาแน่นลดลง จึงลอยตัวขึ้น ส่วนของไหลที่เย็นกว่าใกล้ผิวบนจะจมลงมาแทนที่
+      เกิดเป็นวงหมุนเวียนพาความร้อน (convection current) ไปทั่วภาชนะ — ลองปรับผลต่างอุณหภูมิให้มากขึ้นแล้วสังเกตว่าการถ่ายโอนพลังงานเกิดเร็วขึ้นทั้งสองกลไก
+    </p>
+  </div>
+</main>
+
+<script src="../../shared/sim/heat-transfer.js"></script>
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), '../../');
+
+  var SRC_MIN = 20, SRC_MAX = 100;
+  var TGT_MIN = 0, TGT_MAX = 40;
+
+  function fmtT(t) { return Math.round(t).toString(); }
+
+  var sim = SimPatterns.heatTransfer.create(document.getElementById('sim-zone'), {
+    mode: 'conduction',
+    sourceTemp: 80,
+    targetTemp: 20,
+    sourceRange: [SRC_MIN, SRC_MAX],
+    targetRange: [TGT_MIN, TGT_MAX],
+    onUpdate: function (vals) {
+      document.getElementById('tile-mid').innerHTML = fmtT(vals.midTemp) + '<span class="tile__unit">°C</span>';
+      document.getElementById('tile-rate').innerHTML = vals.rateLabel + '<span class="tile__unit">ΔT ' + fmtT(vals.deltaT) + '°C</span>';
+
+      document.getElementById('source-value').textContent = fmtT(vals.sourceTemp) + ' °C';
+      document.getElementById('target-value').textContent = fmtT(vals.targetTemp) + ' °C';
+
+      var sPct = ((vals.sourceTemp - SRC_MIN) / (SRC_MAX - SRC_MIN)) * 100;
+      var tPct = ((vals.targetTemp - TGT_MIN) / (TGT_MAX - TGT_MIN)) * 100;
+      document.getElementById('source-fill').style.width = sPct + '%';
+      document.getElementById('source-thumb').style.left = sPct + '%';
+      document.getElementById('target-fill').style.width = tPct + '%';
+      document.getElementById('target-thumb').style.left = tPct + '%';
+    }
+  });
+
+  function wireTrack(trackEl, min, max, onDrag) {
+    trackEl.addEventListener('pointerdown', function (e) {
+      var rect = trackEl.getBoundingClientRect();
+      function update(clientX) {
+        var frac = (clientX - rect.left) / rect.width;
+        frac = Math.max(0, Math.min(1, frac));
+        onDrag(min + frac * (max - min));
+      }
+      update(e.clientX);
+      function onMove(ev) { update(ev.clientX); }
+      function onUp() {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  }
+
+  wireTrack(document.getElementById('source-track'), SRC_MIN, SRC_MAX, function (v) {
+    sim.setSourceTemp(Math.round(v));
+  });
+  wireTrack(document.getElementById('target-track'), TGT_MIN, TGT_MAX, function (v) {
+    sim.setTargetTemp(Math.round(v));
+  });
+
+  var modeTabs = document.getElementById('modeTabs');
+  modeTabs.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-mode]');
+    if (!btn) return;
+    Array.prototype.forEach.call(modeTabs.querySelectorAll('button'), function (b) {
+      b.classList.toggle('is-active', b === btn);
+    });
+    sim.setMode(btn.dataset.mode);
+  });
+</script>
+</body>
+</html>
