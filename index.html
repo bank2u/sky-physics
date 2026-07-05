@@ -56,7 +56,7 @@
         '<div class="card__title">' + t.title + '</div>' +
         '<div class="card__bottom">' +
           '<span class="card__subtitle">' + (t.titleEn || '') + '</span>' +
-          '<span class="card__soon">' + (t.active ? 'พร้อมใช้งาน' : 'เร็วๆ นี้') + '</span>' +
+          (t.active ? '' : '<span class="card__soon">เร็วๆ นี้</span>') +
         '</div>' +
       '</' + tag + '>'
     );
@@ -69,7 +69,7 @@
       '<' + tag + ' class="card--compact' + (t.active ? '' : ' is-inactive') + '"' + hrefAttr + '>' +
         '<div class="card__top">' +
           levelBadgeHtml(t.level) +
-          '<span class="card__soon">' + (t.active ? 'พร้อมใช้งาน' : 'เร็วๆ นี้') + '</span>' +
+          (t.active ? '' : '<span class="card__soon">เร็วๆ นี้</span>') +
         '</div>' +
         '<div class="card__title">' + t.title + '</div>' +
       '</' + tag + '>'
