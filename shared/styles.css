@@ -39,6 +39,14 @@
   --sim-bg:      var(--surface);
   --grid:        var(--dot-color);
 
+  /* Theme-agnostic accent colors (decouple from theme-specific color names) */
+  --accent-primary:    var(--cyan);
+  --accent-primary-fg: var(--cyan-fg);
+  --accent-secondary:    var(--magenta);
+  --accent-secondary-fg: var(--magenta-fg);
+  --accent-tertiary:    var(--yellow);
+  --accent-tertiary-fg: var(--yellow-fg);
+
   --font: 'Montserrat', 'Noto Sans Thai', sans-serif;
   --mono: ui-monospace, 'SF Mono', 'Courier New', monospace;
 
@@ -249,9 +257,9 @@ body {
   color: var(--ink); background: var(--surface); border: var(--border-w-sm) solid var(--ink);
   border-radius: var(--radius-pill); padding: var(--space-2) var(--space-4);
 }
-.sim-legend--primary { background: var(--cyan); color: white; border-color: var(--cyan); }
-.sim-legend--secondary { background: var(--magenta); color: white; border-color: var(--magenta); }
-.sim-legend--tertiary { background: var(--yellow); color: var(--ink); border-color: var(--yellow); }
+.sim-legend--primary { background: var(--accent-primary); color: white; border-color: var(--accent-primary); }
+.sim-legend--secondary { background: var(--accent-secondary); color: white; border-color: var(--accent-secondary); }
+.sim-legend--tertiary { background: var(--accent-tertiary); color: var(--ink); border-color: var(--accent-tertiary); }
 
 .controls { display: flex; flex-direction: column; gap: var(--space-3); }
 
