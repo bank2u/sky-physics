@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>โมเมนตัมและการชน — PHYSICS-SIM</title>
+<script src="../../shared/config.js"></script>
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="../../shared/skins/comic.css">
+<script src="../../shared/layout.js"></script>
+<style>
+  /* ---- ส่วนขยายเฉพาะเรื่องนี้ — ใช้ design token เท่านั้น ห้ามฝัง hex/ฟอนต์ใหม่ ---- */
+  .mode-tabs { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-3); }
+  .slider--m1, .slider--u1 { --slider-accent: var(--accent-primary);   --slider-accent-fg: var(--accent-primary-fg); }
+  .slider--m2, .slider--u2 { --slider-accent: var(--accent-secondary); --slider-accent-fg: var(--accent-secondary-fg); }
+  .slider--e, .slider--time { --slider-accent: var(--accent-tertiary); --slider-accent-fg: var(--accent-tertiary-fg); }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="page">
+  <!-- 1. หัวเรื่อง + คำอธิบายสั้น -->
+  <div class="topic-header">
+    <div class="topic-header__left">
+      <a class="back-btn" href="../../" aria-label="กลับสารบัญ">←</a>
+      <h1 class="topic-title">โมเมนตัมและการชน <span class="en">MOMENTUM &amp; COLLISIONS</span></h1>
+    </div>
+    <span class="badge-level is-filled">ม.ปลาย</span>
+  </div>
+  <p class="topic-desc">ปรับมวล ความเร็วต้น และชนิดการชน แล้วกด "ปล่อย" เพื่อดูรถชนกันแบบ slow-motion — สังเกตว่าโมเมนตัมรวมอนุรักษ์เสมอ</p>
+
+  <div class="sim-row">
+    <!-- 2. โซน simulation -->
+    <div class="sim-zone" id="sim-zone"></div>
+
+    <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
+    <div class="controls">
+      <div class="tile-grid">
+        <div class="tile tile--cyan">
+          <div class="tile__label">โมเมนตัมรวมก่อนชน · P BEFORE</div>
+          <div class="tile__value" id="tile-p-before">12.0<span class="tile__unit">kg·m/s</span></div>
+        </div>
+        <div class="tile tile--cyan">
+          <div class="tile__label">โมเมนตัมรวมหลังชน · P AFTER</div>
+          <div class="tile__value" id="tile-p-after">12.0<span class="tile__unit">kg·m/s</span></div>
+        </div>
+        <div class="tile tile--magenta">
+          <div class="tile__label">พลังงานจลน์ก่อนชน · KE BEFORE</div>
+          <div class="tile__value" id="tile-ke-before">18.0<span class="tile__unit">J</span></div>
+        </div>
+        <div class="tile tile--magenta">
+          <div class="tile__label">พลังงานจลน์หลังชน · KE AFTER</div>
+          <div class="tile__value" id="tile-ke-after">18.0<span class="tile__unit">J</span></div>
+        </div>
+      </div>
+
+      <div class="sliders">
+        <div class="mode-tabs" id="modeTabs">
+          <button type="button" class="chip is-active" data-mode="elastic">ยืดหยุ่น · ELASTIC</button>
+          <button type="button" class="chip" data-mode="inelastic">ไม่ยืดหยุ่น · INELASTIC</button>
+        </div>
+
+        <div class="slider--e">
+          <div class="slider__row">
+            <span>สัมประสิทธิ์การคืนตัว · e</span>
+            <span class="slider__value" id="e-value">1.00</span>
+          </div>
+          <div class="slider__track" id="e-track">
+            <div class="slider__fill" id="e-fill"></div>
+            <div class="slider__thumb" id="e-thumb"></div>
+          </div>
+        </div>
+
+        <div class="slider--m1">
+          <div class="slider__row">
+            <span>มวลรถ 1 · MASS 1</span>
+            <span class="slider__value" id="m1-value">4.0 kg</span>
+          </div>
+          <div class="slider__track" id="m1-track">
+            <div class="slider__fill" id="m1-fill"></div>
+            <div class="slider__thumb" id="m1-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--u1">
+          <div class="slider__row">
+            <span>ความเร็วต้นรถ 1 · V₀ 1</span>
+            <span class="slider__value" id="u1-value">3.0 m/s</span>
+          </div>
+          <div class="slider__track" id="u1-track">
+            <div class="slider__fill" id="u1-fill"></div>
+            <div class="slider__thumb" id="u1-thumb"></div>
+          </div>
+        </div>
+
+        <div class="slider--m2">
+          <div class="slider__row">
+            <span>มวลรถ 2 · MASS 2</span>
+            <span class="slider__value" id="m2-value">2.0 kg</span>
+          </div>
+          <div class="slider__track" id="m2-track">
+            <div class="slider__fill" id="m2-fill"></div>
+            <div class="slider__thumb" id="m2-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--u2">
+          <div class="slider__row">
+            <span>ความเร็วต้นรถ 2 · V₀ 2</span>
+            <span class="slider__value" id="u2-value">0.0 m/s</span>
+          </div>
+          <div class="slider__track" id="u2-track">
+            <div class="slider__fill" id="u2-fill"></div>
+            <div class="slider__thumb" id="u2-thumb"></div>
+          </div>
+        </div>
+
+        <div class="slider--time">
+          <div class="slider__row">
+            <span>อัตราเวลา · SLOW-MO</span>
+            <span class="slider__value" id="time-value">0.4×</span>
+          </div>
+          <div class="slider__track" id="time-track">
+            <div class="slider__fill" id="time-fill"></div>
+            <div class="slider__thumb" id="time-thumb"></div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn-play" id="play-btn">▶ ปล่อย</button>
+          <button type="button" class="btn-reset" id="reset-btn">RESET</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. คำอธิบายแนวคิด / สมการ -->
+  <div class="equations">
+    <div class="equation-card">
+      <span class="equation-card__label">อนุรักษ์โมเมนตัม · CONSERVATION</span>
+      <span class="equation-card__formula">m<sub>1</sub>u<sub>1</sub> + m<sub>2</sub>u<sub>2</sub> = m<sub>1</sub>v<sub>1</sub> + m<sub>2</sub>v<sub>2</sub></span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">สัมประสิทธิ์การคืนตัว · RESTITUTION</span>
+      <span class="equation-card__formula">e = (v<sub>2</sub> − v<sub>1</sub>) / (u<sub>1</sub> − u<sub>2</sub>)</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">แรงดล (กฎข้อ 3) · IMPULSE PAIR</span>
+      <span class="equation-card__formula">J<sub>1</sub> = m<sub>1</sub>(v<sub>1</sub> − u<sub>1</sub>) = −J<sub>2</sub></span>
+    </div>
+  </div>
+
+  <div class="concept">
+    <h2>คำอธิบายแนวคิด</h2>
+    <p>
+      เมื่อไม่มีแรงภายนอกมากระทำต่อระบบ โมเมนตัมรวม (ผลรวมของ mv ของทุกวัตถุ) จะคงที่เสมอ นี่คือกฎการอนุรักษ์โมเมนตัม
+      ลองปรับมวลและความเร็วต้นของรถทั้งสองคัน แล้วสลับชนิดการชนดู จะเห็นว่าตัวเลข "โมเมนตัมรวมก่อนชน" กับ "โมเมนตัมรวมหลังชน"
+      เท่ากันเป๊ะทุกครั้ง ไม่ว่าจะชนแบบยืดหยุ่น (รถเด้งแยกจากกัน) หรือไม่ยืดหยุ่น (รถติดกันไปด้วยกัน) แต่พลังงานจลน์รวมนั้นต่างกัน:
+      การชนยืดหยุ่น (e=1) พลังงานจลน์รวมเท่าเดิม ส่วนการชนไม่ยืดหยุ่น (e&lt;1) พลังงานจลน์บางส่วนเปลี่ยนไปเป็นความร้อน เสียง
+      และการเปลี่ยนรูปของวัตถุ ค่า KE หลังชนจึงน้อยลง จุดสำคัญที่เด็กมักเข้าใจผิดคือคิดว่า "รถใหญ่ชนรถเล็ก แรงที่กระทำไม่เท่ากัน"
+      ความจริงตามกฎข้อ 3 ของนิวตัน ขณะกระทบ รถทั้งสองออกแรงต่อกันด้วยขนาดเท่ากันเสมอ (ลูกศรแรงดลสองอันในซิมยาวเท่ากันแม้มวลต่างกัน)
+      สิ่งที่ต่างคือ "ผล" ของแรง เพราะความเร่ง a = F/m รถเล็กมวลน้อยจึงเปลี่ยนความเร็วมากกว่า ทั้งที่รับแรงเท่ากัน
+      ลองปรับอัตราเวลาให้ช้าลงเพื่อดูช่วงกระทบซึ่งในการทดลองจริงเกิดเร็วเกินกว่าจะสังเกตได้
+    </p>
+  </div>
+</main>
+
+<script src="../../shared/sim/collision.js"></script>
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), '../../');
+
+  var M_MIN = 1, M_MAX = 5;
+  var U_MIN = -6, U_MAX = 6;
+  var E_MIN = 0, E_MAX = 1;
+  var T_MIN = 0.1, T_MAX = 1.0;
+
+  var sim = SimPatterns.collision.create(document.getElementById('sim-zone'), {
+    m1: 4, m2: 2, u1: 3, u2: 0, e: 1, timeScale: 0.4,
+    massRange: [M_MIN, M_MAX],
+    velRange: [U_MIN, U_MAX],
+    eRange: [E_MIN, E_MAX],
+    timeScaleRange: [T_MIN, T_MAX],
+    onUpdate: function (vals) {
+      document.getElementById('tile-p-before').innerHTML = vals.pBefore.toFixed(1) + '<span class="tile__unit">kg·m/s</span>';
+      document.getElementById('tile-p-after').innerHTML = vals.pAfter.toFixed(1) + '<span class="tile__unit">kg·m/s</span>';
+      document.getElementById('tile-ke-before').innerHTML = vals.keBefore.toFixed(1) + '<span class="tile__unit">J</span>';
+      document.getElementById('tile-ke-after').innerHTML = vals.keAfter.toFixed(1) + '<span class="tile__unit">J</span>';
+
+      document.getElementById('e-value').textContent = vals.e.toFixed(2);
+      document.getElementById('m1-value').textContent = vals.m1.toFixed(1) + ' kg';
+      document.getElementById('m2-value').textContent = vals.m2.toFixed(1) + ' kg';
+      document.getElementById('u1-value').textContent = vals.u1.toFixed(1) + ' m/s';
+      document.getElementById('u2-value').textContent = vals.u2.toFixed(1) + ' m/s';
+      document.getElementById('time-value').textContent = vals.timeScale.toFixed(1) + '×';
+
+      var ePct = ((vals.e - E_MIN) / (E_MAX - E_MIN)) * 100;
+      var m1Pct = ((vals.m1 - M_MIN) / (M_MAX - M_MIN)) * 100;
+      var m2Pct = ((vals.m2 - M_MIN) / (M_MAX - M_MIN)) * 100;
+      var u1Pct = ((vals.u1 - U_MIN) / (U_MAX - U_MIN)) * 100;
+      var u2Pct = ((vals.u2 - U_MIN) / (U_MAX - U_MIN)) * 100;
+      var tPct = ((vals.timeScale - T_MIN) / (T_MAX - T_MIN)) * 100;
+
+      document.getElementById('e-fill').style.width = ePct + '%';
+      document.getElementById('e-thumb').style.left = ePct + '%';
+      document.getElementById('m1-fill').style.width = m1Pct + '%';
+      document.getElementById('m1-thumb').style.left = m1Pct + '%';
+      document.getElementById('m2-fill').style.width = m2Pct + '%';
+      document.getElementById('m2-thumb').style.left = m2Pct + '%';
+      document.getElementById('u1-fill').style.width = u1Pct + '%';
+      document.getElementById('u1-thumb').style.left = u1Pct + '%';
+      document.getElementById('u2-fill').style.width = u2Pct + '%';
+      document.getElementById('u2-thumb').style.left = u2Pct + '%';
+      document.getElementById('time-fill').style.width = tPct + '%';
+      document.getElementById('time-thumb').style.left = tPct + '%';
+
+      var modeTabs = document.getElementById('modeTabs');
+      Array.prototype.forEach.call(modeTabs.querySelectorAll('button'), function (b) {
+        var isElastic = b.dataset.mode === 'elastic' && vals.e >= 0.999;
+        var isInelastic = b.dataset.mode === 'inelastic' && vals.e <= 0.001;
+        b.classList.toggle('is-active', isElastic || isInelastic);
+      });
+
+      document.getElementById('play-btn').textContent = vals.playing ? '❚❚ หยุด' : '▶ ปล่อย';
+    }
+  });
+
+  function wireTrack(trackEl, min, max, onDrag) {
+    trackEl.addEventListener('pointerdown', function (e) {
+      var rect = trackEl.getBoundingClientRect();
+      function update(clientX) {
+        var frac = (clientX - rect.left) / rect.width;
+        frac = Math.max(0, Math.min(1, frac));
+        onDrag(min + frac * (max - min));
+      }
+      update(e.clientX);
+      function onMove(ev) { update(ev.clientX); }
+      function onUp() {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  }
+
+  wireTrack(document.getElementById('e-track'), E_MIN, E_MAX, function (v) {
+    sim.setE(Math.round(v * 100) / 100);
+  });
+  wireTrack(document.getElementById('m1-track'), M_MIN, M_MAX, function (v) {
+    sim.setM1(Math.round(v * 10) / 10);
+  });
+  wireTrack(document.getElementById('m2-track'), M_MIN, M_MAX, function (v) {
+    sim.setM2(Math.round(v * 10) / 10);
+  });
+  wireTrack(document.getElementById('u1-track'), U_MIN, U_MAX, function (v) {
+    sim.setU1(Math.round(v * 10) / 10);
+  });
+  wireTrack(document.getElementById('u2-track'), U_MIN, U_MAX, function (v) {
+    sim.setU2(Math.round(v * 10) / 10);
+  });
+  wireTrack(document.getElementById('time-track'), T_MIN, T_MAX, function (v) {
+    sim.setTimeScale(Math.round(v * 10) / 10);
+  });
+
+  document.getElementById('modeTabs').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-mode]');
+    if (!btn) return;
+    sim.setE(btn.dataset.mode === 'elastic' ? 1 : 0);
+  });
+
+  document.getElementById('play-btn').addEventListener('click', function () { sim.play(); });
+  document.getElementById('reset-btn').addEventListener('click', function () { sim.reset(); });
+</script>
+</body>
+</html>

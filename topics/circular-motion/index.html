@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>การเคลื่อนที่แบบวงกลม — PHYSICS-SIM</title>
+<script src="../../shared/config.js"></script>
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="../../shared/skins/comic.css">
+<script src="../../shared/layout.js"></script>
+<style>
+  /* ---- ส่วนขยายเฉพาะเรื่องนี้ — ใช้ design token เท่านั้น ห้ามฝัง hex/ฟอนต์ใหม่ ---- */
+  .slider--radius { --slider-accent: var(--accent-primary);   --slider-accent-fg: var(--accent-primary-fg); }
+  .slider--speed  { --slider-accent: var(--accent-secondary); --slider-accent-fg: var(--accent-secondary-fg); }
+  .slider--mass   { --slider-accent: var(--accent-tertiary);  --slider-accent-fg: var(--accent-tertiary-fg); }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="page">
+  <!-- 1. หัวเรื่อง + คำอธิบายสั้น -->
+  <div class="topic-header">
+    <div class="topic-header__left">
+      <a class="back-btn" href="../../" aria-label="กลับสารบัญ">←</a>
+      <h1 class="topic-title">การเคลื่อนที่แบบวงกลม <span class="en">CIRCULAR MOTION</span></h1>
+    </div>
+    <span class="badge-level is-filled">ม.ปลาย</span>
+  </div>
+  <p class="topic-desc">ปรับรัศมี ความเร็ว และมวล ดูเวกเตอร์ v กับ a ติดตัววัตถุขณะหมุน แล้วกด "ตัดเชือก" เพื่อดูว่าวัตถุพุ่งไปทางไหนจริงๆ</p>
+
+  <div class="sim-row">
+    <!-- 2. โซน simulation -->
+    <div class="sim-zone" id="sim-zone"></div>
+
+    <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
+    <div class="controls">
+      <div class="tile-grid">
+        <div class="tile tile--cyan">
+          <div class="tile__label">ความเร่งสู่ศูนย์กลาง · a = v²/r</div>
+          <div class="tile__value" id="tile-a">24.0<span class="tile__unit">m/s²</span></div>
+        </div>
+        <div class="tile tile--magenta">
+          <div class="tile__label">แรงตึงเชือก · F = mv²/r</div>
+          <div class="tile__value" id="tile-f">48.0<span class="tile__unit">N</span></div>
+        </div>
+        <div class="tile tile--yellow">
+          <div class="tile__label">อัตราเร็ว · SPEED (คงที่)</div>
+          <div class="tile__value" id="tile-v">6.0<span class="tile__unit">m/s</span></div>
+        </div>
+        <div class="tile">
+          <div class="tile__label">คาบการหมุน · PERIOD</div>
+          <div class="tile__value" id="tile-t">1.6<span class="tile__unit">s</span></div>
+        </div>
+      </div>
+
+      <div class="sliders">
+        <div class="slider--radius">
+          <div class="slider__row">
+            <span>รัศมี · RADIUS</span>
+            <span class="slider__value" id="r-value">1.5 m</span>
+          </div>
+          <div class="slider__track" id="r-track">
+            <div class="slider__fill" id="r-fill"></div>
+            <div class="slider__thumb" id="r-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--speed">
+          <div class="slider__row">
+            <span>อัตราเร็ว · SPEED</span>
+            <span class="slider__value" id="v-value">6.0 m/s</span>
+          </div>
+          <div class="slider__track" id="v-track">
+            <div class="slider__fill" id="v-fill"></div>
+            <div class="slider__thumb" id="v-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--mass">
+          <div class="slider__row">
+            <span>มวล · MASS</span>
+            <span class="slider__value" id="m-value">2.0 kg</span>
+          </div>
+          <div class="slider__track" id="m-track">
+            <div class="slider__fill" id="m-fill"></div>
+            <div class="slider__thumb" id="m-thumb"></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn-play" id="play-btn">▶ หมุน</button>
+          <button type="button" class="btn-reset" id="cut-btn">✂ ตัดเชือก</button>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn-reset" id="reset-btn">RESET</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. คำอธิบายแนวคิด / สมการ -->
+  <div class="equations">
+    <div class="equation-card">
+      <span class="equation-card__label">ความเร่งสู่ศูนย์กลาง</span>
+      <span class="equation-card__formula">a = v<sup>2</sup> / r</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">แรงสู่ศูนย์กลาง</span>
+      <span class="equation-card__formula">F = m v<sup>2</sup> / r</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">อัตราเร็วเชิงมุม</span>
+      <span class="equation-card__formula">ω = v / r</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">คาบการหมุน</span>
+      <span class="equation-card__formula">T = 2πr / v</span>
+    </div>
+  </div>
+
+  <div class="concept">
+    <h2>คำอธิบายแนวคิด</h2>
+    <p>
+      วัตถุที่เคลื่อนที่เป็นวงกลมด้วยอัตราเร็วคงที่ v ดูเผินๆ เหมือน "ไม่มีความเร่ง" เพราะเลขอัตราเร็วไม่เปลี่ยน
+      แต่ความเร็วเป็นปริมาณเวกเตอร์ — มีทั้งขนาดและทิศ ขณะวัตถุวิ่งรอบวง ทิศของ v เปลี่ยนตลอดเวลา
+      การเปลี่ยนทิศของความเร็วก็คือความเร่ง ความเร่งนี้ชี้เข้าสู่ศูนย์กลางเสมอ เรียกว่าความเร่งสู่ศูนย์กลาง a = v²/r
+      สิ่งที่ทำให้เกิดความเร่งนี้คือแรงสู่ศูนย์กลาง F = mv²/r (ในกรณีนี้คือแรงตึงเชือกที่ดึงวัตถุ "เข้า" หาจุดหมุน)
+    </p>
+    <p>
+      ข้อเข้าใจผิดที่พบบ่อยคือคิดว่ามี "แรงหนีศูนย์กลาง" ผลักวัตถุออก — จริงๆ ไม่มีแรงนั้น
+      มีแต่แรงตึงเชือกที่ดึงเข้า เมื่อ "ตัดเชือก" แรงที่ดึงเข้าหายไปทันที ไม่มีแรงใดกระทำในแนวราบอีก (กฎข้อ 1 ของนิวตัน)
+      วัตถุจึงเคลื่อนที่เป็นเส้นตรงต่อไปตาม<b>ทิศความเร็วขณะนั้น</b>ซึ่งคือแนวเส้นสัมผัสวงกลม ไม่ใช่พุ่งออกตามแนวรัศมี
+      กด "ตัดเชือก" ใน simulation ด้านบนเพื่อเห็นวัตถุพุ่งตามแนวสัมผัส เทียบกับแนวรัศมี (เส้นประ ✗) ที่หลายคนตอบผิด
+    </p>
+  </div>
+</main>
+
+<script src="../../shared/sim/circular-motion.js"></script>
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), '../../');
+
+  var R_MIN = 0.5, R_MAX = 3.0;
+  var V_MIN = 1, V_MAX = 12;
+  var M_MIN = 0.5, M_MAX = 5.0;
+
+  var sim = SimPatterns.circularMotion.create(document.getElementById('sim-zone'), {
+    r: 1.5,
+    v: 6,
+    mass: 2.0,
+    rRange: [R_MIN, R_MAX],
+    vRange: [V_MIN, V_MAX],
+    massRange: [M_MIN, M_MAX],
+    onUpdate: function (vals) {
+      document.getElementById('tile-a').innerHTML = vals.a.toFixed(1) + '<span class="tile__unit">m/s²</span>';
+      document.getElementById('tile-f').innerHTML = vals.F.toFixed(1) + '<span class="tile__unit">N</span>';
+      document.getElementById('tile-v').innerHTML = vals.v.toFixed(1) + '<span class="tile__unit">m/s</span>';
+      document.getElementById('tile-t').innerHTML = vals.T.toFixed(1) + '<span class="tile__unit">s</span>';
+
+      document.getElementById('r-value').textContent = vals.r.toFixed(1) + ' m';
+      document.getElementById('v-value').textContent = vals.v.toFixed(1) + ' m/s';
+      document.getElementById('m-value').textContent = vals.mass.toFixed(1) + ' kg';
+
+      var rPct = ((vals.r - R_MIN) / (R_MAX - R_MIN)) * 100;
+      var vPct = ((vals.v - V_MIN) / (V_MAX - V_MIN)) * 100;
+      var mPct = ((vals.mass - M_MIN) / (M_MAX - M_MIN)) * 100;
+      document.getElementById('r-fill').style.width = rPct + '%';
+      document.getElementById('r-thumb').style.left = rPct + '%';
+      document.getElementById('v-fill').style.width = vPct + '%';
+      document.getElementById('v-thumb').style.left = vPct + '%';
+      document.getElementById('m-fill').style.width = mPct + '%';
+      document.getElementById('m-thumb').style.left = mPct + '%';
+
+      document.getElementById('play-btn').textContent = vals.cut ? '(ตัดแล้ว)' : (vals.playing ? '❚❚ หยุด' : '▶ หมุน');
+      document.getElementById('cut-btn').disabled = vals.cut;
+    }
+  });
+
+  function wireTrack(trackEl, min, max, onDrag) {
+    trackEl.addEventListener('pointerdown', function (e) {
+      var rect = trackEl.getBoundingClientRect();
+      function update(clientX) {
+        var frac = (clientX - rect.left) / rect.width;
+        frac = Math.max(0, Math.min(1, frac));
+        onDrag(min + frac * (max - min));
+      }
+      update(e.clientX);
+      function onMove(ev) { update(ev.clientX); }
+      function onUp() {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  }
+
+  wireTrack(document.getElementById('r-track'), R_MIN, R_MAX, function (v) {
+    sim.setR(Math.round(v * 10) / 10);
+  });
+  wireTrack(document.getElementById('v-track'), V_MIN, V_MAX, function (v) {
+    sim.setV(Math.round(v * 10) / 10);
+  });
+  wireTrack(document.getElementById('m-track'), M_MIN, M_MAX, function (v) {
+    sim.setMass(Math.round(v * 10) / 10);
+  });
+
+  document.getElementById('play-btn').addEventListener('click', function () { sim.play(); });
+  document.getElementById('cut-btn').addEventListener('click', function () { sim.cut(); });
+  document.getElementById('reset-btn').addEventListener('click', function () { sim.reset(); });
+</script>
+</body>
+</html>

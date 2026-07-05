@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>การเคลื่อนที่แบบฮาร์มอนิกอย่างง่าย (SHM) — PHYSICS-SIM</title>
+<script src="../../shared/config.js"></script>
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="../../shared/skins/comic.css">
+<script src="../../shared/layout.js"></script>
+<style>
+  .slider--k { --slider-accent: var(--accent-primary);   --slider-accent-fg: var(--accent-primary-fg); }
+  .slider--m { --slider-accent: var(--accent-secondary); --slider-accent-fg: var(--accent-secondary-fg); }
+  .slider--amp { --slider-accent: var(--accent-tertiary); --slider-accent-fg: var(--accent-tertiary-fg); }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="page">
+  <!-- 1. หัวเรื่อง + คำอธิบายสั้น -->
+  <div class="topic-header">
+    <div class="topic-header__left">
+      <a class="back-btn" href="../../" aria-label="กลับสารบัญ">←</a>
+      <h1 class="topic-title">การเคลื่อนที่แบบฮาร์มอนิกอย่างง่าย <span class="en">SIMPLE HARMONIC MOTION</span></h1>
+    </div>
+    <span class="badge-level is-filled">ม.ปลาย</span>
+  </div>
+  <p class="topic-desc">ปรับค่านิจสปริง k, มวล m, แอมพลิจูด A แล้วกด "ปล่อย" เพื่อดูมวลติดสปริงสั่นคู่กับวงกลมอ้างอิงและกราฟ x-t, v-t, a-t ที่วาดสด — สังเกตว่าความเร็วมากที่สุดตรงกลาง แต่ความเร่งมากที่สุดที่ปลายสุด</p>
+
+  <div class="sim-row">
+    <!-- 2. โซน simulation -->
+    <div class="sim-zone" id="sim-zone"></div>
+
+    <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
+    <div class="controls">
+      <div class="tile-grid">
+        <div class="tile tile--cyan">
+          <div class="tile__label">การกระจัด · POSITION (x)</div>
+          <div class="tile__value" id="tile-x">0.30<span class="tile__unit">m</span></div>
+        </div>
+        <div class="tile tile--magenta">
+          <div class="tile__label">ความเร็ว · VELOCITY (v)</div>
+          <div class="tile__value" id="tile-v">0.00<span class="tile__unit">m/s</span></div>
+        </div>
+        <div class="tile tile--yellow">
+          <div class="tile__label">ความเร่ง · ACCELERATION (a)</div>
+          <div class="tile__value" id="tile-a">-6.00<span class="tile__unit">m/s²</span></div>
+        </div>
+        <div class="tile">
+          <div class="tile__label">คาบ · PERIOD (T)</div>
+          <div class="tile__value" id="tile-T">1.4<span class="tile__unit">s</span></div>
+        </div>
+      </div>
+
+      <div class="sliders">
+        <div class="slider--k">
+          <div class="slider__row">
+            <span>ค่านิจสปริง · SPRING CONSTANT (k)</span>
+            <span class="slider__value" id="k-value">20 N/m</span>
+          </div>
+          <div class="slider__track" id="k-track">
+            <div class="slider__fill" id="k-fill"></div>
+            <div class="slider__thumb" id="k-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--m">
+          <div class="slider__row">
+            <span>มวล · MASS (m)</span>
+            <span class="slider__value" id="m-value">1.0 kg</span>
+          </div>
+          <div class="slider__track" id="m-track">
+            <div class="slider__fill" id="m-fill"></div>
+            <div class="slider__thumb" id="m-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--amp">
+          <div class="slider__row">
+            <span>แอมพลิจูด · AMPLITUDE (A)</span>
+            <span class="slider__value" id="amp-value">0.30 m</span>
+          </div>
+          <div class="slider__track" id="amp-track">
+            <div class="slider__fill" id="amp-fill"></div>
+            <div class="slider__thumb" id="amp-thumb"></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn-play" id="play-btn">▶ ปล่อย</button>
+          <button type="button" class="btn-reset" id="reset-btn">RESET</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. คำอธิบายแนวคิด / สมการ -->
+  <div class="equations">
+    <div class="equation-card">
+      <span class="equation-card__label">อัตราเร็วเชิงมุม · ANGULAR FREQUENCY</span>
+      <span class="equation-card__formula">ω = √(k/m)</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">คาบ · PERIOD</span>
+      <span class="equation-card__formula">T = 2π√(m/k)</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">การกระจัด · DISPLACEMENT</span>
+      <span class="equation-card__formula">x = A cos(ωt)</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">ความเร็ว · VELOCITY</span>
+      <span class="equation-card__formula">v = −Aω sin(ωt)</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">ความเร่ง · ACCELERATION</span>
+      <span class="equation-card__formula">a = −ω<sup>2</sup>x</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">แรงดึงกลับ · RESTORING FORCE</span>
+      <span class="equation-card__formula">F = −kx</span>
+    </div>
+  </div>
+
+  <div class="concept">
+    <h2>คำอธิบายแนวคิด</h2>
+    <p>
+      มวลติดสปริงที่สั่นกลับไปกลับมาคือตัวอย่างคลาสสิกของการเคลื่อนที่แบบฮาร์มอนิกอย่างง่าย (SHM) แรงจากสปริง F = −kx ดึงมวลกลับเข้าหาจุดสมดุลเสมอ
+      ยิ่งกระจัดไกลแรงยิ่งมาก มวลจึงมี<strong>ความเร่งมากที่สุดที่จุดปลายสุด</strong> (แต่ ณ จุดนั้นมวลหยุดชั่วขณะ v = 0) และเมื่อถูกเร่งจนวิ่งผ่านจุดสมดุล
+      มวลมี<strong>ความเร็วมากที่สุดตรงกลาง</strong> (แต่ ณ จุดนั้นไม่มีแรง a = 0) — นี่คือจุดที่มักเข้าใจสลับกัน ลองสังเกตลูกศร v กับ a บนตัวมวล
+      และจุดวิ่งบนกราฟ x-t, v-t, a-t ที่ใช้แกนเวลาร่วมกัน จะเห็นว่ายอดของกราฟ v ตรงกับจุดที่กราฟ x ตัดศูนย์ และยอดของกราฟ a ตรงกับจุดที่กราฟ x ถึงค่าสูงสุด
+      วงกลมอ้างอิงด้านบนแสดงว่าการกระจัดของมวลคือเงาในแนวราบของจุดที่หมุนรอบวงกลมด้วยอัตราเร็วเชิงมุม ω คงที่ — จึงเป็นที่มาว่าทำไม SHM ถึงเป็นฟังก์ชันโคไซน์
+      ลองปรับ k ให้แข็งขึ้นหรือ m ให้เบาลงจะเห็นคาบสั้นลง (สั่นเร็วขึ้น) ส่วนการเพิ่มแอมพลิจูด A ทำให้สั่นกว้างขึ้นแต่คาบเท่าเดิม (T ไม่ขึ้นกับ A)
+    </p>
+  </div>
+</main>
+
+<script src="../../shared/sim/shm.js"></script>
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), '../../');
+
+  var K_MIN = 5, K_MAX = 50;
+  var M_MIN = 0.5, M_MAX = 5;
+  var AMP_MIN = 0.1, AMP_MAX = 0.5;
+
+  var sim = SimPatterns.shm.create(document.getElementById('sim-zone'), {
+    k: 20,
+    m: 1,
+    A: 0.3,
+    kRange: [K_MIN, K_MAX],
+    mRange: [M_MIN, M_MAX],
+    ARange: [AMP_MIN, AMP_MAX],
+    onUpdate: function (vals) {
+      document.getElementById('tile-x').innerHTML = vals.x.toFixed(2) + '<span class="tile__unit">m</span>';
+      document.getElementById('tile-v').innerHTML = vals.v.toFixed(2) + '<span class="tile__unit">m/s</span>';
+      document.getElementById('tile-a').innerHTML = vals.a.toFixed(2) + '<span class="tile__unit">m/s²</span>';
+      document.getElementById('tile-T').innerHTML = vals.T.toFixed(2) + '<span class="tile__unit">s</span>';
+
+      document.getElementById('k-value').textContent = vals.k.toFixed(0) + ' N/m';
+      document.getElementById('m-value').textContent = vals.m.toFixed(1) + ' kg';
+      document.getElementById('amp-value').textContent = vals.A.toFixed(2) + ' m';
+
+      var kPct = ((vals.k - K_MIN) / (K_MAX - K_MIN)) * 100;
+      var mPct = ((vals.m - M_MIN) / (M_MAX - M_MIN)) * 100;
+      var ampPct = ((vals.A - AMP_MIN) / (AMP_MAX - AMP_MIN)) * 100;
+      document.getElementById('k-fill').style.width = kPct + '%';
+      document.getElementById('k-thumb').style.left = kPct + '%';
+      document.getElementById('m-fill').style.width = mPct + '%';
+      document.getElementById('m-thumb').style.left = mPct + '%';
+      document.getElementById('amp-fill').style.width = ampPct + '%';
+      document.getElementById('amp-thumb').style.left = ampPct + '%';
+
+      document.getElementById('play-btn').textContent = vals.playing ? '❚❚ หยุด' : '▶ ปล่อย';
+    }
+  });
+
+  function wireTrack(trackEl, min, max, onDrag) {
+    trackEl.addEventListener('pointerdown', function (e) {
+      var rect = trackEl.getBoundingClientRect();
+      function update(clientX) {
+        var frac = (clientX - rect.left) / rect.width;
+        frac = Math.max(0, Math.min(1, frac));
+        onDrag(min + frac * (max - min));
+      }
+      update(e.clientX);
+      function onMove(ev) { update(ev.clientX); }
+      function onUp() {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  }
+
+  wireTrack(document.getElementById('k-track'), K_MIN, K_MAX, function (v) {
+    sim.setK(Math.round(v));
+  });
+  wireTrack(document.getElementById('m-track'), M_MIN, M_MAX, function (v) {
+    sim.setM(Math.round(v * 10) / 10);
+  });
+  wireTrack(document.getElementById('amp-track'), AMP_MIN, AMP_MAX, function (v) {
+    sim.setA(Math.round(v * 100) / 100);
+  });
+
+  document.getElementById('play-btn').addEventListener('click', function () { sim.play(); });
+  document.getElementById('reset-btn').addEventListener('click', function () { sim.reset(); });
+</script>
+</body>
+</html>

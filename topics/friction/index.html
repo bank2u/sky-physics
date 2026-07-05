@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แรงเสียดทานกับกฎของนิวตัน — PHYSICS-SIM</title>
+<script src="../../shared/config.js"></script>
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="../../shared/skins/comic.css">
+<script src="../../shared/layout.js"></script>
+<style>
+  /* ---- ส่วนขยายเฉพาะเรื่องนี้ — ใช้ design token เท่านั้น ห้ามฝัง hex/ฟอนต์ใหม่ ---- */
+  .surface-tabs { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-3); }
+  .slider--force { --slider-accent: var(--accent-primary);    --slider-accent-fg: var(--accent-primary-fg); }
+  .slider--mu    { --slider-accent: var(--accent-secondary);  --slider-accent-fg: var(--accent-secondary-fg); }
+  .slider--mass  { --slider-accent: var(--accent-tertiary);   --slider-accent-fg: var(--accent-tertiary-fg); }
+  .tile--status { grid-column: 1 / -1; }
+  .tile--status .tile__value { font-size: var(--fs-eq); line-height: 1.3; }
+  .btn-push.is-pushing { transform: scale(.96); }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="page">
+  <!-- 1. หัวเรื่อง + คำอธิบายสั้น -->
+  <div class="topic-header">
+    <div class="topic-header__left">
+      <a class="back-btn" href="../../" aria-label="กลับสารบัญ">←</a>
+      <h1 class="topic-title">แรงเสียดทานกับกฎของนิวตัน <span class="en">FRICTION &amp; NEWTON'S LAWS</span></h1>
+    </div>
+    <span class="badge-level is-filled">ม.ต้น</span>
+  </div>
+  <p class="topic-desc">กดค้างเพื่อผลักกล่องแล้วปล่อย ดูแรงเสียดทานฉุดจนหยุด แล้วลากค่า μ ลงมาที่ 0 (หรือกดพื้น "ลื่นไร้แรงเสียดทาน") ผลักแวบเดียวแล้วปล่อย จะเห็นกล่องไถลต่อไปไม่มีวันหยุด โดยไม่ต้องออกแรงอีกเลย</p>
+
+  <div class="sim-row">
+    <!-- 2. โซน simulation -->
+    <div class="sim-zone" id="sim-zone"></div>
+
+    <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
+    <div class="controls">
+      <div class="tile-grid">
+        <div class="tile tile--cyan">
+          <div class="tile__label">แรงลัพธ์ · NET FORCE</div>
+          <div class="tile__value" id="tile-net">0<span class="tile__unit">N</span></div>
+        </div>
+        <div class="tile tile--yellow">
+          <div class="tile__label">ความเร่ง · ACCELERATION a</div>
+          <div class="tile__value" id="tile-a">0.0<span class="tile__unit">m/s²</span></div>
+        </div>
+        <div class="tile tile--magenta">
+          <div class="tile__label">แรงเสียดทาน · FRICTION</div>
+          <div class="tile__value" id="tile-fric">0<span class="tile__unit">N</span></div>
+        </div>
+        <div class="tile">
+          <div class="tile__label">ความเร็ว · VELOCITY v</div>
+          <div class="tile__value" id="tile-v">0.0<span class="tile__unit">m/s</span></div>
+        </div>
+        <div class="tile tile--status">
+          <div class="tile__label">สถานะ · STATE</div>
+          <div class="tile__value" id="tile-state">หยุดนิ่ง</div>
+        </div>
+      </div>
+
+      <div class="sliders">
+        <div class="surface-tabs" id="surfaceTabs">
+          <button type="button" class="chip" data-mu="0">ลื่นไร้แรงเสียดทาน</button>
+          <button type="button" class="chip" data-mu="0.05">น้ำแข็ง</button>
+          <button type="button" class="chip" data-mu="0.2">ไม้ขัดมัน</button>
+          <button type="button" class="chip is-active" data-mu="0.3">พื้นปูน</button>
+          <button type="button" class="chip" data-mu="0.6">ยางบนถนน</button>
+        </div>
+
+        <div class="slider--force">
+          <div class="slider__row">
+            <span>แรงผลัก · PUSH FORCE (F)</span>
+            <span class="slider__value" id="f-value">25 N</span>
+          </div>
+          <div class="slider__track" id="f-track">
+            <div class="slider__fill" id="f-fill"></div>
+            <div class="slider__thumb" id="f-thumb"></div>
+          </div>
+        </div>
+
+        <div class="slider--mu">
+          <div class="slider__row">
+            <span>สัมประสิทธิ์แรงเสียดทาน · μ</span>
+            <span class="slider__value" id="mu-value">0.30</span>
+          </div>
+          <div class="slider__track" id="mu-track">
+            <div class="slider__fill" id="mu-fill"></div>
+            <div class="slider__thumb" id="mu-thumb"></div>
+          </div>
+        </div>
+
+        <div class="slider--mass">
+          <div class="slider__row">
+            <span>มวลของกล่อง · MASS (m)</span>
+            <span class="slider__value" id="mass-value">2 kg</span>
+          </div>
+          <div class="slider__track" id="mass-track">
+            <div class="slider__fill" id="mass-fill"></div>
+            <div class="slider__thumb" id="mass-thumb"></div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn-play btn-push" id="push-btn">กดค้างเพื่อผลัก ▶</button>
+          <button type="button" class="btn-reset" id="reset-btn">RESET</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. คำอธิบายแนวคิด / สมการ -->
+  <div class="equations">
+    <div class="equation-card">
+      <span class="equation-card__label">แรงลัพธ์ (ขณะเคลื่อนที่) · NET FORCE</span>
+      <span class="equation-card__formula">F<sub>รวม</sub> = F<sub>ผลัก</sub> − f</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">กฎข้อ 2 ของนิวตัน · NEWTON'S 2ND LAW</span>
+      <span class="equation-card__formula">a = F<sub>รวม</sub> / m</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">แรงเสียดทาน · FRICTION</span>
+      <span class="equation-card__formula">f = μ · m · g</span>
+    </div>
+  </div>
+
+  <div class="concept">
+    <h2>คำอธิบายแนวคิด</h2>
+    <p>
+      เด็กเกือบทุกคนคิดแบบอริสโตเติลว่า "ต้องออกแรงตลอดของถึงจะเคลื่อนที่ พอหมดแรงมันก็หยุดเอง" เพราะในโลกจริง
+      เข็นรถหรือผลักกล่อง พอหยุดออกแรงมันก็ช้าลงแล้วหยุดทุกที แต่สิ่งที่ทำให้มันหยุดไม่ใช่ "แรงหมด" —
+      เป็นแรงเสียดทานจากพื้นที่คอยต้านการเคลื่อนที่อยู่ตลอดเวลาต่างหาก ลูกศรสีชมพูในภาพจำลองคือแรงเสียดทาน
+      ที่ชี้สวนทางการเคลื่อนที่เสมอ พอปล่อยมือ (ไม่มีแรงผลักสีฟ้าแล้ว) แรงลัพธ์จึงเหลือแต่แรงเสียดทานที่ฉุดให้ช้าลงจนหยุด
+      ปรับมวลกล่องหรือความหยาบของพื้น (μ) แล้วสังเกตว่าแรงเสียดทาน f = μ·m·g เปลี่ยนตามทันที
+      กล่องหนักบนพื้นหยาบถ้าแรงผลักน้อยกว่าแรงเสียดทานสูงสุดก็ผลักไม่ไปเลย
+    </p>
+    <p>
+      ทีนี้ลองลากแถบ μ ลงมาที่ 0 หรือกดปุ่มพื้น "ลื่นไร้แรงเสียดทาน" แล้วกดผลักกล่องแวบเดียวแล้วปล่อย —
+      กล่องจะไถลต่อไปด้วยความเร็วคงที่ ไม่ช้าลง ไม่หยุด ตลอดไป ทั้งที่ไม่มีแรงอะไรผลักมันเลย (แรงลัพธ์ = 0)
+      นี่คือกฎข้อ 1 ของนิวตัน: วัตถุที่กำลังเคลื่อนที่จะเคลื่อนที่ต่อไปด้วยความเร็วคงที่ ถ้าไม่มีแรงลัพธ์มากระทำ
+      การเคลื่อนที่ไม่ต้องใช้แรงมาพยุง — แรงมีไว้ "เปลี่ยน" การเคลื่อนที่ (ทำให้เร็วขึ้น ช้าลง หรือเลี้ยว) เท่านั้น
+      การทดลองนี้ทำจริงในห้องเรียนไม่ได้ เพราะเราสร้างพื้นไร้แรงเสียดทานสมบูรณ์ไม่ได้ simulation จึงช่วยให้เรา
+      "เห็น" สิ่งที่ธรรมชาติซ่อนไว้เสมอ
+    </p>
+  </div>
+</main>
+
+<script src="../../shared/sim/friction.js"></script>
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), '../../');
+
+  var F_MIN = 0,  F_MAX = 50;
+  var MU_MIN = 0, MU_MAX = 0.6;
+  var M_MIN = 1,  M_MAX = 8;
+
+  function signedN(x) {
+    var r = Math.round(x);
+    return (r > 0 ? '+' : '') + r;
+  }
+
+  var sim = SimPatterns.friction.create(document.getElementById('sim-zone'), {
+    fPush: 25,
+    mu: 0.3,
+    mass: 2,
+    g: 10,
+    fRange: [F_MIN, F_MAX],
+    muRange: [MU_MIN, MU_MAX],
+    massRange: [M_MIN, M_MAX],
+    onUpdate: function (vals) {
+      document.getElementById('tile-net').innerHTML  = signedN(vals.net) + '<span class="tile__unit">N</span>';
+      document.getElementById('tile-a').innerHTML    = (Math.round(vals.a * 10) / 10).toFixed(1) + '<span class="tile__unit">m/s²</span>';
+      document.getElementById('tile-fric').innerHTML = Math.round(vals.friction) + '<span class="tile__unit">N</span>';
+      document.getElementById('tile-v').innerHTML    = (Math.round(vals.v * 10) / 10).toFixed(1) + '<span class="tile__unit">m/s</span>';
+      document.getElementById('tile-state').textContent = vals.moving ? 'กำลังเคลื่อนที่' : 'หยุดนิ่ง';
+    }
+  });
+
+  function wireTrack(trackEl, min, max, onDrag) {
+    trackEl.addEventListener('pointerdown', function (e) {
+      var rect = trackEl.getBoundingClientRect();
+      function update(clientX) {
+        var frac = (clientX - rect.left) / rect.width;
+        frac = Math.max(0, Math.min(1, frac));
+        onDrag(min + frac * (max - min));
+      }
+      update(e.clientX);
+      function onMove(ev) { update(ev.clientX); }
+      function onUp() {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  }
+
+  function setSlider(fillId, thumbId, pct) {
+    document.getElementById(fillId).style.width = pct + '%';
+    document.getElementById(thumbId).style.left = pct + '%';
+  }
+
+  function applyF(f) {
+    f = Math.round(f);
+    document.getElementById('f-value').textContent = f + ' N';
+    setSlider('f-fill', 'f-thumb', ((f - F_MIN) / (F_MAX - F_MIN)) * 100);
+    sim.setFPush(f);
+  }
+  function applyMu(mu) {
+    mu = Math.round(mu * 100) / 100;
+    document.getElementById('mu-value').textContent = mu.toFixed(2);
+    setSlider('mu-fill', 'mu-thumb', ((mu - MU_MIN) / (MU_MAX - MU_MIN)) * 100);
+    sim.setMu(mu);
+    // sync ปุ่มเลือกพื้นให้ตรงกับค่า μ (ถ้าตรง preset)
+    Array.prototype.forEach.call(surfaceTabs.querySelectorAll('button'), function (b) {
+      b.classList.toggle('is-active', Math.abs(parseFloat(b.dataset.mu) - mu) < 0.001);
+    });
+  }
+  function applyMass(m) {
+    m = Math.round(m);
+    document.getElementById('mass-value').textContent = m + ' kg';
+    setSlider('mass-fill', 'mass-thumb', ((m - M_MIN) / (M_MAX - M_MIN)) * 100);
+    sim.setMass(m);
+  }
+
+  wireTrack(document.getElementById('f-track'), F_MIN, F_MAX, applyF);
+  wireTrack(document.getElementById('mu-track'), MU_MIN, MU_MAX, applyMu);
+  wireTrack(document.getElementById('mass-track'), M_MIN, M_MAX, applyMass);
+
+  // init slider fills
+  applyF(25); applyMass(2);
+  setSlider('mu-fill', 'mu-thumb', ((0.3 - MU_MIN) / (MU_MAX - MU_MIN)) * 100);
+
+  var surfaceTabs = document.getElementById('surfaceTabs');
+  surfaceTabs.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-mu]');
+    if (!btn) return;
+    applyMu(parseFloat(btn.dataset.mu));
+  });
+
+  // ปุ่มผลัก: กดค้าง = ออกแรง, ปล่อย = หยุดออกแรง (แรงเสียดทานทำงานต่อ)
+  var pushBtn = document.getElementById('push-btn');
+  function startPush(e) { e.preventDefault(); sim.setPushing(true); pushBtn.classList.add('is-pushing'); }
+  function endPush() { sim.setPushing(false); pushBtn.classList.remove('is-pushing'); }
+  pushBtn.addEventListener('pointerdown', startPush);
+  pushBtn.addEventListener('pointerup', endPush);
+  pushBtn.addEventListener('pointerleave', endPush);
+  pushBtn.addEventListener('pointercancel', endPush);
+
+  document.getElementById('reset-btn').addEventListener('click', function () {
+    sim.reset();
+  });
+</script>
+</body>
+</html>

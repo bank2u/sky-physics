@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สนามไฟฟ้าและเส้นแรง — PHYSICS-SIM</title>
+<script src="../../shared/config.js"></script>
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="../../shared/skins/comic.css">
+<script src="../../shared/layout.js"></script>
+<style>
+  /* ---- ส่วนขยายเฉพาะเรื่องนี้ — ใช้ design token เท่านั้น ห้ามฝัง hex/ฟอนต์ใหม่ ---- */
+  .sim-col { display: flex; flex-direction: column; gap: var(--gap); }
+  .sim-col .sim-zone { flex: 1; }
+
+  .recap-strip {
+    border: 2px dashed var(--ink); border-radius: var(--radius); background: var(--surface);
+    padding: var(--space-3) var(--space-4); font: 700 var(--fs-desc) var(--font);
+  }
+  .recap-strip b { color: var(--accent-secondary-fg); }
+
+  .slider--q1 { --slider-accent: var(--accent-primary);   --slider-accent-fg: var(--accent-primary-fg); }
+  .slider--q2 { --slider-accent: var(--accent-secondary); --slider-accent-fg: var(--accent-secondary-fg); }
+
+  .status-line { font: 700 var(--fs-body) var(--font); margin-top: var(--space-3); line-height: 1.5; }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="page">
+  <!-- 1. หัวเรื่อง + คำอธิบายสั้น -->
+  <div class="topic-header">
+    <div class="topic-header__left">
+      <a class="back-btn" href="../../" aria-label="กลับสารบัญ">←</a>
+      <h1 class="topic-title">สนามไฟฟ้าและเส้นแรง <span class="en">ELECTRIC FIELD &amp; FIELD LINES</span></h1>
+    </div>
+    <span class="badge-level is-filled">ม.ปลาย</span>
+  </div>
+  <p class="topic-desc">ลากประจุ +/− ได้อิสระ ดูเส้นสนามปรับรูปทันที แล้วปล่อยประจุทดสอบเข้าไปดูว่าวิถีจริง (มีความเฉื่อย) ต่างจากเส้นสนามที่วาดไว้อย่างไร</p>
+
+  <div class="sim-row">
+    <!-- 2. โซน simulation -->
+    <div class="sim-col">
+      <div class="sim-zone" id="sim-zone"></div>
+      <div class="recap-strip">
+        <b>สรุปสั้น:</b> เส้นสนาม (จาง) บอกแค่ <i>ทิศทาง+ความหนาแน่น</i> — ไม่ใช่รางที่ประจุวิ่งตาม
+        ส่วนลูกศรทึบสีเข้มคือแรงจริงที่กระทำ ณ ตำแหน่งประจุทดสอบขณะนี้ และเส้นสีเหลืองทึบคือวิถีจริงที่ประจุทดสอบเคลื่อนที่ไปแล้ว
+      </div>
+    </div>
+
+    <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
+    <div class="controls">
+      <div class="tile-grid">
+        <div class="tile tile--cyan">
+          <div class="tile__label">|E| ที่ประจุทดสอบ · FIELD</div>
+          <div class="tile__value" id="tile-e">0<span class="tile__unit">N/C</span></div>
+        </div>
+        <div class="tile tile--magenta">
+          <div class="tile__label">|F| บนประจุทดสอบ · FORCE</div>
+          <div class="tile__value" id="tile-f">0<span class="tile__unit">N</span></div>
+        </div>
+        <div class="tile tile--yellow">
+          <div class="tile__label">แรงคูลอมบ์ q1↔q2</div>
+          <div class="tile__value" id="tile-coulomb">0<span class="tile__unit">N</span></div>
+        </div>
+        <div class="tile">
+          <div class="tile__label">ทิศแรงบนประจุทดสอบ</div>
+          <div class="tile__value" id="tile-angle">0<span class="tile__unit">°</span></div>
+        </div>
+      </div>
+
+      <div class="sliders">
+        <div class="slider--q1">
+          <div class="slider__row">
+            <span>ประจุ 1 (q1)</span>
+            <span class="slider__value" id="q1-value">+4.0 µC</span>
+          </div>
+          <div class="slider__track" id="q1-track">
+            <div class="slider__fill" id="q1-fill"></div>
+            <div class="slider__thumb" id="q1-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--q2">
+          <div class="slider__row">
+            <span>ประจุ 2 (q2)</span>
+            <span class="slider__value" id="q2-value">−3.0 µC</span>
+          </div>
+          <div class="slider__track" id="q2-track">
+            <div class="slider__fill" id="q2-fill"></div>
+            <div class="slider__thumb" id="q2-thumb"></div>
+          </div>
+        </div>
+
+        <div class="status-line" id="statusLine"></div>
+
+        <div class="actions">
+          <button type="button" class="btn-play" id="btnRelease">ปล่อยประจุทดสอบ</button>
+          <button type="button" class="btn-reset" id="btnReset">รีเซ็ต</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. คำอธิบายแนวคิด / สมการ -->
+  <div class="equations">
+    <div class="equation-card">
+      <span class="equation-card__label">สนามไฟฟ้าจากประจุจุด · POINT-CHARGE FIELD</span>
+      <span class="equation-card__formula">E = kq / r²</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">แรงบนประจุในสนาม · FORCE ON CHARGE</span>
+      <span class="equation-card__formula">F = qE</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">กฎของคูลอมบ์ · COULOMB'S LAW</span>
+      <span class="equation-card__formula">F = k|q<sub>1</sub>q<sub>2</sub>| / r² &nbsp;|&nbsp; k = 8.99×10⁹ N·m²/C²</span>
+    </div>
+  </div>
+
+  <div class="concept">
+    <h2>คำอธิบายแนวคิด</h2>
+    <p>
+      สนามไฟฟ้า (electric field, E) คือปริมาณเวกเตอร์ที่นิยามจากแรงต่อหน่วยประจุบวกทดสอบเล็กๆ ที่วางตรงจุดนั้น (E = F/q)
+      ประจุแต่ละตัวสร้างสนามรอบตัวเองตามกฎ E = kq/r² โดยทิศพุ่งออกจากประจุบวกและพุ่งเข้าหาประจุลบเสมอ
+      เมื่อมีหลายประจุ สนามสุทธิ ณ จุดใดๆ คือผลรวมเวกเตอร์ของสนามจากทุกประจุ (superposition)
+      เส้นสนามที่เห็นในภาพเป็นเพียง "เครื่องมือช่วยจินตนาการ" ที่ลากให้สัมผัสกับทิศทางของ E ทุกจุดที่มันผ่าน
+      และจำนวนเส้นที่ออกจากประจุแต่ละตัวถูกวาดให้แปรผันตามขนาดประจุ (ความหนาแน่นของเส้น ∝ ขนาดประจุ) — เส้นเหล่านี้ไม่ใช่ของจริง
+      ไม่มีประจุตัวใดถูกบังคับให้เดินตามเส้นเหล่านี้จริงๆ สิ่งที่บังคับประจุคือแรง F = qE ที่กระทำ ณ ตำแหน่งปัจจุบันของมันเท่านั้น
+      ลองสังเกต: เมื่อปล่อยประจุทดสอบจากหยุดนิ่ง ทิศแรงเริ่มต้นจะตรงกับเส้นสนามที่ผ่านจุดนั้นพอดี แต่ทันทีที่ประจุเริ่มเคลื่อนที่และมีความเร็วสะสม (โมเมนตัม)
+      สนามบริเวณตำแหน่งใหม่จะชี้ทิศต่างไปเล็กน้อย แต่ความเร็วเดิมไม่ได้หายไปทันที ทำให้วิถีจริง (เส้นสีเหลืองทึบ) ค่อยๆ โค้งเบี่ยงออกจากเส้นสนามที่วาดผ่านจุดเริ่มต้นไปเรื่อยๆ
+      นี่คือเหตุผลที่เส้นสนามไม่ใช่รางที่ประจุวิ่งตาม — มันบอกแค่ทิศแรง ณ ขณะหนึ่งเท่านั้น สำหรับแรงระหว่างประจุสองตัวโดยตรงใช้กฎของคูลอมบ์ F = k|q₁q₂|/r²
+      ซึ่งขนาดจะลดลงเร็วมากเมื่อระยะห่าง r เพิ่มขึ้น ประจุชนิดตรงข้ามดึงดูดกัน ส่วนประจุชนิดเดียวกันผลักกัน
+    </p>
+  </div>
+</main>
+
+<script src="../../shared/sim/electric-field.js"></script>
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), '../../');
+
+  var Q_MIN = -6, Q_MAX = 6;
+
+  var tileE = document.getElementById('tile-e');
+  var tileF = document.getElementById('tile-f');
+  var tileCoulomb = document.getElementById('tile-coulomb');
+  var tileAngle = document.getElementById('tile-angle');
+  var statusLine = document.getElementById('statusLine');
+  var btnRelease = document.getElementById('btnRelease');
+
+  function fmtCharge(q) {
+    var sign = q >= 0 ? '+' : '−';
+    return sign + Math.abs(q).toFixed(1) + ' µC';
+  }
+
+  var sim = SimPatterns.electricField.create(document.getElementById('sim-zone'), {
+    chargeRange: [Q_MIN, Q_MAX],
+    q1: 4,
+    q2: -3,
+    onUpdate: function (vals) {
+      tileE.innerHTML = vals.formatSci(vals.Emag) + '<span class="tile__unit">N/C</span>';
+      tileF.innerHTML = vals.formatSci(vals.Fmag) + '<span class="tile__unit">N</span>';
+      tileCoulomb.innerHTML = vals.formatSci(vals.coulombF) + '<span class="tile__unit">N</span>';
+      tileAngle.innerHTML = vals.angleDeg.toFixed(0) + '<span class="tile__unit">°</span>';
+
+      document.getElementById('q1-value').textContent = fmtCharge(vals.q1.q);
+      document.getElementById('q2-value').textContent = fmtCharge(vals.q2.q);
+      var q1Pct = ((vals.q1.q - Q_MIN) / (Q_MAX - Q_MIN)) * 100;
+      var q2Pct = ((vals.q2.q - Q_MIN) / (Q_MAX - Q_MIN)) * 100;
+      document.getElementById('q1-fill').style.width = q1Pct + '%';
+      document.getElementById('q1-thumb').style.left = q1Pct + '%';
+      document.getElementById('q2-fill').style.width = q2Pct + '%';
+      document.getElementById('q2-thumb').style.left = q2Pct + '%';
+
+      var relLabel = vals.q1.q >= 0 === vals.q2.q >= 0 ? 'ผลักกัน (ชนิดเดียวกัน)' : 'ดึงดูดกัน (ชนิดตรงข้าม)';
+      var stateLabel = vals.captured
+        ? 'ประจุทดสอบเข้าใกล้ประจุแหล่งกำเนิดมากเกินไป — กด "รีเซ็ต" เพื่อเริ่มใหม่'
+        : (vals.releasing ? 'กำลังปล่อย — สังเกตว่าเส้นสีเหลืองทึบ (วิถีจริง) เบี่ยงจากเส้นสนามจางๆ อย่างไร' : 'ลากประจุทดสอบ (เพชรสีเหลือง) ไปยังจุดที่ต้องการ แล้วกด "ปล่อยประจุทดสอบ"');
+      statusLine.textContent = 'q1 กับ q2 ' + relLabel + ' · ' + stateLabel;
+
+      btnRelease.textContent = vals.releasing ? 'หยุด' : 'ปล่อยประจุทดสอบ';
+    }
+  });
+
+  function wireTrack(trackEl, min, max, onDrag) {
+    trackEl.addEventListener('pointerdown', function (e) {
+      var rect = trackEl.getBoundingClientRect();
+      function update(clientX) {
+        var frac = (clientX - rect.left) / rect.width;
+        frac = Math.max(0, Math.min(1, frac));
+        onDrag(min + frac * (max - min));
+      }
+      update(e.clientX);
+      function onMove(ev) { update(ev.clientX); }
+      function onUp() {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  }
+
+  wireTrack(document.getElementById('q1-track'), Q_MIN, Q_MAX, function (v) {
+    sim.setCharge('q1', Math.round(v * 2) / 2);
+  });
+  wireTrack(document.getElementById('q2-track'), Q_MIN, Q_MAX, function (v) {
+    sim.setCharge('q2', Math.round(v * 2) / 2);
+  });
+
+  btnRelease.addEventListener('click', function () {
+    sim.toggleRelease();
+  });
+  document.getElementById('btnReset').addEventListener('click', function () {
+    sim.reset();
+  });
+</script>
+</body>
+</html>

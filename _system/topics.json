@@ -1,15 +1,6 @@
 {
   "topics": [
     {
-      "id": "projectile-motion",
-      "title": "การเคลื่อนที่แบบโพรเจกไทล์",
-      "titleEn": "Projectile Motion",
-      "level": "ม.ปลาย",
-      "category": "กลศาสตร์",
-      "path": "topics/projectile-motion/",
-      "active": true
-    },
-    {
       "id": "motion-graphs",
       "title": "กราฟการเคลื่อนที่ (x-t, v-t, a-t)",
       "titleEn": "Motion Graphs",
@@ -25,6 +16,51 @@
       "level": "ม.ต้น",
       "category": "กลศาสตร์",
       "active": false
+    },
+    {
+      "id": "projectile-motion",
+      "title": "การเคลื่อนที่แบบโพรเจกไทล์",
+      "titleEn": "Projectile Motion",
+      "level": "ม.ปลาย",
+      "category": "กลศาสตร์",
+      "path": "topics/projectile-motion/",
+      "active": true
+    },
+    {
+      "id": "circular-motion",
+      "title": "การเคลื่อนที่แบบวงกลม",
+      "titleEn": "Circular Motion",
+      "level": "ม.ปลาย",
+      "category": "กลศาสตร์",
+      "path": "topics/circular-motion/",
+      "active": true
+    },
+    {
+      "id": "shm",
+      "title": "การเคลื่อนที่แบบฮาร์มอนิกอย่างง่าย",
+      "titleEn": "Simple Harmonic Motion",
+      "level": "ม.ปลาย",
+      "category": "กลศาสตร์",
+      "path": "topics/shm/",
+      "active": true
+    },
+    {
+      "id": "momentum",
+      "title": "โมเมนตัมและการชน",
+      "titleEn": "Momentum & Collisions",
+      "level": "ม.ปลาย",
+      "category": "กลศาสตร์",
+      "path": "topics/momentum/",
+      "active": true
+    },
+    {
+      "id": "friction",
+      "title": "แรงเสียดทานกับกฎการเคลื่อนที่ของนิวตัน",
+      "titleEn": "Friction & Newton's Laws",
+      "level": "ม.ต้น",
+      "category": "กลศาสตร์",
+      "path": "topics/friction/",
+      "active": true
     },
     {
       "id": "right-hand-rule",
@@ -46,11 +82,12 @@
     },
     {
       "id": "emfield",
-      "title": "สนามแม่เหล็กไฟฟ้า",
-      "titleEn": "Electromagnetic Field",
+      "title": "สนามไฟฟ้าและเส้นแรง",
+      "titleEn": "Electric Field & Field Lines",
       "level": "ม.ปลาย",
       "category": "ไฟฟ้า-แม่เหล็ก",
-      "active": false
+      "path": "topics/emfield/",
+      "active": true
     },
     {
       "id": "interference",
@@ -89,21 +126,21 @@
       "active": true
     },
     {
-      "id": "refraction",
-      "title": "การหักเหของแสงและมุมวิกฤต",
-      "titleEn": "Refraction & Critical Angle",
-      "level": "ม.ปลาย",
-      "category": "แสง",
-      "path": "topics/refraction/",
-      "active": true
-    },
-    {
       "id": "mirrors",
       "title": "กระจกและเลนส์",
       "titleEn": "Mirrors & Lenses",
       "level": "ม.ต้น",
       "category": "แสง",
       "path": "topics/mirrors/",
+      "active": true
+    },
+    {
+      "id": "refraction",
+      "title": "การหักเหของแสงและมุมวิกฤต",
+      "titleEn": "Refraction & Critical Angle",
+      "level": "ม.ปลาย",
+      "category": "แสง",
+      "path": "topics/refraction/",
       "active": true
     },
     {
