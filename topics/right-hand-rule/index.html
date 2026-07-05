@@ -199,8 +199,8 @@
       if (f.sourceType === 'v') {
         html += '<div class="field-row" style="margin-bottom:var(--space-3)">' + seg('charge', [['+', 'ประจุบวก (+)'], ['-', 'ประจุลบ (−)']], f.charge) + '</div>';
       }
-      html += '<div class="vec-group" style="--vc:var(--magenta)"><div class="vec-title">ทิศทาง ' + (f.sourceType === 'I' ? 'I (กระแสไฟฟ้า)' : 'v (ความเร็วประจุ)') + '</div>' + dirPickerHTML('dirI', f.dirI) + '</div>';
-      html += '<div class="vec-group" style="--vc:var(--cyan)"><div class="vec-title">ทิศทาง B (สนามแม่เหล็ก)</div>' + dirPickerHTML('dirB', f.dirB) + '</div>';
+      html += '<div class="vec-group" style="--vc:var(--accent-secondary)"><div class="vec-title">ทิศทาง ' + (f.sourceType === 'I' ? 'I (กระแสไฟฟ้า)' : 'v (ความเร็วประจุ)') + '</div>' + dirPickerHTML('dirI', f.dirI) + '</div>';
+      html += '<div class="vec-group" style="--vc:var(--accent-primary)"><div class="vec-title">ทิศทาง B (สนามแม่เหล็ก)</div>' + dirPickerHTML('dirB', f.dirB) + '</div>';
       if (f.sourceType === 'I') {
         html += '<div class="numrow">' + numField('numI', 'I (A)', f.I, 0.1) + numField('numL', 'L (m)', f.L, 0.05) + numField('numB', 'B (T)', f.B, 0.1) + '</div>';
       } else {
@@ -208,13 +208,13 @@
       }
     } else if (state.mode === 'field') {
       var fl = state.field;
-      html += '<div class="vec-group" style="--vc:var(--magenta)"><div class="vec-title">ทิศทาง I (กระแสไฟฟ้า)</div>' + dirPickerHTML('dirI', fl.dirI) + '</div>';
+      html += '<div class="vec-group" style="--vc:var(--accent-secondary)"><div class="vec-title">ทิศทาง I (กระแสไฟฟ้า)</div>' + dirPickerHTML('dirI', fl.dirI) + '</div>';
       html += '<div class="numrow">' + numField('numI2', 'I (A)', fl.I, 0.5) + numField('numR', 'r (m)', fl.r, 0.01) + '</div>';
     } else {
       var t = state.torque;
       html += '<div class="field-row" style="margin-bottom:var(--space-3)">' + seg('kind', [['torque', 'ทอร์ก (τ = r×F)'], ['angular', 'โมเมนตัมเชิงมุม (L = r×p)']], t.kind) + '</div>';
-      html += '<div class="vec-group" style="--vc:var(--cyan)"><div class="vec-title">ทิศทาง r (ตำแหน่ง)</div>' + dirPickerHTML('dirR', t.dirR) + '</div>';
-      html += '<div class="vec-group" style="--vc:var(--yellow)"><div class="vec-title">ทิศทาง ' + (t.kind === 'torque' ? 'F (แรง)' : 'p (โมเมนตัม)') + '</div>' + dirPickerHTML('dirF', t.dirF) + '</div>';
+      html += '<div class="vec-group" style="--vc:var(--accent-primary)"><div class="vec-title">ทิศทาง r (ตำแหน่ง)</div>' + dirPickerHTML('dirR', t.dirR) + '</div>';
+      html += '<div class="vec-group" style="--vc:var(--accent-tertiary)"><div class="vec-title">ทิศทาง ' + (t.kind === 'torque' ? 'F (แรง)' : 'p (โมเมนตัม)') + '</div>' + dirPickerHTML('dirF', t.dirF) + '</div>';
       html += '<div class="numrow">' + numField('numR3', 'r (m)', t.r, 0.05) + numField('numF3', t.kind === 'torque' ? 'F (N)' : 'p (kg·m/s)', t.mag, 0.5) + '</div>';
     }
     panelBody.innerHTML = html;

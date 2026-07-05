@@ -146,9 +146,9 @@
 
     function resolveColors() {
       return {
-        thumb: resolveVarToHex('--magenta', 0xF0665B),
-        fingers: resolveVarToHex('--cyan', 0x4FC3C3),
-        palm: resolveVarToHex('--yellow', 0xE8A33D),
+        thumb: resolveVarToHex('--accent-secondary', 0xF0665B),
+        fingers: resolveVarToHex('--accent-primary', 0x4FC3C3),
+        palm: resolveVarToHex('--accent-tertiary', 0xE8A33D),
         hand: resolveVarToHex('--surface', 0xDCEDF7),
         edge: resolveVarToHex('--ink', 0x0B2545),
         grid: resolveVarToHex('--ink', 0x1E4A72)

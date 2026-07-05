@@ -40,7 +40,7 @@
 
 /* โลโก้ topbar เป็นสติกเกอร์เหลือง */
 :root[data-skin="comic"] .topbar__logo {
-  background: var(--yellow);
+  background: var(--accent-tertiary);
   color: var(--ink);
   border: var(--border-w-sm) solid var(--ink);
   box-shadow: 3px 3px 0 var(--ink);
@@ -52,7 +52,7 @@
   font-family: 'Bungee', var(--font);
   opacity: 1;
   font-size: 12px;
-  background: var(--yellow);
+  background: var(--accent-tertiary);
   border: var(--border-w-sm) solid var(--ink);
   border-radius: 8px;
   padding: 4px 10px;
@@ -80,7 +80,7 @@
    แก้ปัญหาที่ปุ่ม/ป้ายเดิมใช้ var(--ink) ตรงๆ ทำให้ทั้งหน้าดูขาวดำแม้จะมี accent สีอื่นอยู่ */
 
 :root[data-skin="comic"] .btn-play {
-  background: var(--magenta-fg);
+  background: var(--accent-secondary-fg);
   color: var(--surface);
   border: var(--border-w-sm) solid var(--ink);
 }
@@ -90,11 +90,11 @@
 }
 
 :root[data-skin="comic"] .chip.is-active {
-  background: var(--cyan-fg);
+  background: var(--accent-primary-fg);
   color: var(--surface);
 }
 
 :root[data-skin="comic"] .badge-level.is-filled {
-  background: var(--yellow);
+  background: var(--accent-tertiary);
   color: var(--ink);
 }

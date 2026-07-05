@@ -47,6 +47,14 @@
   --accent-tertiary:    var(--yellow);
   --accent-tertiary-fg: var(--yellow-fg);
 
+  /* Tile accent background aliases */
+  --tile-accent-primary-bg:    var(--tile-cyan-bg);
+  --tile-accent-primary-fg:    var(--tile-cyan-fg);
+  --tile-accent-secondary-bg:  var(--tile-magenta-bg);
+  --tile-accent-secondary-fg:  var(--tile-magenta-fg);
+  --tile-accent-tertiary-bg:   var(--tile-yellow-bg);
+  --tile-accent-tertiary-fg:   var(--tile-yellow-fg);
+
   --font: 'Montserrat', 'Noto Sans Thai', sans-serif;
   --mono: ui-monospace, 'SF Mono', 'Courier New', monospace;
 
@@ -180,9 +188,9 @@ body {
 .category { display: flex; flex-direction: column; gap: var(--space-3); }
 .category__head { display: flex; align-items: center; gap: var(--space-3); }
 .category__dot { width: 16px; height: 16px; border-radius: 5px; border: var(--border-w-sm) solid var(--ink); }
-.category__dot--cyan    { background: var(--cyan); }
-.category__dot--magenta { background: var(--magenta); }
-.category__dot--yellow  { background: var(--yellow); }
+.category__dot--cyan    { background: var(--accent-primary); }
+.category__dot--magenta { background: var(--accent-secondary); }
+.category__dot--yellow  { background: var(--accent-tertiary); }
 .category__th { font: 900 20px var(--font); }
 .category__en { opacity: .45; font-weight: 700; font-size: 14px; margin-left: var(--space-2); }
 .category--compact .category__th { font-size: 18px; }
@@ -268,14 +276,14 @@ body {
   border: var(--border-w) solid var(--ink); border-radius: var(--radius-lg); padding: var(--space-3);
   box-shadow: var(--shadow-md); background: var(--surface);
 }
-.tile--cyan    { background: var(--tile-cyan-bg); }
-.tile--magenta { background: var(--tile-magenta-bg); }
-.tile--yellow  { background: var(--tile-yellow-bg); }
+.tile--cyan    { background: var(--tile-accent-primary-bg); }
+.tile--magenta { background: var(--tile-accent-secondary-bg); }
+.tile--yellow  { background: var(--tile-accent-tertiary-bg); }
 .tile__label { font: 800 var(--fs-label) var(--font); letter-spacing: .06em; text-transform: uppercase; opacity: .6; }
 .tile__value { font-size: var(--fs-value); font-weight: 900; line-height: 1; margin-top: var(--space-2); }
-.tile--cyan    .tile__value { color: var(--tile-cyan-fg);    text-shadow: var(--value-glow); }
-.tile--magenta .tile__value { color: var(--tile-magenta-fg); text-shadow: var(--value-glow); }
-.tile--yellow  .tile__value { color: var(--tile-yellow-fg);  text-shadow: var(--value-glow); }
+.tile--cyan    .tile__value { color: var(--tile-accent-primary-fg);    text-shadow: var(--value-glow); }
+.tile--magenta .tile__value { color: var(--tile-accent-secondary-fg); text-shadow: var(--value-glow); }
+.tile--yellow  .tile__value { color: var(--tile-accent-tertiary-fg);  text-shadow: var(--value-glow); }
 .tile__unit { font-size: 45%; font-weight: 900; margin-left: 2px; }
 
 .sliders {
@@ -283,8 +291,8 @@ body {
   display: flex; flex-direction: column; gap: var(--space-4); flex: 1; background: var(--surface);
 }
 .slider__row { display: flex; justify-content: space-between; font: 800 14px var(--font); margin-bottom: var(--space-2); }
-.slider--angle    { --slider-accent: var(--cyan);    --slider-accent-fg: var(--cyan-fg); }
-.slider--velocity { --slider-accent: var(--magenta); --slider-accent-fg: var(--magenta-fg); }
+.slider--angle    { --slider-accent: var(--accent-primary);    --slider-accent-fg: var(--accent-primary-fg); }
+.slider--velocity { --slider-accent: var(--accent-secondary); --slider-accent-fg: var(--accent-secondary-fg); }
 .slider__value { color: var(--slider-accent-fg); }
 .slider__track {
   height: var(--slider-h); background: var(--paper); border: var(--border-w) solid var(--ink);
@@ -308,11 +316,11 @@ body {
 }
 .btn-play {
   flex: 2; font: 900 19px var(--font); box-shadow: var(--shadow-btn);
-  /* 30% cyan tint (ตามกฎ "อิ่มตัวเต็มเฉพาะ sim zone/value tile ที่อื่น tint 30-34%" ใน DESIGN.md) —
-     คำนวณสดแทนใช้ --tile-cyan-bg เพราะ token นั้นตั้งใจ flatten เป็น --surface ในโหมดมืด (สำหรับ value tile
+  /* 30% accent-primary tint (ตามกฎ "อิ่มตัวเต็มเฉพาะ sim zone/value tile ที่อื่น tint 30-34%" ใน DESIGN.md) —
+     คำนวณสดแทนใช้ --tile-accent-primary-bg เพราะ token นั้นตั้งใจ flatten เป็น --surface ในโหมดมืด (สำหรับ value tile
      ที่ให้ตัวเลขเรืองแสงแทน) ซึ่งจะทำให้ปุ่มหลักกลืนกับพื้นแผงควบคุมและเสียความโดดเด่นของปุ่มหลัก */
-  background: color-mix(in oklab, var(--cyan) 30%, var(--surface));
-  color: var(--cyan-fg);
+  background: color-mix(in oklab, var(--accent-primary) 30%, var(--surface));
+  color: var(--accent-primary-fg);
 }
 .btn-reset { flex: 1; background: var(--surface); color: var(--ink); font: 900 15px var(--font); border: var(--border-w) solid var(--ink); }
 .btn-play:active, .btn-reset:active { transform: scale(.96); }

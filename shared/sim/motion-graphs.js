@@ -2,7 +2,7 @@
    ใช้ผ่าน window.SimPatterns.motionGraphs.create(container, options)
    container ต้องมี class "sim-zone" อยู่แล้ว (โครงหน้าเป็นคนใส่) — module นี้เติมแค่ SVG + legend ข้างใน
    generic: รับ v0/a จาก control ภายนอก ไม่ผูกกับเรื่องเดียว (x0 = 0 เสมอ)
-   วาดด้วย design token เท่านั้น (var(--ink)/var(--cyan)/var(--magenta)/var(--yellow)/var(--grid)) ห้ามฝัง hex ตรงๆ */
+   วาดด้วย design token เท่านั้น (var(--ink)/var(--accent-primary)/var(--accent-secondary)/var(--accent-tertiary)/var(--grid)) ห้ามฝัง hex ตรงๆ */
 (function () {
   var SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -164,8 +164,8 @@
         '<line x1="' + startPx + '" y1="' + ROAD_TOP + '" x2="' + startPx + '" y2="' + ROAD_BASELINE + '" stroke="var(--ink)" stroke-width="2" stroke-dasharray="3 5" opacity="0.55"/>' +
         '<text x="' + startPx + '" y="' + (ROAD_TOP + 10) + '" fill="var(--ink)" font-family="var(--font)" font-weight="800" font-size="11" text-anchor="middle" opacity="0.7">START</text>' +
         '<g transform="translate(' + carPx + ',' + ROAD_BASELINE + ') scale(' + dir + ',1)">' +
-          '<rect x="-27" y="-38" width="54" height="20" rx="6" fill="var(--cyan)" stroke="var(--ink)" stroke-width="2.5"/>' +
-          '<rect x="-14" y="-52" width="30" height="15" rx="5" fill="var(--cyan)" stroke="var(--ink)" stroke-width="2.5"/>' +
+          '<rect x="-27" y="-38" width="54" height="20" rx="6" fill="var(--accent-primary)" stroke="var(--ink)" stroke-width="2.5"/>' +
+          '<rect x="-14" y="-52" width="30" height="15" rx="5" fill="var(--accent-primary)" stroke="var(--ink)" stroke-width="2.5"/>' +
           '<circle cx="-15" cy="-9" r="9" fill="var(--ink)"/>' +
           '<circle cx="15" cy="-9" r="9" fill="var(--ink)"/>' +
         '</g>';
@@ -177,11 +177,11 @@
         tPx(t).toFixed(1) + ',' + valuePy(curV, G2_TOP, vDom).toFixed(1),
         tPx(t).toFixed(1) + ',' + valuePy(0, G2_TOP, vDom).toFixed(1)
       ];
-      var area = '<polygon points="' + areaPts.join(' ') + '" fill="var(--magenta)" fill-opacity="0.22"/>';
+      var area = '<polygon points="' + areaPts.join(' ') + '" fill="var(--accent-secondary)" fill-opacity="0.22"/>';
 
-      var g1 = graphSvg(G1_TOP, 'var(--cyan)', xDom, xFn, 'กราฟ x-t (m)', curX);
-      var g2 = area + graphSvg(G2_TOP, 'var(--magenta)', vDom, vFn, 'กราฟ v-t (m/s)', curV);
-      var g3 = graphSvg(G3_TOP, 'var(--yellow)', aDom, function () { return a; }, 'กราฟ a-t (m/s²)', a);
+      var g1 = graphSvg(G1_TOP, 'var(--accent-primary)', xDom, xFn, 'กราฟ x-t (m)', curX);
+      var g2 = area + graphSvg(G2_TOP, 'var(--accent-secondary)', vDom, vFn, 'กราฟ v-t (m/s)', curV);
+      var g3 = graphSvg(G3_TOP, 'var(--accent-tertiary)', aDom, function () { return a; }, 'กราฟ a-t (m/s²)', a);
 
       var ticks = '';
       for (var g = 0; g <= 4; g++) {

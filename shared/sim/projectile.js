@@ -1,7 +1,7 @@
 /* shared/sim/projectile.js — วิถีการเคลื่อนที่แบบโพรเจกไทล์ (ปรับมุม/ความเร็วต้น)
    ใช้ผ่าน window.SimPatterns.projectile.create(container, options)
    container ต้องมี class "sim-zone" อยู่แล้ว (โครงหน้าเป็นคนใส่) — module นี้เติมแค่ SVG + legend ข้างใน
-   วาดด้วย design token เท่านั้น (var(--ink)/var(--cyan)/var(--magenta)/var(--yellow)) ห้ามฝัง hex ตรงๆ */
+   วาดด้วย design token เท่านั้น (var(--ink)/var(--accent-primary)/var(--accent-secondary)/var(--accent-tertiary)) ห้ามฝัง hex ตรงๆ */
 (function () {
   var SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -77,12 +77,12 @@
       svg.innerHTML =
         '<line x1="40" y1="' + groundY + '" x2="670" y2="' + groundY + '" stroke="var(--ink)" stroke-width="3"/>' +
         '<polygon points="40,' + groundY + ' 74,' + (groundY - 20) + ' 74,' + (groundY + 20) + '" fill="var(--ink)"/>' +
-        '<path d="' + d + '" fill="none" stroke="var(--cyan)" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 15"/>' +
-        '<line x1="' + apexPx + '" y1="' + apexPy + '" x2="' + vxEndX + '" y2="' + vxEndY + '" stroke="var(--cyan)" stroke-width="6" stroke-linecap="round"/>' +
-        '<line x1="' + apexPx + '" y1="' + apexPy + '" x2="' + vyEndX + '" y2="' + vyEndY + '" stroke="var(--cyan)" stroke-width="6" stroke-linecap="round" opacity="0.6"/>' +
-        '<line x1="' + apexPx + '" y1="' + apexPy + '" x2="' + gEndX + '" y2="' + gEndY + '" stroke="var(--magenta)" stroke-width="6" stroke-linecap="round"/>' +
-        '<polygon points="' + gArrowHead + '" fill="var(--magenta)"/>' +
-        '<circle cx="' + particlePx + '" cy="' + particlePy + '" r="15" fill="var(--yellow)" stroke="var(--ink)" stroke-width="4"/>';
+        '<path d="' + d + '" fill="none" stroke="var(--accent-primary)" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 15"/>' +
+        '<line x1="' + apexPx + '" y1="' + apexPy + '" x2="' + vxEndX + '" y2="' + vxEndY + '" stroke="var(--accent-primary)" stroke-width="6" stroke-linecap="round"/>' +
+        '<line x1="' + apexPx + '" y1="' + apexPy + '" x2="' + vyEndX + '" y2="' + vyEndY + '" stroke="var(--accent-primary)" stroke-width="6" stroke-linecap="round" opacity="0.6"/>' +
+        '<line x1="' + apexPx + '" y1="' + apexPy + '" x2="' + gEndX + '" y2="' + gEndY + '" stroke="var(--accent-secondary)" stroke-width="6" stroke-linecap="round"/>' +
+        '<polygon points="' + gArrowHead + '" fill="var(--accent-secondary)"/>' +
+        '<circle cx="' + particlePx + '" cy="' + particlePy + '" r="15" fill="var(--accent-tertiary)" stroke="var(--ink)" stroke-width="4"/>';
 
       onUpdate({
         angle: state.angle,

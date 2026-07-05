@@ -1,7 +1,7 @@
 /* shared/sim/wave-interference.js — การซ้อนทับ (superposition) + การแทรกสอดสองแหล่งกำเนิดอาพันธ์ (Young's double slit)
    ใช้ผ่าน window.SimPatterns.waveInterference.create(container, options)
    container ต้องมี class "sim-zone" อยู่แล้ว (โครงหน้าเป็นคนใส่) — module นี้เติมแค่ SVG + legend ข้างใน
-   วาดด้วย design token เท่านั้น (var(--ink)/var(--cyan)/var(--magenta)/var(--yellow)) ห้ามฝัง hex ตรงๆ
+   วาดด้วย design token เท่านั้น (var(--ink)/var(--accent-primary)/var(--accent-secondary)/var(--accent-tertiary)) ห้ามฝัง hex ตรงๆ
 
    โครง 2 แผงในผืนเดียว:
    - แผงบน (superposition): คลื่นสองขบวนวิ่งสวนทางกัน (เฟสตรงข้ามทิศ) ให้เห็นเส้นผลรวม y = y1+y2
@@ -144,7 +144,7 @@
         var barLen = I * P2_BAR_MAX * (state.A / aRange[1]);
         var op = (0.32 + 0.68 * I).toFixed(2);
         out += '<rect x="' + P2_SCREEN_X + '" y="' + (P2_MID_Y + py - step / 2).toFixed(1) +
-          '" width="' + barLen.toFixed(1) + '" height="' + (step - 1) + '" fill="var(--yellow)" opacity="' + op + '"/>';
+          '" width="' + barLen.toFixed(1) + '" height="' + (step - 1) + '" fill="var(--accent-tertiary)" opacity="' + op + '"/>';
       }
       return out;
     }
@@ -168,10 +168,10 @@
         '<text x="' + P1_X0 + '" y="24" style="font:800 var(--fs-label) var(--font);fill:var(--ink);opacity:.6">การซ้อนทับ (SUPERPOSITION) — คลื่นสวนทาง</text>' +
         '<line x1="' + P1_X0 + '" y1="' + P1_BASE + '" x2="' + (P1_X0 + P1_W) + '" y2="' + P1_BASE + '" stroke="var(--ink)" stroke-width="2" opacity="0.35"/>' +
         '<line x1="' + (P1_X0 + P1_OBS_X) + '" y1="30" x2="' + (P1_X0 + P1_OBS_X) + '" y2="220" stroke="var(--ink)" stroke-width="2" stroke-dasharray="4 5" opacity="0.5"/>' +
-        '<path d="' + wavePath(-1, vals) + '" fill="none" stroke="var(--cyan)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>' +
-        '<path d="' + wavePath(1, vals) + '" fill="none" stroke="var(--magenta)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>' +
+        '<path d="' + wavePath(-1, vals) + '" fill="none" stroke="var(--accent-primary)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>' +
+        '<path d="' + wavePath(1, vals) + '" fill="none" stroke="var(--accent-secondary)" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round"/>' +
         '<path d="' + sumPath(vals) + '" fill="none" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>' +
-        '<circle cx="' + (P1_X0 + P1_OBS_X) + '" cy="' + P1_BASE + '" r="6" fill="var(--yellow)" stroke="var(--ink)" stroke-width="2"/>';
+        '<circle cx="' + (P1_X0 + P1_OBS_X) + '" cy="' + P1_BASE + '" r="6" fill="var(--accent-tertiary)" stroke="var(--ink)" stroke-width="2"/>';
 
       /* ---- เส้นแบ่งแผง ---- */
       svgContent += '<line x1="20" y1="245" x2="680" y2="245" stroke="var(--ink)" stroke-width="2" stroke-dasharray="2 6" opacity="0.4"/>';
@@ -184,19 +184,19 @@
 
       svgContent +=
         '<text x="' + P2_SRC_X + '" y="272" style="font:800 var(--fs-label) var(--font);fill:var(--ink);opacity:.6">การแทรกสอดสองแหล่งกำเนิด (DOUBLE SLIT) — L = ' + L_MM + ' mm (คงที่)</text>' +
-        ringsSvg(P2_SRC_X, s1y, 'var(--cyan)', vals.lambda2Mm) +
-        ringsSvg(P2_SRC_X, s2y, 'var(--magenta)', vals.lambda2Mm) +
-        '<line x1="' + P2_SRC_X + '" y1="' + s1y.toFixed(1) + '" x2="' + P2_SCREEN_X + '" y2="' + markerCy.toFixed(1) + '" stroke="var(--cyan)" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.7"/>' +
-        '<line x1="' + P2_SRC_X + '" y1="' + s2y.toFixed(1) + '" x2="' + P2_SCREEN_X + '" y2="' + markerCy.toFixed(1) + '" stroke="var(--magenta)" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.7"/>' +
-        '<circle cx="' + P2_SRC_X + '" cy="' + s1y.toFixed(1) + '" r="7" fill="var(--cyan)" stroke="var(--ink)" stroke-width="2"/>' +
-        '<circle cx="' + P2_SRC_X + '" cy="' + s2y.toFixed(1) + '" r="7" fill="var(--magenta)" stroke="var(--ink)" stroke-width="2"/>' +
+        ringsSvg(P2_SRC_X, s1y, 'var(--accent-primary)', vals.lambda2Mm) +
+        ringsSvg(P2_SRC_X, s2y, 'var(--accent-secondary)', vals.lambda2Mm) +
+        '<line x1="' + P2_SRC_X + '" y1="' + s1y.toFixed(1) + '" x2="' + P2_SCREEN_X + '" y2="' + markerCy.toFixed(1) + '" stroke="var(--accent-primary)" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.7"/>' +
+        '<line x1="' + P2_SRC_X + '" y1="' + s2y.toFixed(1) + '" x2="' + P2_SCREEN_X + '" y2="' + markerCy.toFixed(1) + '" stroke="var(--accent-secondary)" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.7"/>' +
+        '<circle cx="' + P2_SRC_X + '" cy="' + s1y.toFixed(1) + '" r="7" fill="var(--accent-primary)" stroke="var(--ink)" stroke-width="2"/>' +
+        '<circle cx="' + P2_SRC_X + '" cy="' + s2y.toFixed(1) + '" r="7" fill="var(--accent-secondary)" stroke="var(--ink)" stroke-width="2"/>' +
         '<line x1="' + P2_SCREEN_X + '" y1="' + (P2_MID_Y - Y_RANGE_MM * K_PXPMM) + '" x2="' + P2_SCREEN_X + '" y2="' + (P2_MID_Y + Y_RANGE_MM * K_PXPMM) + '" stroke="var(--ink)" stroke-width="4"/>' +
         screenBars(vals) +
-        markerDot(vals.yAntinode1, true, 'var(--yellow)') +
-        markerDot(-vals.yAntinode1, true, 'var(--yellow)') +
+        markerDot(vals.yAntinode1, true, 'var(--accent-tertiary)') +
+        markerDot(-vals.yAntinode1, true, 'var(--accent-tertiary)') +
         markerDot(vals.yNode1, false, 'var(--ink)') +
         markerDot(-vals.yNode1, false, 'var(--ink)') +
-        '<circle cx="' + P2_SCREEN_X + '" cy="' + markerCy.toFixed(1) + '" r="6" fill="var(--yellow)" stroke="var(--ink)" stroke-width="2"/>';
+        '<circle cx="' + P2_SCREEN_X + '" cy="' + markerCy.toFixed(1) + '" r="6" fill="var(--accent-tertiary)" stroke="var(--ink)" stroke-width="2"/>';
 
       svg.innerHTML = svgContent;
 

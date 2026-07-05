@@ -1,7 +1,7 @@
 /* shared/sim/circuit-ohm.js — วงจรไฟฟ้าอย่างง่าย (แบตเตอรี่ + หลอดไฟ 2 ดวง) แบบอนุกรม/ขนาน
    ใช้ผ่าน window.SimPatterns.circuitOhm.create(container, options)
    container ต้องมี class "sim-zone" อยู่แล้ว (โครงหน้าเป็นคนใส่) — module นี้เติมแค่ SVG + legend ข้างใน
-   วาดด้วย design token เท่านั้น (var(--ink)/var(--cyan)/var(--magenta)/var(--yellow)/var(--surface)/var(--font)) ห้ามฝัง hex ตรงๆ
+   วาดด้วย design token เท่านั้น (var(--ink)/var(--accent-primary)/var(--accent-secondary)/var(--accent-tertiary)/var(--surface)/var(--font)) ห้ามฝัง hex ตรงๆ
 
    โมเดลฟิสิกส์: หลอดไฟ 2 ดวงเหมือนกัน (ความต้านทาน R เท่ากันทั้งคู่)
      - อนุกรม:  R_total = 2R,  I = V / R_total  เท่ากันทุกจุดในวงจร (ผ่านหลอดทั้งสองเท่ากัน — สอนว่ากระแสไม่ได้ "ถูกใช้หมด")
@@ -115,9 +115,9 @@
       var glowOpacity = (0.12 + bright * 0.55).toFixed(2);
       var fillOpacity = (0.15 + bright * 0.7).toFixed(2);
       return (
-        '<circle cx="' + cx + '" cy="' + cy + '" r="' + glowR.toFixed(1) + '" fill="var(--yellow)" opacity="' + glowOpacity +
+        '<circle cx="' + cx + '" cy="' + cy + '" r="' + glowR.toFixed(1) + '" fill="var(--accent-tertiary)" opacity="' + glowOpacity +
         '" filter="url(#ohm-glow-' + seq + ')"/>' +
-        '<circle cx="' + cx + '" cy="' + cy + '" r="' + BULB_R + '" fill="var(--yellow)" fill-opacity="' + fillOpacity +
+        '<circle cx="' + cx + '" cy="' + cy + '" r="' + BULB_R + '" fill="var(--accent-tertiary)" fill-opacity="' + fillOpacity +
         '" stroke="var(--ink)" stroke-width="4"/>' +
         '<path d="M ' + (cx - 13) + ' ' + (cy - 13) + ' L ' + (cx + 13) + ' ' + (cy + 13) +
         ' M ' + (cx + 13) + ' ' + (cy - 13) + ' L ' + (cx - 13) + ' ' + (cy + 13) +
@@ -170,7 +170,7 @@
         parts.push(bulbMarkup(S_BULB2.x, S_BULB2.y, vals.current));
 
         var loopPts = [BATTERY, S_BR, S_TR, S_BULB2, S_BULB1, S_TL, S_BL];
-        parts.push(dotsAlong(loopPts, vals.current, phase.series, 'var(--cyan)'));
+        parts.push(dotsAlong(loopPts, vals.current, phase.series, 'var(--accent-primary)'));
       } else {
         var leftBot = { x: P_LEFT_X, y: P_BOT_Y }, leftMid = { x: P_LEFT_X, y: P_MID_Y }, leftTop = { x: P_LEFT_X, y: P_TOP_Y };
         var rightBot = { x: P_RIGHT_X, y: P_BOT_Y }, rightMid = { x: P_RIGHT_X, y: P_MID_Y }, rightTop = { x: P_RIGHT_X, y: P_TOP_Y };
@@ -191,8 +191,8 @@
 
         var loopAPts = [leftBot, leftMid, leftTop, P_BULB_A, rightTop, rightMid, rightBot, BATTERY];
         var loopBPts = [leftBot, leftMid, P_BULB_B, rightMid, rightBot, BATTERY];
-        parts.push(dotsAlong(loopAPts, vals.branch[0], phase.loopA, 'var(--cyan)'));
-        parts.push(dotsAlong(loopBPts, vals.branch[1], phase.loopB, 'var(--magenta)'));
+        parts.push(dotsAlong(loopAPts, vals.branch[0], phase.loopA, 'var(--accent-primary)'));
+        parts.push(dotsAlong(loopBPts, vals.branch[1], phase.loopB, 'var(--accent-secondary)'));
       }
 
       svg.innerHTML = parts.join('');

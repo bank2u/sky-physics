@@ -2,7 +2,7 @@
    ใช้ผ่าน window.SimPatterns.refraction.create(container, options)
    container ต้องมี class "sim-zone" อยู่แล้ว (โครงหน้าเป็นคนใส่) — module นี้เติมแค่ SVG + legend ข้างใน
    generic: รับ n1 (ตัวกลางต้นทาง), n2 (ตัวกลางปลายทาง), angle (มุมตกกระทบ) แล้ววาดรังสีตกกระทบ/หักเห/สะท้อนกลับหมด
-   วาดด้วย design token เท่านั้น (var(--ink)/var(--cyan)/var(--magenta)/var(--yellow)) ห้ามฝัง hex ตรงๆ */
+   วาดด้วย design token เท่านั้น (var(--ink)/var(--accent-primary)/var(--accent-secondary)/var(--accent-tertiary)) ห้ามฝัง hex ตรงๆ */
 (function () {
   var SVG_NS = 'http://www.w3.org/2000/svg';
   var DEG = Math.PI / 180;
@@ -96,7 +96,7 @@
       var incidentD = 'M ' + srcX.toFixed(2) + ',' + srcY.toFixed(2) + ' L ' + hitX + ',' + hitY;
       var incidentArrow = arrowHead(hitX, hitY, sinT1, cosT1, 16);
 
-      var secondRayD = '', secondArrow = '', secondColorVar = 'var(--magenta)';
+      var secondRayD = '', secondArrow = '', secondColorVar = 'var(--accent-secondary)';
       var tirLabel = '';
 
       if (!vals.tir) {
@@ -109,9 +109,9 @@
         var rEndX = hitX + rayLen * sinT1, rEndY = hitY - rayLen * cosT1;
         secondRayD = 'M ' + hitX + ',' + hitY + ' L ' + rEndX.toFixed(2) + ',' + rEndY.toFixed(2);
         secondArrow = arrowHead(rEndX, rEndY, sinT1, -cosT1, 16);
-        secondColorVar = 'var(--yellow)';
+        secondColorVar = 'var(--accent-tertiary)';
         tirLabel = '<text x="' + (rEndX - 40).toFixed(2) + '" y="' + (rEndY - 14).toFixed(2) +
-          '" fill="var(--yellow-fg)" font-family="var(--font)" font-weight="900" font-size="16">สะท้อนกลับหมดภายใน</text>';
+          '" fill="var(--accent-tertiary-fg)" font-family="var(--font)" font-weight="900" font-size="16">สะท้อนกลับหมดภายใน</text>';
       }
 
       // มุม arc: θ1 อยู่ฝั่งซ้าย (ระหว่างเส้นแนวฉากด้านบน กับทิศไปยังจุดกำเนิดรังสีตกกระทบ)
@@ -126,18 +126,18 @@
         var transDirAngle = Math.atan2(Math.cos(theta2Rad2), Math.sin(theta2Rad2)) / DEG;
         var arc2 = arcPath(hitX, hitY, arcR, downAngle, transDirAngle);
         arc2HTML =
-          '<path d="' + arc2.d + '" fill="none" stroke="var(--magenta)" stroke-width="2.5"/>' +
+          '<path d="' + arc2.d + '" fill="none" stroke="var(--accent-secondary)" stroke-width="2.5"/>' +
           '<text x="' + (hitX + (arcR + 26) * Math.cos(arc2.midDeg * DEG)).toFixed(2) + '" y="' +
           (hitY + (arcR + 26) * Math.sin(arc2.midDeg * DEG)).toFixed(2) +
-          '" fill="var(--magenta-fg)" font-family="var(--font)" font-weight="800" font-size="15" text-anchor="middle">θ₂</text>';
+          '" fill="var(--accent-secondary-fg)" font-family="var(--font)" font-weight="800" font-size="15" text-anchor="middle">θ₂</text>';
       } else {
         var reflAngle = Math.atan2(-cosT1, sinT1) / DEG;
         var arc2r = arcPath(hitX, hitY, arcR, upAngle, reflAngle);
         arc2HTML =
-          '<path d="' + arc2r.d + '" fill="none" stroke="var(--yellow)" stroke-width="2.5"/>' +
+          '<path d="' + arc2r.d + '" fill="none" stroke="var(--accent-tertiary)" stroke-width="2.5"/>' +
           '<text x="' + (hitX + (arcR + 26) * Math.cos(arc2r.midDeg * DEG)).toFixed(2) + '" y="' +
           (hitY + (arcR + 26) * Math.sin(arc2r.midDeg * DEG)).toFixed(2) +
-          '" fill="var(--yellow-fg)" font-family="var(--font)" font-weight="800" font-size="15" text-anchor="middle">θ₁</text>';
+          '" fill="var(--accent-tertiary-fg)" font-family="var(--font)" font-weight="800" font-size="15" text-anchor="middle">θ₁</text>';
       }
 
       svg.innerHTML =
@@ -149,18 +149,18 @@
         '<text x="66" y="76" fill="var(--ink)" font-family="var(--font)" font-weight="800" font-size="16" opacity="0.75">ตัวกลาง 1 · n₁ = ' + vals.n1.toFixed(2) + '</text>' +
         '<text x="66" y="512" fill="var(--ink)" font-family="var(--font)" font-weight="800" font-size="16" opacity="0.75">ตัวกลาง 2 · n₂ = ' + vals.n2.toFixed(2) + '</text>' +
         // incident ray
-        '<path d="' + incidentD + '" fill="none" stroke="var(--cyan)" stroke-width="5" stroke-linecap="round"/>' +
-        '<polygon points="' + incidentArrow + '" fill="var(--cyan)"/>' +
+        '<path d="' + incidentD + '" fill="none" stroke="var(--accent-primary)" stroke-width="5" stroke-linecap="round"/>' +
+        '<polygon points="' + incidentArrow + '" fill="var(--accent-primary)"/>' +
         // second ray (refracted or reflected)
         '<path d="' + secondRayD + '" fill="none" stroke="' + secondColorVar + '" stroke-width="5" stroke-linecap="round"/>' +
         '<polygon points="' + secondArrow + '" fill="' + secondColorVar + '"/>' +
         // hit point marker
         '<circle cx="' + hitX + '" cy="' + hitY + '" r="6" fill="var(--ink)"/>' +
         // angle arcs
-        '<path d="' + arc1.d + '" fill="none" stroke="var(--cyan)" stroke-width="2.5"/>' +
+        '<path d="' + arc1.d + '" fill="none" stroke="var(--accent-primary)" stroke-width="2.5"/>' +
         '<text x="' + (hitX + (arcR + 26) * Math.cos(arc1.midDeg * DEG)).toFixed(2) + '" y="' +
         (hitY + (arcR + 26) * Math.sin(arc1.midDeg * DEG)).toFixed(2) +
-        '" fill="var(--cyan-fg)" font-family="var(--font)" font-weight="800" font-size="15" text-anchor="middle">θ₁</text>' +
+        '" fill="var(--accent-primary-fg)" font-family="var(--font)" font-weight="800" font-size="15" text-anchor="middle">θ₁</text>' +
         arc2HTML +
         tirLabel;
 
