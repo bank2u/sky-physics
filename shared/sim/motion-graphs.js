@@ -55,7 +55,7 @@
 
     var legend = document.createElement('div');
     legend.className = 'sim-legend';
-    legend.textContent = 'x = cyan · v = magenta · a = yellow';
+    legend.textContent = 'x-t (ตำแหน่ง) · v-t (ความเร็ว) · a-t (ความเร่ง)';
     container.appendChild(legend);
 
     /* ---- shared geometry (แกนเวลาร่วมกันของทั้ง 3 กราฟ) ---- */

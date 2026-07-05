@@ -64,7 +64,7 @@
 
     var legend = document.createElement('div');
     legend.className = 'sim-legend';
-    legend.textContent = 'y₁ = cyan · y₂ = magenta · y รวม = ทึบ';
+    legend.textContent = 'คลื่น 1 · คลื่น 2 · ผลรวม (superposition)';
     container.appendChild(legend);
 
     function computeValues() {

@@ -33,7 +33,7 @@
 
     var legend = document.createElement('div');
     legend.className = 'sim-legend';
-    legend.textContent = 'v = cyan · g = magenta';
+    legend.textContent = 'ความเร็วต้น (v₀) · ความเร่งจากแรงโน้มถ่วง (g)';
     container.appendChild(legend);
 
     function computeValues() {

@@ -65,7 +65,7 @@
 
     var legend = document.createElement('div');
     legend.className = 'sim-legend';
-    legend.textContent = 'ตกกระทบ = cyan · หักเห = magenta · สะท้อนกลับหมด (TIR) = yellow';
+    legend.textContent = 'รังสีตกกระทบ · รังสีหักเห · สะท้อนกลับหมด (TIR)';
     container.appendChild(legend);
 
     var hitX = 350, hitY = 285, rayLen = 205, arcR = 52;
