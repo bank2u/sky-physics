@@ -41,6 +41,10 @@
     legend.textContent = 'แรงผลัก (ฟ้า) · แรงเสียดทาน (ชมพู) ต้านการเคลื่อนที่เสมอ';
     container.appendChild(legend);
 
+    var stateBadge = document.createElement('div');
+    stateBadge.className = 'sim-legend sim-legend--bottom-right';
+    container.appendChild(stateBadge);
+
     /* ---- physics ---- */
     function stepPhysics(dt) {
       var fricMax = state.mu * state.mass * g;
@@ -140,6 +144,9 @@
       parts.push(forceArrow(state.friction, fricDir, 'var(--accent-secondary)', 'แรงเสียดทาน ' + state.friction.toFixed(0) + ' N'));
 
       svg.innerHTML = parts.join('');
+
+      stateBadge.textContent = moving ? 'กำลังเคลื่อนที่' : 'หยุดนิ่ง';
+      stateBadge.classList.toggle('sim-legend--primary', moving);
 
       onUpdate({
         fPush: state.fPush, mu: state.mu, mass: state.mass,
