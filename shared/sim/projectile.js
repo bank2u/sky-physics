@@ -31,11 +31,6 @@
     svg.setAttribute('height', '100%');
     container.appendChild(svg);
 
-    var label = document.createElement('div');
-    label.className = 'sim-label sim-label--cyan';
-    label.textContent = 'โพรเจกไทล์ / PROJECTILE';
-    container.appendChild(label);
-
     var legend = document.createElement('div');
     legend.className = 'sim-legend';
     legend.textContent = 'ความเร็วต้น (v₀) · ความเร่งจากแรงโน้มถ่วง (g)';
