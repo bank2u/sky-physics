@@ -71,6 +71,7 @@
   --space-5: 32px; --space-6: 48px; --space-7: 64px;
   --gap: clamp(14px, 2vw, 24px);
   --pad: clamp(16px, 3vw, 24px);
+  --sim-header-clearance: 60px; /* reserve space so .sim-legend badge never overlaps sim content */
 
   /* Radius scale */
   --radius:      12px;  /* small controls */
@@ -254,12 +255,13 @@ body {
 .sim-zone {
   background-color: var(--sim-bg); border: var(--border-w) solid var(--ink); border-radius: var(--radius-xl);
   position: relative; overflow: hidden; min-height: 420px; padding: var(--pad);
+  padding-top: var(--sim-header-clearance);
   background-image: radial-gradient(var(--dot-color) 1.6px, transparent 1.6px);
   background-size: 28px 28px;
 }
 /* ใช้กับ sim ที่มีพื้นกริดของตัวเอง (เช่น vector3d.js) — จุดพื้นหลัง CSS ทับกับกริด 3D จึงปิดไว้ */
 .sim-zone--3d { background-image: none; }
-.sim-zone svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sim-zone svg { display: block; width: 100%; height: 100%; }
 .sim-legend {
   position: absolute; left: var(--space-3); top: var(--space-3); font: 800 12px var(--font);
   color: var(--ink); background: var(--surface); border: var(--border-w-sm) solid var(--ink);
