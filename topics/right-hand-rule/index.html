@@ -19,20 +19,29 @@
   }
   .recap-strip b { color: var(--accent-secondary-fg); }
 
-  .mode-tabs { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-3); }
+  .mode-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--space-2); margin-bottom: var(--space-3); }
+  .mode-tabs .chip { border-width: var(--border-w-sm); padding: var(--space-2) var(--space-3); font: 800 13px var(--font); line-height: 1.25; }
 
   .vec-group { border-left: var(--border-w-sm) solid var(--vc, var(--ink)); padding-left: var(--space-3); margin-bottom: var(--space-3); }
   .vec-title { font: 800 var(--fs-label) var(--font); text-transform: uppercase; letter-spacing: .04em; opacity: .7; margin-bottom: var(--space-2); }
 
-  .dirgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); }
+  .vec-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-3); margin-bottom: var(--space-3); }
+  .vec-row .vec-group { margin-bottom: 0; }
+
+  .dirgrid { display: flex; flex-wrap: wrap; gap: var(--space-2); }
   .dirbtn {
-    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
     border: var(--border-w-sm) solid var(--ink); border-radius: var(--radius); background: var(--surface);
-    color: var(--ink); padding: var(--space-2) 4px; cursor: pointer; font-family: var(--font);
+    color: var(--ink); padding: var(--space-2) var(--space-1); cursor: pointer; font-family: var(--font);
+    flex: 0 0 auto; min-width: 36px;
   }
   .dirbtn .dicon { font-size: 18px; line-height: 1; font-family: var(--mono); }
-  .dirbtn .dlabel { font: 800 var(--fs-label) var(--font); line-height: 1; }
+  .dirbtn .dlabel { font: 800 var(--fs-label) var(--font); line-height: 1; display: none; }
   .dirbtn.is-active { background: var(--btn-color, var(--ink)); color: white; border-color: var(--btn-color, var(--ink)); }
+  .dirbtn.is-active .dlabel { display: block; }
+
+  .tile-grid--single .tile:first-child { grid-column: 1 / -1; }
+  .tile--angle.is-hidden { display: none; }
 
   .segmented { display: flex; border: var(--border-w-sm) solid var(--ink); border-radius: var(--radius); overflow: hidden; }
   .segbtn { flex: 1; background: var(--surface); color: var(--ink); border: none; padding: var(--space-2); font: 700 13px var(--font); cursor: pointer; }
@@ -74,10 +83,14 @@
 
     <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
     <div class="controls">
-      <div class="tile-grid">
+      <div class="tile-grid" id="tileGrid">
         <div class="tile tile--yellow">
           <div class="tile__label" id="tile-label">|F| · FORCE</div>
           <div class="tile__value" id="tile-value">0.00<span class="tile__unit" id="tile-unit">N</span></div>
+        </div>
+        <div class="tile tile--cyan tile--angle" id="tileAngleWrap">
+          <div class="tile__label">มุม θ ระหว่างเวกเตอร์ · ANGLE</div>
+          <div class="tile__value" id="tile-angle">0<span class="tile__unit">°</span></div>
         </div>
       </div>
 
@@ -175,10 +188,25 @@
   var tileLabelEl = document.getElementById('tile-label');
   var tileValueEl = document.getElementById('tile-value');
   var tileUnitEl = document.getElementById('tile-unit');
+  var tileGridEl = document.getElementById('tileGrid');
+  var tileAngleWrapEl = document.getElementById('tileAngleWrap');
+  var tileAngleEl = document.getElementById('tile-angle');
+
+  function showAngle(a, b) {
+    var dot = Math.max(-1, Math.min(1, a.dot(b)));
+    var deg = Math.acos(dot) * 180 / Math.PI;
+    tileAngleEl.innerHTML = Math.round(deg) + '<span class="tile__unit">°</span>';
+    tileAngleWrapEl.classList.remove('is-hidden');
+    tileGridEl.classList.remove('tile-grid--single');
+  }
+  function hideAngle() {
+    tileAngleWrapEl.classList.add('is-hidden');
+    tileGridEl.classList.add('tile-grid--single');
+  }
 
   function dirPickerHTML(role, selected, colorVar) {
     return '<div class="dirgrid" style="--btn-color:' + (colorVar || 'var(--ink)') + '">' + DIRS.map(function (d) {
-      return '<button type="button" class="dirbtn' + (d.key === selected ? ' is-active' : '') + '" data-role="' + role + '" data-key="' + d.key + '">' +
+      return '<button type="button" class="dirbtn' + (d.key === selected ? ' is-active' : '') + '" data-role="' + role + '" data-key="' + d.key + '" title="' + d.label + '">' +
              '<span class="dicon">' + d.icon + '</span><span class="dlabel">' + d.label + '</span></button>';
     }).join('') + '</div>';
   }
@@ -199,8 +227,10 @@
       if (f.sourceType === 'v') {
         html += '<div class="field-row" style="margin-bottom:var(--space-3)">' + seg('charge', [['+', 'ประจุบวก (+)'], ['-', 'ประจุลบ (−)']], f.charge) + '</div>';
       }
+      html += '<div class="vec-row">';
       html += '<div class="vec-group" style="--vc:var(--accent-secondary)"><div class="vec-title">ทิศทาง ' + (f.sourceType === 'I' ? 'I (กระแสไฟฟ้า)' : 'v (ความเร็วประจุ)') + '</div>' + dirPickerHTML('dirI', f.dirI, 'var(--accent-secondary)') + '</div>';
       html += '<div class="vec-group" style="--vc:var(--accent-primary)"><div class="vec-title">ทิศทาง B (สนามแม่เหล็ก)</div>' + dirPickerHTML('dirB', f.dirB, 'var(--accent-primary)') + '</div>';
+      html += '</div>';
       if (f.sourceType === 'I') {
         html += '<div class="numrow">' + numField('numI', 'I (A)', f.I, 0.1) + numField('numL', 'L (m)', f.L, 0.05) + numField('numB', 'B (T)', f.B, 0.1) + '</div>';
       } else {
@@ -213,8 +243,10 @@
     } else {
       var t = state.torque;
       html += '<div class="field-row" style="margin-bottom:var(--space-3)">' + seg('kind', [['torque', 'ทอร์ก (τ = r×F)'], ['angular', 'โมเมนตัมเชิงมุม (L = r×p)']], t.kind) + '</div>';
+      html += '<div class="vec-row">';
       html += '<div class="vec-group" style="--vc:var(--accent-primary)"><div class="vec-title">ทิศทาง r (ตำแหน่ง)</div>' + dirPickerHTML('dirR', t.dirR, 'var(--accent-primary)') + '</div>';
       html += '<div class="vec-group" style="--vc:var(--accent-tertiary)"><div class="vec-title">ทิศทาง ' + (t.kind === 'torque' ? 'F (แรง)' : 'p (โมเมนตัม)') + '</div>' + dirPickerHTML('dirF', t.dirF, 'var(--accent-tertiary)') + '</div>';
+      html += '</div>';
       html += '<div class="numrow">' + numField('numR3', 'r (m)', t.r, 0.05) + numField('numF3', t.kind === 'torque' ? 'F (N)' : 'p (kg·m/s)', t.mag, 0.5) + '</div>';
     }
     panelBody.innerHTML = html;
@@ -244,7 +276,8 @@
       sim.setLabel('thumb', f.sourceType === 'I' ? 'I' : 'v');
       sim.setLabel('fingers', 'B');
       sim.setLabel('palm', 'F');
-      sim.setVisible('fingers', true);
+      sim.setVisible('thumb', true);
+      sim.setVisible('fingers', !degenerate);
       sim.setVisible('circle', false);
       sim.setVisible('arc', false);
 
@@ -265,12 +298,17 @@
         sim.setPalmFlip(sign < 0);
         resultText = '|F| ≈ ' + mag.toFixed(2) + ' N · ทิศ: ' + dirLabelFromVector(Fdir) + (sign < 0 ? ' (สวนทางฝ่ามือ เพราะประจุลบ)' : ' (ทิศเดียวกับที่ฝ่ามือดัน)');
       } else {
-        Z = new THREE.Vector3(0, 0, 1);
+        // v ∥ B — makeBasis ต้องการแกนตั้งฉากกันจริง จึงสังเคราะห์ Y,Z ให้ตั้งฉากกับ X
+        // (นิ้วถูกซ่อนไปแล้ว เพราะมือ 3D บังคับให้นิ้วตั้งฉากกับหัวแม่มือเสมอ แสดง B ขนาน v ไม่ได้)
+        var helperF = Math.abs(X.y) > 0.9 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0);
+        Y = new THREE.Vector3().crossVectors(helperF, X).normalize();
+        Z = new THREE.Vector3().crossVectors(X, Y).normalize();
         sim.setVisible('palm', false);
         sim.setPalmFlip(false);
         resultText = 'ไม่มีแรงกระทำ — ทิศ ' + (f.sourceType === 'I' ? 'I' : 'v') + ' ขนานกับ B (sin θ = 0)';
       }
       tileValueEl.textContent = mag.toFixed(2);
+      showAngle(dirVec(f.dirI), dirVec(f.dirB));
       highlightEquation(f.sourceType === 'I' ? 'force-I' : 'force-v');
     }
 
@@ -284,6 +322,7 @@
 
       sim.setLabel('thumb', 'I');
       sim.setLabel('circle', 'B');
+      sim.setVisible('thumb', true);
       sim.setVisible('fingers', false);
       sim.setVisible('circle', true);
       sim.setVisible('palm', false);
@@ -297,6 +336,7 @@
       tileUnitEl.textContent = 'µT';
       tileValueEl.textContent = BmicroT.toFixed(2);
       resultText = '|B| ≈ ' + BmicroT.toFixed(2) + ' µT · ทิศวนตามนิ้วที่กำรอบลวด (ทิศ I: ' + dirLabelFromVector(X) + ')';
+      hideAngle();
       highlightEquation('field');
     }
 
@@ -323,19 +363,25 @@
       if (!degenerateT) {
         X = crossT.clone().normalize();
         sim.setLabel('thumb', resultLabel);
+        sim.setVisible('thumb', true);
         sim.setVisible('palm', true);
         sim.setVisible('arc', true);
         var magT = t.r * t.mag;
         tileValueEl.textContent = magT.toFixed(2);
         resultText = '|' + resultLabel + '| ≈ ' + magT.toFixed(2) + ' ' + unitT + ' · ทิศ: ' + dirLabelFromVector(X);
       } else {
-        X = new THREE.Vector3(1, 0, 0);
+        // r ∥ F/p — สังเคราะห์ X,Z ให้ตั้งฉากกับ r (นิ้ว) และซ่อนหัวแม่มือ เพราะผลลัพธ์เป็นศูนย์ ไม่มีทิศให้ชี้
+        var helperT = Math.abs(Y.y) > 0.9 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0);
+        X = new THREE.Vector3().crossVectors(helperT, Y).normalize();
+        Z = new THREE.Vector3().crossVectors(X, Y).normalize();
         sim.setLabel('thumb', resultLabel);
+        sim.setVisible('thumb', false);
         sim.setVisible('palm', false);
         sim.setVisible('arc', false);
         tileValueEl.textContent = '0.00';
         resultText = resultLabel + ' = 0 — r ขนานกับ ' + secondLabel + ' (sin θ = 0)';
       }
+      showAngle(dirVec(t.dirR), dirVec(t.dirF));
       highlightEquation(t.kind === 'torque' ? 'torque' : 'angular');
     }
 

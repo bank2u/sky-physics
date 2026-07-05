@@ -369,7 +369,7 @@
       updateTextSprite(sprite, text, COLOR_MAP[part]);
     }
 
-    var VISIBLE_MAP = { palm: [arrowPalm, labelPalm], fingers: [arrowFingers, labelFingers], circle: [circleLoop, labelCircle], arc: [arc] };
+    var VISIBLE_MAP = { thumb: [arrowThumb, labelThumb], palm: [arrowPalm, labelPalm], fingers: [arrowFingers, labelFingers], circle: [circleLoop, labelCircle], arc: [arc] };
     function setVisible(part, visible) {
       var objs = VISIBLE_MAP[part];
       if (objs) objs.forEach(function (o) { o.visible = visible; });
