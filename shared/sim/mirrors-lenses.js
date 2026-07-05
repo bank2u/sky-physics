@@ -175,8 +175,8 @@
         deviceHTML = '<path d="' + lensPath + '" fill="var(--ink)" opacity="0.09" stroke="var(--ink)" stroke-width="4"/>';
       } else { // concave-lens
         var waist = 14;
-        var glensPath = 'M ' + cx + ',' + (cy - ARM) + ' Q ' + (cx + BULGE) + ',' + cy + ' ' + cx + ',' + (cy + ARM) +
-          ' M ' + cx + ',' + (cy - ARM) + ' Q ' + (cx - BULGE) + ',' + cy + ' ' + cx + ',' + (cy + ARM);
+        var glensPath = 'M ' + (cx - BULGE) + ',' + (cy - ARM) + ' Q ' + cx + ',' + cy + ' ' + (cx - BULGE) + ',' + (cy + ARM) +
+          ' M ' + (cx + BULGE) + ',' + (cy - ARM) + ' Q ' + cx + ',' + cy + ' ' + (cx + BULGE) + ',' + (cy + ARM);
         deviceHTML = '<path d="' + glensPath + '" fill="none" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/>' +
           '<line x1="' + cx + '" y1="' + (cy - waist) + '" x2="' + cx + '" y2="' + (cy + waist) + '" stroke="var(--ink)" stroke-width="4"/>';
       }
