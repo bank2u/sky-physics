@@ -143,6 +143,7 @@
   function create(container, options) {
     options = options || {};
     var reducedMotion = options.reducedMotion || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    var zoomFactor = options.initialZoom || 1;
 
     function resolveColors() {
       return {
@@ -196,7 +197,7 @@
 
     var camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
     var target = new THREE.Vector3(0, 0.7, 0);
-    var DEFAULT_SPHERICAL = { radius: 6.2, theta: THREE.MathUtils.degToRad(35), phi: THREE.MathUtils.degToRad(62) };
+    var DEFAULT_SPHERICAL = { radius: 6.2 * zoomFactor, theta: THREE.MathUtils.degToRad(35), phi: THREE.MathUtils.degToRad(62) };
     var spherical = { radius: DEFAULT_SPHERICAL.radius, theta: DEFAULT_SPHERICAL.theta, phi: DEFAULT_SPHERICAL.phi };
 
     function updateCamera() {
