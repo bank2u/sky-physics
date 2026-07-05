@@ -68,11 +68,6 @@
 
     container.innerHTML = '';
 
-    var label = document.createElement('div');
-    label.className = 'sim-label sim-label--cyan';
-    label.textContent = 'กราฟการเคลื่อนที่ / MOTION GRAPHS';
-    container.appendChild(label);
-
     var svg = document.createElementNS(SVG_NS, 'svg');
     svg.setAttribute('viewBox', '0 0 700 620');
     svg.setAttribute('width', '100%');
@@ -80,7 +75,7 @@
     container.appendChild(svg);
 
     var legend = document.createElement('div');
-    legend.className = 'sim-legend';
+    legend.className = 'sim-legend sim-legend--cyan';
     legend.textContent = 'x-t (ตำแหน่ง) · v-t (ความเร็ว) · a-t (ความเร่ง)';
     container.appendChild(legend);
 

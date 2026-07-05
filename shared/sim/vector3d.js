@@ -174,7 +174,7 @@
     container.appendChild(canvas);
 
     var legend = document.createElement('div');
-    legend.className = 'sim-legend';
+    legend.className = 'sim-legend sim-legend--cyan';
     legend.style.right = 'var(--space-3)';
     legend.style.left = 'auto';
     legend.textContent = 'ลากเพื่อหมุน · เลื่อนล้อเพื่อซูม';
