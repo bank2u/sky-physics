@@ -151,6 +151,15 @@
   transform: rotate(0.6deg);
 }
 
+/* ลายเส้นความเร็ว (speed lines) จางๆ ทับพื้นการ์ดทั้งใบ ให้ฟีลช่องแอ็กชันคอมิค
+   ใช้ background-image เติมต่อจาก background-color เดิม (ไม่ใช่ shorthand) จึงไม่ล้างสีพื้นเดิม
+   ความจางระดับนี้ (6%) ไม่ลด contrast ของตัวหนังสือที่วางทับอย่างมีนัยสำคัญ — ไม่ใช่ pseudo-element
+   จึงไม่ชนกับ ::after ที่ใช้แสดงป้าย "READ!" อยู่แล้ว */
+:root[data-skin="comic"] .card,
+:root[data-skin="comic"] .card--compact {
+  background-image: repeating-linear-gradient(135deg, color-mix(in oklab, var(--ink) 6%, transparent) 0 3px, transparent 3px 16px);
+}
+
 /* hover: เงา offset เปลี่ยนเป็นสีตามหมวดที่การ์ดสังกัด (การ์ดเองไม่มี class accent จึงอิงจาก .category ที่ครอบ) */
 :root[data-skin="comic"] .card:hover,
 :root[data-skin="comic"] .card--compact:hover {
@@ -228,8 +237,13 @@
 
 /* ===== 4. Topic page ===== */
 
+/* เดิมซ้อนเงา 2 ชั้น (ฟ้า + ink) ทับตัวหนังสือ ink เอง ทำให้พร่าอ่านยาก โดยเฉพาะสระ/วรรณยุกต์ไทยที่บางอยู่แล้ว
+   เปลี่ยนเป็น halo สีกระดาษบางๆ รอบตัวอักษร (คั่นให้ตัวหนังสือคมชัดจากพื้นจุด) + เงาฟ้าชั้นเดียวด้านหลังเพื่อความเป็นคอมิค */
 :root[data-skin="comic"] .topic-title {
-  text-shadow: 2px 2px 0 var(--cyan), 4px 4px 0 var(--ink);
+  text-shadow:
+    -1px -1px 0 var(--paper), 1px -1px 0 var(--paper),
+    -1px  1px 0 var(--paper), 1px  1px 0 var(--paper),
+    3px 3px 0 var(--cyan);
 }
 
 /* คำอธิบายหัวข้อกลายเป็นลูกโป่งคำพูด มีหางชี้ขึ้นไปหาชื่อเรื่อง */
