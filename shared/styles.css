@@ -249,8 +249,11 @@ body {
 .topic-title .en { opacity: .4; font-size: 14px; font-weight: 700; margin-left: var(--space-2); }
 .topic-desc  { font-size: var(--fs-desc); color: var(--text-muted); margin: 0 0 var(--gap); font-weight: 600; }
 
-.sim-row { display: grid; gap: var(--gap); grid-template-columns: 1fr; }
-@media (min-width: 900px) { .sim-row { grid-template-columns: 1.6fr 1fr; } }
+/* มือถือ (<900px): ใช้ document flow ปกติ (ไม่ใช่ grid) เพื่อให้ .sim-zone ค้างจอ (position: sticky)
+   ได้จริง — ถ้าเป็น grid แต่ละแถวจะสูงเท่าเนื้อหาตัวเอง ทำให้ .sim-zone ไม่มีระยะเลื่อนให้ค้างเลย
+   ต้องอยู่ใน flow เดียวกับ .controls เพื่อให้ containing block สูงเท่าเนื้อหารวมทั้งคู่ */
+.sim-row { display: block; }
+@media (min-width: 900px) { .sim-row { display: grid; gap: var(--gap); grid-template-columns: 1.6fr 1fr; } }
 
 .sim-zone {
   background-color: var(--sim-bg); border: var(--border-w) solid var(--ink); border-radius: var(--radius-xl);
@@ -258,6 +261,19 @@ body {
   padding-top: var(--sim-header-clearance);
   background-image: radial-gradient(var(--dot-color) 1.6px, transparent 1.6px);
   background-size: 28px 28px;
+  margin-bottom: var(--gap);
+}
+@media (min-width: 900px) { .sim-zone { margin-bottom: 0; } }
+
+/* ปรับค่าในแผงควบคุมแล้วต้องเลื่อนขึ้นไปดู sim ทุกครั้ง — ทำให้ sim ค้างบนจอระหว่างเลื่อนดูแผงควบคุม
+   ด้านล่าง (เหมือน sticky sidebar) ลด min-height ลงด้วยเพื่อเหลือที่จอให้เห็นแผงควบคุมพร้อมกันมากขึ้น */
+@media (max-width: 899px) {
+  .sim-zone {
+    position: sticky;
+    top: var(--space-3);
+    z-index: 5;
+    min-height: 260px;
+  }
 }
 /* ใช้กับ sim ที่มีพื้นกริดของตัวเอง (เช่น vector3d.js) — จุดพื้นหลัง CSS ทับกับกริด 3D จึงปิดไว้ */
 .sim-zone--3d { background-image: none; }

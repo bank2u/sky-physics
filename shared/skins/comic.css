@@ -77,9 +77,13 @@
 }
 
 /* offset เดิม 2px ที่ font-size 20px ใหญ่เกินสัดส่วนตัวอักษร ทำให้เงาของตัวอักษรที่ตัวเบียดกัน
-   (Bungee tracking แน่น) ไหลทับกันจนอ่านไม่ออก ลดเหลือ 1px ให้ยังเห็นเงาสีคอมิคแต่ไม่ชนตัวข้างเคียง */
+   (Bungee tracking แน่น) ไหลทับกันจนอ่านไม่ออก ลดเหลือ 1px ให้ยังเห็นเงาสีคอมิคแต่ไม่ชนตัวข้างเคียง
+   Bungee มีน้ำหนักเดียว (400) แต่ styles.css สั่ง font-weight: 900 มาจากฐาน (.topbar__name) เบราว์เซอร์เลย
+   วาด synthetic bold ทับตัวอักษรซ้ำ (โครงร่างซ้อนเหลื่อม) พอมาเจอเงา 1px คอมิคซ้อนอีกชั้นเลยดูเบลอ/ตัวซ้อนตัว
+   ต้อง reset เป็น normal เพราะ Bungee ตัวหนาอยู่แล้วในตัวฟอนต์เอง ไม่ต้องพึ่ง synthetic bold */
 :root[data-skin="comic"] .topbar__name {
   font-family: 'Bungee', var(--font);
+  font-weight: normal;
   text-shadow: 1px 1px 0 var(--cyan);
 }
 
@@ -278,10 +282,13 @@
 }
 
 /* กรอบ sim เป็นกรอบคู่ (double-frame panel) หนากว่าเดิม + จุดฮาล์ฟโทนมุมนึงจางๆ
-   ไม่อิงพื้น dot ปกติของ .sim-zone จึงใช้ได้แม้กับ .sim-zone--3d ที่ปิดพื้นจุดไว้ */
+   ไม่อิงพื้น dot ปกติของ .sim-zone จึงใช้ได้แม้กับ .sim-zone--3d ที่ปิดพื้นจุดไว้
+   ไม่ประกาศ position ที่นี่ (เดิมคือ relative ตายตัว): styles.css กำหนด position ของ .sim-zone
+   ต่างกันตามช่วงจออยู่แล้ว (relative ที่ ≥900px, sticky ที่ <900px เพื่อให้ sim ค้างจอตอนเลื่อนดูแผงควบคุม)
+   ทั้งสองค่าเป็น positioned ancestor ที่ใช้ได้กับ ::before/::after ด้านล่างอยู่แล้ว ประกาศซ้ำที่นี่จะไปทับค่า
+   sticky ของมือถือทุกครั้ง (comic.css โหลดทีหลังและ specificity สูงกว่า) */
 :root[data-skin="comic"] .sim-zone {
   border-width: 5px;
-  position: relative;
   overflow: hidden;
 }
 :root[data-skin="comic"] .sim-zone::before {
@@ -411,6 +418,13 @@
 :root[data-skin="comic"] .tile--magenta .tile__value,
 :root[data-skin="comic"] .tile--yellow .tile__value {
   text-shadow: 2px 2px 0 var(--ink);
+}
+
+/* หน่วย (.tile__unit) ชิดตัวเลขแค่ margin-left: 2px ใน styles.css ซึ่งพอสำหรับฟอนต์เดิม
+   แต่ตัวเลข Kanit น้ำหนัก 900 ของคอมิคกลม/ตัวหนาจนขอบขวาเกือบชนระยะเคาะ ทำให้หน่วยไปทับตัวเลข
+   (เช่น "0N" เห็นเป็น 0 ทับ N, "0.0m/s²" อ่านไม่ออก) เพิ่มระยะห่างเป็นสัดส่วนกับขนาดฟอนต์ของหน่วยเอง */
+:root[data-skin="comic"] .tile__unit {
+  margin-left: 0.35em;
 }
 
 /* ===== 6. Equations + concept ===== */
