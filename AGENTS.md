@@ -25,9 +25,12 @@
 4. หลังครูอนุมัติ → ใช้ skill `publish-workflow` เติม `topics.json` + commit/push
 
 ## Skills
-Workflow: `spec-workflow`, `build-workflow`, `publish-workflow`
+Workflow: `spec-workflow`, `build-workflow`, `publish-workflow`, `skin-workflow`
 Knowledge: `physics-content`, `page-template`, `simulation-patterns`, `navigation`
 โหลดรายละเอียดจาก `.claude/skills/<name>/SKILL.md` เมื่อต้องใช้
+
+## Agents
+งาน skin/theme ทุกงาน (สร้าง/แก้ ไม่ว่าเล็กแค่ไหน) → dispatch agent `skin-smith` — main session ห้ามแก้ไฟล์ skin เอง
 
 ## คำสั่ง
 - dev: เปิด `index.html` ด้วย static server (เช่น `npx serve`)

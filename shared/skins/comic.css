@@ -76,9 +76,11 @@
   100% { transform: rotate(-4deg); }
 }
 
+/* offset เดิม 2px ที่ font-size 20px ใหญ่เกินสัดส่วนตัวอักษร ทำให้เงาของตัวอักษรที่ตัวเบียดกัน
+   (Bungee tracking แน่น) ไหลทับกันจนอ่านไม่ออก ลดเหลือ 1px ให้ยังเห็นเงาสีคอมิคแต่ไม่ชนตัวข้างเคียง */
 :root[data-skin="comic"] .topbar__name {
   font-family: 'Bungee', var(--font);
-  text-shadow: 2px 2px 0 var(--cyan);
+  text-shadow: 1px 1px 0 var(--cyan);
 }
 
 /* แถบ halftone บางๆ ตามขอบล่าง topbar (ทับ border-bottom เดิมของ styles.css) */
@@ -388,7 +390,10 @@
   z-index: 2;
 }
 
-/* ตัวเลข value tile: เงาตัวอักษรซ้อนสีตาม accent + จุดสกรีนโทนมุมกล่อง */
+/* ตัวเลข value tile: เงาตัวอักษรเดียวสีหมึก + จุดสกรีนโทนมุมกล่อง
+   เดิมซ้อนเงาสี accent (1px) ไว้ใต้ตัวอักษร แต่สีนั้นตรงกับสีตัวอักษรเป๊ะ (--accent-*-fg ทั้งคู่ map มาจาก
+   token เดียวกับ --tile-accent-*-fg) จึงกลายเป็นเงาที่ "ซ้อนสีตัวเอง" offset 1px ทำให้ตัวเลขดูเบลอ/ซ้อนภาพ
+   โดยเฉพาะที่ font-size ใหญ่ (--fs-value) เหลือเงาหมึกชั้นเดียวพอ ให้ผลแบบสติกเกอร์คมชัดเหมือนจุดอื่นในสกิน */
 :root[data-skin="comic"] .tile {
   position: relative;
 }
@@ -402,14 +407,10 @@
   opacity: .4;
   pointer-events: none;
 }
-:root[data-skin="comic"] .tile--cyan .tile__value {
-  text-shadow: 1px 1px 0 var(--accent-primary-fg), 2px 2px 0 var(--ink);
-}
-:root[data-skin="comic"] .tile--magenta .tile__value {
-  text-shadow: 1px 1px 0 var(--accent-secondary-fg), 2px 2px 0 var(--ink);
-}
+:root[data-skin="comic"] .tile--cyan .tile__value,
+:root[data-skin="comic"] .tile--magenta .tile__value,
 :root[data-skin="comic"] .tile--yellow .tile__value {
-  text-shadow: 1px 1px 0 var(--accent-tertiary-fg), 2px 2px 0 var(--ink);
+  text-shadow: 2px 2px 0 var(--ink);
 }
 
 /* ===== 6. Equations + concept ===== */
