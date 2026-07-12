@@ -15,7 +15,8 @@
       "titleEn": "Simple Pendulum",
       "level": "ม.ต้น",
       "category": "กลศาสตร์",
-      "active": false
+      "path": "topics/pendulum/",
+      "active": true
     },
     {
       "id": "projectile-motion",

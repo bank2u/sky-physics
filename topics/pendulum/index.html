@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>การแกว่งของลูกตุ้ม — PHYSICS-SIM</title>
+<script src="../../shared/config.js"></script>
+<link rel="stylesheet" href="../../shared/styles.css">
+<link rel="stylesheet" href="../../shared/skins/comic.css">
+<script src="../../shared/layout.js"></script>
+<style>
+  /* ---- ส่วนขยายเฉพาะเรื่องนี้ — ใช้ design token เท่านั้น ห้ามฝัง hex/ฟอนต์ใหม่ ---- */
+  .slider--length { --slider-accent: var(--accent-primary);   --slider-accent-fg: var(--accent-primary-fg); }
+  .slider--angle2 { --slider-accent: var(--accent-secondary); --slider-accent-fg: var(--accent-secondary-fg); }
+  .slider--mass2  { --slider-accent: var(--accent-tertiary);  --slider-accent-fg: var(--accent-tertiary-fg); }
+  .g-tabs { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-3); }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+
+<main class="page">
+  <!-- 1. หัวเรื่อง + คำอธิบายสั้น -->
+  <div class="topic-header">
+    <div class="topic-header__left">
+      <a class="back-btn" href="../../" aria-label="กลับสารบัญ">←</a>
+      <h1 class="topic-title">การแกว่งของลูกตุ้ม <span class="en">SIMPLE PENDULUM</span></h1>
+    </div>
+    <span class="badge-level is-filled">ม.ต้น</span>
+  </div>
+  <p class="topic-desc">ปรับความยาวเชือก มุมเริ่มต้น และมวล ดูว่าอะไรทำให้คาบการแกว่งเปลี่ยนไปจริงๆ — แล้วลองสลับ Earth/Moon ดู</p>
+
+  <div class="sim-row">
+    <!-- 2. โซน simulation -->
+    <div class="sim-zone" id="sim-zone"></div>
+
+    <!-- 3+4. แผงควบคุม + ค่าที่แสดง realtime -->
+    <div class="controls">
+      <div class="tile-grid">
+        <div class="tile tile--cyan">
+          <div class="tile__label">คาบการแกว่ง · PERIOD</div>
+          <div class="tile__value" id="tile-t">2.0<span class="tile__unit">s</span></div>
+        </div>
+        <div class="tile tile--magenta">
+          <div class="tile__label">ความถี่ · FREQUENCY</div>
+          <div class="tile__value" id="tile-f">0.50<span class="tile__unit">Hz</span></div>
+        </div>
+        <div class="tile tile--yellow">
+          <div class="tile__label">มุมปัจจุบัน · ANGLE</div>
+          <div class="tile__value" id="tile-angle">20.0<span class="tile__unit">°</span></div>
+        </div>
+      </div>
+
+      <div class="sliders">
+        <div class="g-tabs" id="gTabs">
+          <button type="button" class="chip is-active" data-g="9.8" data-label="Earth">🌍 Earth · g=9.8</button>
+          <button type="button" class="chip" data-g="1.6" data-label="Moon">🌕 Moon · g=1.6</button>
+        </div>
+
+        <div class="slider--length">
+          <div class="slider__row">
+            <span>ความยาวเชือก · LENGTH</span>
+            <span class="slider__value" id="l-value">1.0 m</span>
+          </div>
+          <div class="slider__track" id="l-track">
+            <div class="slider__fill" id="l-fill"></div>
+            <div class="slider__thumb" id="l-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--angle2">
+          <div class="slider__row">
+            <span>มุมแกว่งเริ่มต้น · ANGLE</span>
+            <span class="slider__value" id="theta-value">20°</span>
+          </div>
+          <div class="slider__track" id="theta-track">
+            <div class="slider__fill" id="theta-fill"></div>
+            <div class="slider__thumb" id="theta-thumb"></div>
+          </div>
+        </div>
+        <div class="slider--mass2">
+          <div class="slider__row">
+            <span>มวลลูกตุ้ม · MASS</span>
+            <span class="slider__value" id="m-value">0.5 kg</span>
+          </div>
+          <div class="slider__track" id="m-track">
+            <div class="slider__fill" id="m-fill"></div>
+            <div class="slider__thumb" id="m-thumb"></div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn-play" id="play-btn">▶ แกว่ง</button>
+          <button type="button" class="btn-reset" id="reset-btn">RESET</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. คำอธิบายแนวคิด / สมการ -->
+  <div class="equations">
+    <div class="equation-card">
+      <span class="equation-card__label">คาบการแกว่ง</span>
+      <span class="equation-card__formula">T ≈ 2π √(L / g)</span>
+    </div>
+    <div class="equation-card">
+      <span class="equation-card__label">ความถี่</span>
+      <span class="equation-card__formula">f = 1 / T</span>
+    </div>
+  </div>
+
+  <div class="concept">
+    <h2>คำอธิบายแนวคิด</h2>
+    <p>
+      เมื่อดึงลูกตุ้มออกจากตำแหน่งสมดุลแล้วปล่อย มันจะแกว่งไปมาเป็นจังหวะสม่ำเสมอด้วยแรงโน้มถ่วงที่ดึงกลับเข้าสู่จุดสมดุลตลอดเวลา
+      เวลาที่ใช้ในการแกว่งครบหนึ่งรอบเรียกว่า "คาบ" (Period, T)
+    </p>
+    <p>
+      สิ่งที่น่าแปลกใจคือคาบของลูกตุ้ม<b>ไม่ขึ้นกับน้ำหนักของลูกตุ้มเลย</b> ไม่ว่าจะแกว่งลูกตุ้มเบาหรือหนัก
+      ถ้าความยาวเชือกเท่ากันและแกว่งบนดาวเคราะห์เดียวกัน คาบจะเท่ากันเสมอ — ลองปรับ slider มวลดูสิ ค่าคาบ (T) ในกล่องด้านบนไม่ขยับเลย
+      สิ่งที่มีผลจริงคือความยาวเชือก (ยิ่งยาวยิ่งแกว่งช้า) และความเร่งโน้มถ่วงของสถานที่นั้น
+      ลองกดสลับ Earth/Moon ดู — บนดวงจันทร์ซึ่งแรงโน้มถ่วงน้อยกว่าโลกมาก ลูกตุ้มจะแกว่งช้าลงอย่างเห็นได้ชัด
+    </p>
+  </div>
+</main>
+
+<script src="../../shared/sim/pendulum.js"></script>
+<script>
+  PhysicsSimLayout.mountTopbar(document.getElementById('topbar'), '../../');
+
+  var L_MIN = 0.2, L_MAX = 2.0;
+  var THETA_MIN = 5, THETA_MAX = 45;
+  var M_MIN = 0.1, M_MAX = 2.0;
+
+  var sim = SimPatterns.pendulum.create(document.getElementById('sim-zone'), {
+    L: 1.0,
+    theta0: 20,
+    mass: 0.5,
+    g: 9.8,
+    gLabel: 'Earth',
+    LRange: [L_MIN, L_MAX],
+    theta0Range: [THETA_MIN, THETA_MAX],
+    massRange: [M_MIN, M_MAX],
+    onUpdate: function (vals) {
+      document.getElementById('tile-t').innerHTML = vals.T.toFixed(2) + '<span class="tile__unit">s</span>';
+      document.getElementById('tile-f').innerHTML = vals.f.toFixed(2) + '<span class="tile__unit">Hz</span>';
+      document.getElementById('tile-angle').innerHTML = vals.angle.toFixed(1) + '<span class="tile__unit">°</span>';
+
+      document.getElementById('l-value').textContent = vals.L.toFixed(1) + ' m';
+      document.getElementById('theta-value').textContent = vals.theta0.toFixed(0) + '°';
+      document.getElementById('m-value').textContent = vals.mass.toFixed(1) + ' kg';
+
+      var lPct = ((vals.L - L_MIN) / (L_MAX - L_MIN)) * 100;
+      var thPct = ((vals.theta0 - THETA_MIN) / (THETA_MAX - THETA_MIN)) * 100;
+      var mPct = ((vals.mass - M_MIN) / (M_MAX - M_MIN)) * 100;
+      document.getElementById('l-fill').style.width = lPct + '%';
+      document.getElementById('l-thumb').style.left = lPct + '%';
+      document.getElementById('theta-fill').style.width = thPct + '%';
+      document.getElementById('theta-thumb').style.left = thPct + '%';
+      document.getElementById('m-fill').style.width = mPct + '%';
+      document.getElementById('m-thumb').style.left = mPct + '%';
+
+      document.getElementById('play-btn').textContent = vals.playing ? '❚❚ หยุด' : '▶ แกว่ง';
+    }
+  });
+
+  function wireTrack(trackEl, min, max, onDrag) {
+    trackEl.addEventListener('pointerdown', function (e) {
+      var rect = trackEl.getBoundingClientRect();
+      function update(clientX) {
+        var frac = (clientX - rect.left) / rect.width;
+        frac = Math.max(0, Math.min(1, frac));
+        onDrag(min + frac * (max - min));
+      }
+      update(e.clientX);
+      function onMove(ev) { update(ev.clientX); }
+      function onUp() {
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+    });
+  }
+
+  wireTrack(document.getElementById('l-track'), L_MIN, L_MAX, function (v) {
+    sim.setL(Math.round(v * 10) / 10);
+  });
+  wireTrack(document.getElementById('theta-track'), THETA_MIN, THETA_MAX, function (v) {
+    sim.setTheta0(Math.round(v));
+  });
+  wireTrack(document.getElementById('m-track'), M_MIN, M_MAX, function (v) {
+    sim.setMass(Math.round(v * 10) / 10);
+  });
+
+  var gTabs = document.getElementById('gTabs');
+  gTabs.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-g]');
+    if (!btn) return;
+    Array.prototype.forEach.call(gTabs.querySelectorAll('button'), function (b) {
+      b.classList.toggle('is-active', b === btn);
+    });
+    sim.setG(parseFloat(btn.dataset.g), btn.dataset.label);
+  });
+
+  document.getElementById('play-btn').addEventListener('click', function () { sim.play(); });
+  document.getElementById('reset-btn').addEventListener('click', function () { sim.reset(); });
+</script>
+</body>
+</html>
