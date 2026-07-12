@@ -157,12 +157,16 @@
   transform: rotate(0.6deg);
 }
 
-/* ลายเส้นความเร็ว (speed lines) จางๆ ทับพื้นการ์ดทั้งใบ ให้ฟีลช่องแอ็กชันคอมิค
+/* ลายเส้นความเร็ว (speed lines) เดิมทับพื้นการ์ดทั้งใบทุกใบ (ทั้งพร้อมใช้และ "เร็วๆ นี้") โดยไม่ต่างกัน
+   บนการ์ดพร้อมใช้ (พื้นขาวคมชัด) ลายเส้นเฉียงจางๆ นี้ดันไปอ่านเป็นลายสแครช/skeleton-loading
+   (สัญญาณ "ยังไม่เสร็จ") ซึ่งขัดกับการที่การ์ดนั้นคลิกได้แล้วจริงๆ — บนการ์ด is-inactive ที่ถูกหรี่ opacity
+   อยู่แล้ว ลายเส้นนี้กลับกลืนไปกับสีเทาจนแทบไม่เห็น จึงย้ายมาใช้เฉพาะการ์ด is-inactive แทน:
+   เสริมสถานะ "เร็วๆ นี้" ให้ชัดขึ้นตรงจุดที่มันเป็นจริง และคืนพื้นผิวการ์ดพร้อมใช้ให้ขาวสะอาด อ่านว่าเสร็จแล้ว/คลิกได้
    ใช้ background-image เติมต่อจาก background-color เดิม (ไม่ใช่ shorthand) จึงไม่ล้างสีพื้นเดิม
-   ความจางระดับนี้ (6%) ไม่ลด contrast ของตัวหนังสือที่วางทับอย่างมีนัยสำคัญ — ไม่ใช่ pseudo-element
-   จึงไม่ชนกับ ::after ที่ใช้แสดงป้าย "READ!" อยู่แล้ว */
-:root[data-skin="comic"] .card,
-:root[data-skin="comic"] .card--compact {
+   ไม่ใช่ pseudo-element จึงไม่ชนกับ ::after ที่ใช้แสดงป้าย "READ!" (การ์ด is-inactive ไม่ได้ hover ป้ายนี้อยู่แล้ว
+   เพราะ pointer-events: none ใน styles.css) */
+:root[data-skin="comic"] .card.is-inactive,
+:root[data-skin="comic"] .card--compact.is-inactive {
   background-image: repeating-linear-gradient(135deg, color-mix(in oklab, var(--ink) 6%, transparent) 0 3px, transparent 3px 16px);
 }
 
