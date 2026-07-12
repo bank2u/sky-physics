@@ -64,7 +64,7 @@
       '<div class="topbar">' +
       '<a class="topbar__brand" href="' + homeHref + '">' +
       '<span class="topbar__logo">☁️</span>' +
-      '<span class="topbar__name">SKY-PHYSIC</span>' +
+      '<span class="topbar__name">SKY-PHYSICS</span>' +
       '</a>' + toggleHtml + '</div>';
     var toggle = root.querySelector('.toggle');
     if (toggle) {
