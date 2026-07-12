@@ -4,7 +4,7 @@
    generic: รับ volumeFraction (0.2–1.0) และ moleculeCount จาก control ภายนอก ไม่ผูกกับเรื่องเดียว
    วาดด้วย design token เท่านั้น (var(--ink)/var(--accent-primary)/var(--accent-secondary)/var(--accent-tertiary)/var(--grid)/var(--surface)) ห้ามฝัง hex ตรงๆ
    ใช้ SVG (เหมือน circuit-ohm.js/motion-graphs.js) — var() ใน attribute ถูก resolve ผ่าน CSS cascade ตอน paint
-   ทุกเฟรมอยู่แล้ว จึงไม่ต้องฟัง physics-sim:themechange แยก (SVG ไม่เหมือน canvas 2D ที่ต้อง resolve สีเป็น string เอง)
+   ทุกเฟรมอยู่แล้ว จึงไม่ต้องฟัง sky-physic:themechange แยก (SVG ไม่เหมือน canvas 2D ที่ต้อง resolve สีเป็น string เอง)
 
    ที่มาของค่าความดัน P (อธิบายเพราะไม่มีการ calibrate กับหน่วยจริง):
    ทฤษฎีจลน์ของแก๊สให้ P·A = N·m·⟨v²⟩ (2D) กล่าวคือความดันคือฟลักซ์โมเมนตัมที่โมเลกุลถ่ายให้ผนังต่อหน่วยเวลาต่อหน่วยความยาวผนัง

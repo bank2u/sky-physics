@@ -1,4 +1,4 @@
-# physics-sim
+# sky-physic
 
 เว็บ static สื่อการสอนฟิสิกส์ ม.ต้น–ม.ปลาย เน้น simulation ปรับค่าได้
 ครูใช้แชร์จอประกอบการสอน ไม่มี backend / ไม่มี login / ไม่มี build step — host บน Vercel

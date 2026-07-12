@@ -1,9 +1,9 @@
-/* shared/layout.js — โครง 5 ส่วนของ page: top bar ร่วม (โลโก้ Φ + toggle มืด/สว่าง)
+/* shared/layout.js — โครง 5 ส่วนของ page: top bar ร่วม (โลโก้ S + toggle มืด/สว่าง)
    ใช้ผ่าน window.PhysicsSimLayout — โหลดใน <head> (ไม่ defer) เพื่อกันจอกระพริบตอนสลับ dark mode
    อ่าน skin จาก shared/config.js (ต้องโหลดมาก่อน) แล้วแสตมป์ data-skin ก่อน paint
    skin ที่รองรับโหมดเดียวจะถูกบังคับโหมดนั้นและไม่แสดงปุ่ม toggle */
 (function () {
-  var STORAGE_KEY = 'physics-sim-theme';
+  var STORAGE_KEY = 'sky-physic-theme';
 
   var config = window.PhysicsSimConfig || {
     skin: 'dot-matrix',
@@ -44,7 +44,7 @@
     document.querySelectorAll('.toggle').forEach(function (t) {
       t.setAttribute('aria-pressed', String(dark));
     });
-    document.dispatchEvent(new CustomEvent('physics-sim:themechange'));
+    document.dispatchEvent(new CustomEvent('sky-physic:themechange'));
   }
 
   // Apply ทันทีกัน flash: skin โหมดเดียวบังคับเลย, นอกนั้นตามค่าที่จำไว้
@@ -63,8 +63,8 @@
     root.innerHTML =
       '<div class="topbar">' +
       '<a class="topbar__brand" href="' + homeHref + '">' +
-      '<span class="topbar__logo">Φ</span>' +
-      '<span class="topbar__name">PHYSICS-SIM</span>' +
+      '<span class="topbar__logo">☁️</span>' +
+      '<span class="topbar__name">SKY-PHYSIC</span>' +
       '</a>' + toggleHtml + '</div>';
     var toggle = root.querySelector('.toggle');
     if (toggle) {

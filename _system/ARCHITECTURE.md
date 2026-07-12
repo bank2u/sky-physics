@@ -99,9 +99,9 @@ Skill map ปัจจุบัน:
 
 **สถาปัตยกรรม (ไล่ตามลำดับโหลด):**
 1. `shared/config.js` — data ล้วน โหลด sync ก่อนทุกอย่าง: `{ skin, skins: { <name>: { modes, fontsUrl? } } }`
-2. `shared/layout.js` — อ่าน config แล้ว sync ก่อน paint: แสตมป์ `data-skin` บน `<html>`, บังคับ `data-theme` ถ้า skin รองรับโหมดเดียว, แทรก `<link rel="stylesheet">` จาก `fontsUrl` ถ้า skin นั้นประกาศไว้, และ dispatch `physics-sim:themechange` ทุกครั้งที่ skin/mode เปลี่ยน
+2. `shared/layout.js` — อ่าน config แล้ว sync ก่อน paint: แสตมป์ `data-skin` บน `<html>`, บังคับ `data-theme` ถ้า skin รองรับโหมดเดียว, แทรก `<link rel="stylesheet">` จาก `fontsUrl` ถ้า skin นั้นประกาศไว้, และ dispatch `sky-physic:themechange` ทุกครั้งที่ skin/mode เปลี่ยน
 3. `shared/skins/<name>.css` — CSS ล้วน scope ใต้ `:root[data-skin="<name>"]` เท่านั้น override ได้เฉพาะ token ที่ `:root` ใน `shared/styles.css` ประกาศไว้แล้ว (token contract) ห้ามเพิ่มชื่อ token ใหม่ ห้ามแตะโครง DOM
-4. sim ที่วาดลง canvas (เช่น `shared/sim/vector3d.js`) resolve สีจาก CSS token ตอนสร้าง แล้วต้องฟัง `physics-sim:themechange` เพื่อล้าง cache + re-resolve สีใหม่ (ไม่งั้นสีจะค้างตอนสลับ skin/mode — เคยเป็นบั๊กจริงมาก่อน)
+4. sim ที่วาดลง canvas (เช่น `shared/sim/vector3d.js`) resolve สีจาก CSS token ตอนสร้าง แล้วต้องฟัง `sky-physic:themechange` เพื่อล้าง cache + re-resolve สีใหม่ (ไม่งั้นสีจะค้างตอนสลับ skin/mode — เคยเป็นบั๊กจริงมาก่อน)
 5. ไม่ระบุ `data-skin` เลย (เช่น JS พัง) = ยัง fallback เป็น dot-matrix ได้จาก `:root` ของ `shared/styles.css` ตรงๆ โดยไม่พึ่ง JS
 
 **เปลี่ยน skin ที่ deploy อยู่:** แก้บรรทัด `skin: 'dot-matrix'` ใน `shared/config.js` เป็นชื่อ skin ที่ต้องการ แล้ว commit/push — ดูขั้นตอนเต็มใน `README.md` หัวข้อ "เปลี่ยน skin"

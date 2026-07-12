@@ -408,7 +408,7 @@
         updateTextSprite(sprite, lastLabelText[part], COLOR_MAP[part]);
       });
     }
-    document.addEventListener('physics-sim:themechange', refreshTheme);
+    document.addEventListener('sky-physic:themechange', refreshTheme);
 
     var rafId = null;
     function animate() {
@@ -437,7 +437,7 @@
       destroy: function () {
         if (rafId) cancelAnimationFrame(rafId);
         window.removeEventListener('resize', onWindowResize);
-        document.removeEventListener('physics-sim:themechange', refreshTheme);
+        document.removeEventListener('sky-physic:themechange', refreshTheme);
         renderer.dispose();
       }
     };

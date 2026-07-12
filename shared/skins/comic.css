@@ -76,15 +76,14 @@
   100% { transform: rotate(-4deg); }
 }
 
-/* offset เดิม 2px ที่ font-size 20px ใหญ่เกินสัดส่วนตัวอักษร ทำให้เงาของตัวอักษรที่ตัวเบียดกัน
-   (Bungee tracking แน่น) ไหลทับกันจนอ่านไม่ออก ลดเหลือ 1px ให้ยังเห็นเงาสีคอมิคแต่ไม่ชนตัวข้างเคียง
-   Bungee มีน้ำหนักเดียว (400) แต่ styles.css สั่ง font-weight: 900 มาจากฐาน (.topbar__name) เบราว์เซอร์เลย
-   วาด synthetic bold ทับตัวอักษรซ้ำ (โครงร่างซ้อนเหลื่อม) พอมาเจอเงา 1px คอมิคซ้อนอีกชั้นเลยดูเบลอ/ตัวซ้อนตัว
-   ต้อง reset เป็น normal เพราะ Bungee ตัวหนาอยู่แล้วในตัวฟอนต์เอง ไม่ต้องพึ่ง synthetic bold */
+/* Bungee มีน้ำหนักเดียว (400) แต่ styles.css สั่ง font-weight: 900 มาจากฐาน (.topbar__name) เบราว์เซอร์เลย
+   วาด synthetic bold ทับตัวอักษรซ้ำ (โครงร่างซ้อนเหลื่อม) ต้อง reset เป็น normal เพราะ Bungee ตัวหนา
+   อยู่แล้วในตัวฟอนต์เอง ไม่ต้องพึ่ง synthetic bold
+   ครูขอถอด text-shadow ออกจาก wordmark ทั้งหมด (เดิมเคยมี 1px cyan shadow เพื่อลดปัญหาตัวเบียดกัน
+   ตอนใช้ offset ใหญ่กว่า — ตอนนี้ตัดออกตามคำขอ ไม่ใช่ legibility fix) */
 :root[data-skin="comic"] .topbar__name {
   font-family: 'Bungee', var(--font);
   font-weight: normal;
-  text-shadow: 1px 1px 0 var(--cyan);
 }
 
 /* แถบ halftone บางๆ ตามขอบล่าง topbar (ทับ border-bottom เดิมของ styles.css) */

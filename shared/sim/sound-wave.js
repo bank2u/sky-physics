@@ -14,7 +14,7 @@
    เสียงจริงที่ได้ยินใช้ความถี่จริงตรงๆ ผ่าน OscillatorNode ไม่ผ่านการ scale นี้
 
    หมายเหตุ theme: ใช้ var(--token) ตรงในแอตทริบิวต์ SVG (ไม่ resolve เป็น hex ใน JS เหมือน vector3d.js) จึงไม่ต้องฟัง
-   physics-sim:themechange — browser recompute custom property ให้เองทุกครั้งที่ re-render (redraw ทุกเฟรมอยู่แล้ว) */
+   sky-physic:themechange — browser recompute custom property ให้เองทุกครั้งที่ re-render (redraw ทุกเฟรมอยู่แล้ว) */
 (function () {
   'use strict';
   var SVG_NS = 'http://www.w3.org/2000/svg';

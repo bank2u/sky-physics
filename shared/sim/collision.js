@@ -4,7 +4,7 @@
    generic: รับ m1/m2/u1/u2/e(สัมประสิทธิ์การคืนตัว)/timeScale จาก control ภายนอก ไม่ผูกกับเรื่องเดียว
    วาดด้วย design token เท่านั้น (var(--ink)/var(--accent-primary)/var(--accent-secondary)/var(--accent-tertiary)/var(--grid)/var(--surface)) ห้ามฝัง hex ตรงๆ
    ใช้ SVG (เหมือน gas-particles.js/motion-graphs.js) — var() ใน attribute ถูก resolve ผ่าน CSS cascade ตอน paint ทุกเฟรม
-   จึงไม่ต้องฟัง physics-sim:themechange แยก
+   จึงไม่ต้องฟัง sky-physic:themechange แยก
 
    ฟิสิกส์ (การชน 1 มิติ ที่มีสัมประสิทธิ์การคืนตัว e):
      อนุรักษ์โมเมนตัม  : m1·u1 + m2·u2 = m1·v1 + m2·v2
