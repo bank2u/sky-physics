@@ -170,7 +170,33 @@
   background-image: repeating-linear-gradient(135deg, color-mix(in oklab, var(--ink) 6%, transparent) 0 3px, transparent 3px 16px);
 }
 
-/* hover: เงา offset เปลี่ยนเป็นสีตามหมวดที่การ์ดสังกัด (การ์ดเองไม่มี class accent จึงอิงจาก .category ที่ครอบ) */
+/* เดิม box-shadow ของการ์ดตอนพัก (ไม่ hover) เป็น var(--shadow-lg) = 9px 9px 0 var(--ink) ล้วน ทุกใบเหมือนกันหมด
+   ไม่ว่าอยู่หมวดไหน สีของหมวด (cyan/magenta/yellow) เลยไปโผล่แค่จุดดาว 20px เดียว หน้าสารบัญที่ยังไม่ได้ hover
+   จึงอ่านเป็นขาว-ดำเกือบทั้งหมด (จืด) ทั้งที่จริงมี palette 3 สีอยู่แล้ว ย้อมเงาตอนพักด้วยโทน "-fg" ของแต่ละหมวด
+   (เวอร์ชันเข้ม/หม่นกว่าตัวสีหลักที่ styles.css ประกาศไว้แล้ว ไม่ใช่สีใหม่) ให้เห็นสีตั้งแต่ยังไม่แตะการ์ด
+   แล้วค่อยสว่างเต็มโทน (--accent-primary/secondary/tertiary) ตอน hover ด้านล่าง — ไล่โทนหม่น→สด เป็นรางวัลตอน
+   โต้ตอบ แทนที่จะจัดเต็มสีสดตลอดเวลาซึ่งจะฉูดฉาดเกินไป border ยังคงเป็น --ink ล้วนเหมือนเดิม (คงเส้นหมึกของ panel) */
+:root[data-skin="comic"] .category:has(.category__dot--cyan) .card {
+  box-shadow: 9px 9px 0 var(--accent-primary-fg);
+}
+:root[data-skin="comic"] .category:has(.category__dot--magenta) .card {
+  box-shadow: 9px 9px 0 var(--accent-secondary-fg);
+}
+:root[data-skin="comic"] .category:has(.category__dot--yellow) .card {
+  box-shadow: 9px 9px 0 var(--accent-tertiary-fg);
+}
+:root[data-skin="comic"] .category:has(.category__dot--cyan) .card--compact {
+  box-shadow: 8px 8px 0 var(--accent-primary-fg);
+}
+:root[data-skin="comic"] .category:has(.category__dot--magenta) .card--compact {
+  box-shadow: 8px 8px 0 var(--accent-secondary-fg);
+}
+:root[data-skin="comic"] .category:has(.category__dot--yellow) .card--compact {
+  box-shadow: 8px 8px 0 var(--accent-tertiary-fg);
+}
+
+/* hover: เงา offset เปลี่ยนเป็นสีตามหมวดที่การ์ดสังกัด (การ์ดเองไม่มี class accent จึงอิงจาก .category ที่ครอบ)
+   specificity สูงกว่ากลุ่มตอนพักด้านบน (มี :hover เพิ่ม) จึงทับกันถูกต้องตอน hover จริง */
 :root[data-skin="comic"] .card:hover,
 :root[data-skin="comic"] .card--compact:hover {
   transform: translate(-2px, -2px) rotate(0deg);
