@@ -71,6 +71,7 @@ those files whole.
 | Text inside child badge blurry | `text-shadow` inherited from styled parent; child needs `text-shadow: none` |
 | Other skins load unused webfonts | Font loaded via `@import` instead of `config.js` `fontsUrl` |
 | Thai diacritics illegible | Multi-layer shadows / outline halos too thick for thin marks |
+| Mobile topic-header eats >45% of viewport before sim-zone appears | Skin decorated title/.en sticker/desc at desktop-sized padding+font; on mobile `.topic-header` (styles.css flex-wrap) stacks title/.en/badge onto separate lines, and full-size speech-bubble padding adds more — sizes that read fine on one wide row become tall stacked rows. Fix: scale down font-size/padding/pseudo-element offsets on the skin's own decorated elements (`.topic-title`, `.topic-title .en`, `.topic-desc` + its `::before`/`::after` tail) inside a `@media (max-width: 899px)` block scoped under `[data-skin="..."]`; never touch `.topic-header` itself (structural flex container owned by styles.css). Verify by measuring `.sim-zone` `getBoundingClientRect().top` at 390×844 before/after, not just eyeballing. |
 
 When you hit a **new** pitfall, append it to this table as part of your change.
 

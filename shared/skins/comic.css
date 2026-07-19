@@ -310,6 +310,46 @@
   border-bottom: 11px solid var(--surface);
 }
 
+/* มือถือ (<900px): ที่ desktop header block (title + .en sticker + badge-level + speech-bubble desc)
+   ไม่เคยเป็นปัญหาเพราะจอกว้างพอให้อยู่แถวเดียว แต่บนมือถือ topic-header (flex-wrap ของ styles.css)
+   ต้องขึ้นบรรทัดใหม่ 2-3 รอบ (title / .en sticker / badge-level คนละบรรทัด) รวมกับ speech-bubble ที่มี
+   padding เท่า desktop ทำให้ header block ทั้งก้อนกิน >45% ของจอก่อนถึง sim-zone เลย (วัดจริงที่ 390×844:
+   sim-zone เริ่มที่ 380px) ทั้งที่ sim ควรเป็นสิ่งแรกที่เห็น จึงย่อ sticker/badge/bubble เฉพาะช่วงนี้
+   (แก้เฉพาะ .topic-title และลูกๆ ตามที่ครูระบุ — ไม่แตะ .topic-header ซึ่งเป็น flex container ของ styles.css) */
+@media (max-width: 899px) {
+  :root[data-skin="comic"] .topic-title {
+    font-size: 22px;
+    line-height: 1.15;
+  }
+  :root[data-skin="comic"] .topic-title .en {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    box-shadow: 2px 2px 0 var(--ink);
+  }
+  :root[data-skin="comic"] .badge-level {
+    padding: var(--space-1) var(--space-2);
+    font-size: 11px;
+  }
+  :root[data-skin="comic"] .topic-desc {
+    font-size: 14px;
+    padding: var(--space-2) var(--space-3);
+    margin-top: var(--space-1);
+  }
+  :root[data-skin="comic"] .topic-desc::before {
+    top: -10px; left: 20px;
+    border-left-width: 7px;
+    border-right-width: 7px;
+    border-bottom-width: 10px;
+  }
+  :root[data-skin="comic"] .topic-desc::after {
+    top: -7px; left: 22px;
+    border-left-width: 5px;
+    border-right-width: 5px;
+    border-bottom-width: 8px;
+  }
+}
+
 /* กรอบ sim เป็นกรอบคู่ (double-frame panel) หนากว่าเดิม + จุดฮาล์ฟโทนมุมนึงจางๆ
    ไม่อิงพื้น dot ปกติของ .sim-zone จึงใช้ได้แม้กับ .sim-zone--3d ที่ปิดพื้นจุดไว้
    ไม่ประกาศ position ที่นี่ (เดิมคือ relative ตายตัว): styles.css กำหนด position ของ .sim-zone

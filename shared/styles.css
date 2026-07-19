@@ -72,6 +72,7 @@
   --gap: clamp(14px, 2vw, 24px);
   --pad: clamp(16px, 3vw, 24px);
   --sim-header-clearance: 60px; /* reserve space so .sim-legend badge never overlaps sim content */
+  --sim-zone-h-mobile: clamp(200px, 34vh, 300px); /* มือถือ: ความสูง sim คงที่ ไม่ปล่อยให้ viewBox aspect-ratio ดันสูงเกิน */
 
   /* Radius scale */
   --radius:      12px;  /* small controls */
@@ -266,13 +267,17 @@ body {
 @media (min-width: 900px) { .sim-zone { margin-bottom: 0; } }
 
 /* ปรับค่าในแผงควบคุมแล้วต้องเลื่อนขึ้นไปดู sim ทุกครั้ง — ทำให้ sim ค้างบนจอระหว่างเลื่อนดูแผงควบคุม
-   ด้านล่าง (เหมือน sticky sidebar) ลด min-height ลงด้วยเพื่อเหลือที่จอให้เห็นแผงควบคุมพร้อมกันมากขึ้น */
+   ด้านล่าง (เหมือน sticky sidebar) กำหนด height ตายตัว (ไม่ใช่ min-height) เพื่อตัด fallback aspect-ratio
+   ของ svg (width/height 100%) ที่เคยดันความสูง sim-zone ขึ้นไปเกินครึ่งจอ — top: 0 ให้ชิดขอบจอสนิท
+   ไม่เหลือช่องว่างให้เนื้อหาด้านล่าง sim โผล่ทะลุระหว่างเลื่อน */
 @media (max-width: 899px) {
   .sim-zone {
     position: sticky;
-    top: var(--space-3);
+    top: 0;
     z-index: 5;
-    min-height: 260px;
+    height: var(--sim-zone-h-mobile);
+    min-height: 0;
+    padding-top: 40px;
   }
 }
 /* ใช้กับ sim ที่มีพื้นกริดของตัวเอง (เช่น vector3d.js) — จุดพื้นหลัง CSS ทับกับกริด 3D จึงปิดไว้ */
@@ -282,11 +287,22 @@ body {
   position: absolute; left: var(--space-3); top: var(--space-3); font: 800 12px var(--font);
   color: var(--ink); background: var(--surface); border: var(--border-w-sm) solid var(--ink);
   border-radius: var(--radius-pill); padding: var(--space-2) var(--space-4);
+  max-width: calc(100% - var(--space-3) * 2);
 }
 .sim-legend--primary { background: var(--accent-primary); color: white; border-color: var(--accent-primary); }
 .sim-legend--secondary { background: var(--accent-secondary); color: white; border-color: var(--accent-secondary); }
 .sim-legend--tertiary { background: var(--accent-tertiary); color: var(--ink); border-color: var(--accent-tertiary); }
 .sim-legend--bottom-right { top: auto; left: auto; bottom: var(--space-3); right: var(--space-3); }
+
+/* มือถือ: legend ตัดเหลือบรรทัดเดียว (พื้นที่ sim เตี้ยลงจากความสูงคงที่ด้านบน) */
+@media (max-width: 899px) {
+  .sim-legend {
+    top: var(--space-2); left: var(--space-2);
+    font-size: 11px; padding: var(--space-1) var(--space-3);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .sim-legend--bottom-right { bottom: var(--space-2); right: var(--space-2); }
+}
 
 .controls { display: flex; flex-direction: column; gap: var(--space-3); }
 
@@ -294,6 +310,22 @@ body {
 .tile {
   border: var(--border-w) solid var(--ink); border-radius: var(--radius-lg); padding: var(--space-3);
   box-shadow: var(--shadow-md); background: var(--surface);
+}
+
+/* มือถือ: ค่า realtime ต้องเห็นพร้อมกับตอนลาก slider เสมอ (นี่คือหัวใจของสื่อการสอนแบบนี้ — เช่น
+   หน้า pendulum ที่ต้องเห็นว่าลาก mass แล้วค่า T ในกล่องไม่ขยับ) จึงทำ tile-grid ค้างจอต่อท้าย
+   sim-zone (sticky ซ้อน sticky แบบ stacked headers) แทนที่จะปล่อยให้เลื่อนหายไปพร้อม slider ด้านล่าง */
+@media (max-width: 899px) {
+  .tile-grid {
+    position: sticky;
+    top: var(--sim-zone-h-mobile);
+    z-index: 4;
+    background: var(--paper);
+    padding: var(--space-2) 0;
+  }
+  .tile-grid .tile { padding: var(--space-2) var(--space-3); }
+  .tile-grid .tile__label { font-size: 10px; }
+  .tile-grid .tile__value { font-size: clamp(20px, 6vw, 26px); margin-top: 2px; }
 }
 .tile--cyan    { background: var(--tile-accent-primary-bg); }
 .tile--magenta { background: var(--tile-accent-secondary-bg); }
