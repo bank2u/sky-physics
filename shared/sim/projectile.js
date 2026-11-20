@@ -4,6 +4,8 @@
    วาดด้วย design token เท่านั้น (var(--ink)/var(--accent-primary)/var(--accent-secondary)/var(--accent-tertiary)) ห้ามฝัง hex ตรงๆ */
 (function () {
   var SVG_NS = 'http://www.w3.org/2000/svg';
+  // 0.03 s ต่อ 16 ms เดิม = 1.875 s ของ sim ต่อ 1 s จริง (ความเร็วภาพเท่าเดิม)
+  var TIME_SCALE = 1.875;
 
   function clamp(v, min, max) {
     return Math.min(max, Math.max(min, v));
@@ -95,16 +97,13 @@
       });
     }
 
-    function play() {
-      if (state.playing) { pause(); return; }
-      var T = computeValues().T;
-      if (T <= 0) return;
-      state.t = state.t >= T - 0.001 ? 0 : state.t;
-      state.playing = true;
-      render();
+    function startLoop() {
+      var tStart = state.t;
+      var wallStart = performance.now();
+      if (timer) clearInterval(timer);
       timer = setInterval(function () {
-        state.t += 0.03;
         var currT = computeValues().T;
+        state.t = tStart + ((performance.now() - wallStart) / 1000) * TIME_SCALE;
         if (state.t >= currT) {
           state.t = currT;
           state.playing = false;
@@ -113,6 +112,35 @@
         }
         render();
       }, 16);
+    }
+
+    function play() {
+      if (state.playing) { pause(); return; }
+      var T = computeValues().T;
+      if (T <= 0) return;
+      state.t = state.t >= T - 0.001 ? 0 : state.t;
+      state.playing = true;
+      render();
+      startLoop();
+    }
+
+    function getPlayState() {
+      return { playing: state.playing, t: state.t };
+    }
+
+    function applyPlayState(ps) {
+      if (timer) { clearInterval(timer); timer = null; }
+      var T = computeValues().T;
+      var t = Math.min(T, Math.max(0, ps.t + ((ps.elapsedMs || 0) / 1000) * TIME_SCALE));
+      state.t = t;
+      if (ps.playing && t < T) {
+        state.playing = true;
+        render();
+        startLoop();
+      } else {
+        state.playing = false;
+        render();
+      }
     }
 
     function pause() {
@@ -148,6 +176,10 @@
       play: play,
       pause: pause,
       reset: reset,
+      getAngle: function () { return state.angle; },
+      getV0: function () { return state.v0; },
+      getPlayState: getPlayState,
+      applyPlayState: applyPlayState,
       isPlaying: function () { return state.playing; },
       destroy: function () { if (timer) clearInterval(timer); }
     };
