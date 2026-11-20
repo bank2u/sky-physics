@@ -133,6 +133,7 @@
     clearTimeout(reconnectTimer);
     clearPings();
     reconnecting = false;
+    pings = {};
     if (ws) { try { ws.close(); } catch (e) { /* ignore */ } ws = null; }
   }
 
@@ -242,13 +243,45 @@
   }
 
   function closeRoom() {
-    send({ type: 'close' });
+    var rec = { code: room.code, token: room.token };
     disconnect();
     room = null;
-    drop(localStorage, TEACHER_KEY);
+    // เก็บ code/token ไว้จนกว่า close จะถึง relay จริง (กันห้องค้างเมื่อหลุดขณะกดปิด)
+    writeJson(localStorage, TEACHER_KEY, { code: rec.code, token: rec.token, closing: true });
     setRole('none');
     hideOverlay();
     renderAll();
+    deliverClose(rec, 0);
+  }
+
+  // ส่ง close ผ่าน socket อายุสั้นของตัวเอง ลองใหม่ตาม backoff จนสำเร็จ
+  var closer = null;
+  function deliverClose(rec, n) {
+    if (closer) return;
+    var done = false;
+    function finish() { done = true; closer = null; drop(localStorage, TEACHER_KEY); }
+    function retry() {
+      closer = null;
+      if (!done) setTimeout(function () { deliverClose(rec, n + 1); }, Core.backoffFor(n));
+    }
+    var sock;
+    try {
+      sock = new WebSocket(baseUrl.replace(/^http/, 'ws') + '/rooms/' + rec.code + '/ws?t=' + encodeURIComponent(rec.token));
+    } catch (e) { return retry(); }
+    closer = sock;
+    sock.onmessage = function (ev) {
+      var m;
+      try { m = JSON.parse(ev.data); } catch (e) { return; }
+      if (m.type === 'welcome') {
+        if (m.role === 'teacher') sock.send(JSON.stringify({ type: 'close' }));
+        finish();
+        setTimeout(function () { try { sock.close(); } catch (e) { /* ignore */ } }, 300);
+      } else if (m.type === 'closed') {
+        finish();
+      }
+    };
+    sock.onclose = function () { if (!done) retry(); };
+    sock.onerror = function () { /* onclose ตามมา */ };
   }
 
   /* ---------- student ---------- */
@@ -488,6 +521,10 @@
     mountJoin();
     var t = readJson(localStorage, TEACHER_KEY);
     var s = readJson(sessionStorage, STUDENT_KEY);
+    if (t && t.closing && t.code && t.token) {
+      deliverClose({ code: t.code, token: t.token }, 0);
+      t = null;
+    }
     if (!(qRoom && s) && t && t.code && t.token) {
       room = { code: t.code, token: t.token };
       setRole('teacher');

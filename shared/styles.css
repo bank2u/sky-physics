@@ -413,7 +413,7 @@ button { font-family: var(--font); }
 
 .sync-bar {
   position: fixed; left: var(--space-3); right: var(--space-3); bottom: var(--space-3); z-index: 50;
-  margin: 0 auto; max-width: 640px;
+  margin: 0 auto; max-width: calc(var(--space-7) * 10);
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-1) var(--space-2);
   border: var(--border-w) solid var(--ink); border-radius: var(--radius-lg);
   background: var(--surface); box-shadow: var(--shadow-sm);
@@ -426,11 +426,12 @@ button { font-family: var(--font); }
   background: var(--surface); box-shadow: var(--shadow-md); padding: var(--space-3) var(--space-4);
 }
 .sync-join__input {
-  flex: 1; min-width: 140px; min-height: var(--space-6);
+  flex: 1; min-width: calc(var(--space-6) * 3); min-height: var(--space-6);
   border: var(--border-w) solid var(--ink); border-radius: var(--radius);
   background: var(--paper); color: var(--ink);
   font: 900 var(--fs-eq) var(--mono); letter-spacing: .3em; text-align: center; padding: 0 var(--space-3);
 }
+.sync-join__input::placeholder { letter-spacing: normal; font-family: var(--font); font-weight: 700; }
 .sync-join__btn, .sync-overlay__start {
   min-height: var(--space-6); border: var(--border-w) solid var(--ink); border-radius: var(--radius);
   background: color-mix(in oklab, var(--accent-primary) 30%, var(--surface)); color: var(--accent-primary-fg);
@@ -448,7 +449,7 @@ button { font-family: var(--font); }
   max-width: 100%; text-align: center;
 }
 .sync-overlay__code { font: 900 var(--fs-value) var(--mono); letter-spacing: .25em; padding-left: .25em; }
-.sync-overlay__qr svg { display: block; width: min(60vw, 280px); height: auto; }
+.sync-overlay__qr svg { display: block; width: min(60vw, calc(var(--space-7) * 4.5)); height: auto; }
 .sync-overlay__url { font: 800 var(--fs-label) var(--mono); color: var(--text-muted); word-break: break-all; }
 
 .is-sync-locked { opacity: .6; cursor: not-allowed; }
