@@ -13,3 +13,6 @@ skills-lock.json
 
 # personal machine config, not project settings
 .claude/settings.json
+
+# superpowers subagent-driven-development scratch (ledger, briefs, reports)
+.superpowers/
