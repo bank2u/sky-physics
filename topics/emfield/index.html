@@ -158,6 +158,10 @@
     chargeRange: [Q_MIN, Q_MAX],
     q1: 4,
     q2: -3,
+    onParamChange: function (name) {
+      Sync.changed(name);
+      if (name === 'test') Sync.changed('play'); // ลากเพชรหยุดการปล่อย
+    },
     onUpdate: function (vals) {
       tileE.innerHTML = vals.formatSci(vals.Emag) + '<span class="tile__unit">N/C</span>';
       tileF.innerHTML = vals.formatSci(vals.Fmag) + '<span class="tile__unit">N</span>';
@@ -204,17 +208,27 @@
 
   wireTrack(document.getElementById('q1-track'), Q_MIN, Q_MAX, function (v) {
     sim.setCharge('q1', Math.round(v * 2) / 2);
+    Sync.changed('q1');
   });
   wireTrack(document.getElementById('q2-track'), Q_MIN, Q_MAX, function (v) {
     sim.setCharge('q2', Math.round(v * 2) / 2);
+    Sync.changed('q2');
   });
 
   btnRelease.addEventListener('click', function () {
-    sim.toggleRelease();
+    sim.setReleasing(!sim.isReleasing());
+    Sync.changed('test');
+    Sync.changed('play');
   });
   document.getElementById('btnReset').addEventListener('click', function () {
     sim.reset();
+    Sync.changed('q1'); Sync.changed('q2'); Sync.changed('test'); Sync.changed('play');
   });
+
+  Sync.param('q1', { get: function () { return sim.getCharge('q1'); }, set: function (v) { sim.setChargeState('q1', v); } });
+  Sync.param('q2', { get: function () { return sim.getCharge('q2'); }, set: function (v) { sim.setChargeState('q2', v); } });
+  Sync.param('test', { get: sim.getTest, set: sim.setTest });
+  Sync.player({ get: sim.getPlayState, apply: sim.applyPlayState });
 </script>
 </body>
 </html>

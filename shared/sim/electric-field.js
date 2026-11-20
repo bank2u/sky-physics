@@ -83,6 +83,7 @@
     options = options || {};
     var chargeRange = options.chargeRange || [-6, 6];
     var onUpdate = options.onUpdate || function () {};
+    var onParamChange = options.onParamChange || function () {}; // เรียกตอนลาก: 'q1' | 'q2' | 'test'
 
     var defaults = {
       q1: { x: 13, y: 20, q: options.q1 != null ? options.q1 : 4 },
@@ -98,6 +99,10 @@
       trail: [],
       captured: false
     };
+
+    // fixed-step ปล่อยประจุ: จำนวน tick ที่ผ่านไป + ตำแหน่งเริ่มปล่อย (ให้ผลลัพธ์ deterministic ข้ามเครื่อง)
+    var tickCount = 0, baseTicks = 0, wallStart = 0;
+    var relStart = { x: 0, y: 0 };
 
     var fieldLinesCache = null; // string HTML — recompute เฉพาะตอนประจุแหล่งกำเนิดเปลี่ยน (ตำแหน่ง/ขนาด)
     var timer = null;
@@ -278,12 +283,12 @@
       var h1 = svg.querySelector('#efQ1Handle');
       var h2 = svg.querySelector('#efQ2Handle');
       var ht = svg.querySelector('#efTestHandle');
-      if (h1) bindChargeDrag(h1, state.q1, state.q2, MIN_SEP_SRC);
-      if (h2) bindChargeDrag(h2, state.q2, state.q1, MIN_SEP_SRC);
+      if (h1) bindChargeDrag(h1, state.q1, state.q2, MIN_SEP_SRC, 'q1');
+      if (h2) bindChargeDrag(h2, state.q2, state.q1, MIN_SEP_SRC, 'q2');
       if (ht) bindTestDrag(ht);
     }
 
-    function bindChargeDrag(handle, self, other, minSep) {
+    function bindChargeDrag(handle, self, other, minSep, name) {
       handle.addEventListener('pointerdown', function (e) {
         e.preventDefault();
         var rect = svg.getBoundingClientRect();
@@ -300,6 +305,7 @@
           self.x = c.x; self.y = c.y;
           markLinesDirty();
           render();
+          onParamChange(name);
         }
         function onUp() {
           window.removeEventListener('pointermove', onMove);
@@ -316,6 +322,8 @@
         stopRelease();
         state.trail = [];
         state.captured = false;
+        render();
+        onParamChange('test');
         var rect = svg.getBoundingClientRect();
         function onMove(ev) {
           var w = pointerToWorld(ev, rect);
@@ -330,6 +338,7 @@
           });
           state.test.x = c.x; state.test.y = c.y;
           render();
+          onParamChange('test');
         }
         function onUp() {
           window.removeEventListener('pointermove', onMove);
@@ -341,7 +350,7 @@
     }
 
     /* ---------- ปล่อยประจุทดสอบ: เคลื่อนที่จริงภายใต้ F = qE (มีความเฉื่อย) ---------- */
-    function tick() {
+    function step() {
       var f = fieldAt(state.test.x, state.test.y);
       var Fx = state.test.q * UC * f.Ex, Fy = state.test.q * UC * f.Ey;
       var Fmag = Math.hypot(Fx, Fy);
@@ -368,6 +377,13 @@
         state.captured = hitCharge;
         stopRelease();
       }
+      tickCount++;
+    }
+
+    // ตามเวลาจริง: ทำ tick ให้ครบ ticksDue (ไม่ render ระหว่างวน) แล้ว render ครั้งเดียว
+    function tick() {
+      var ticksDue = baseTicks + Math.floor((performance.now() - wallStart) / 16);
+      while (state.releasing && tickCount < ticksDue) step();
       render();
     }
 
@@ -377,6 +393,8 @@
       state.captured = false;
       state.test.vx = 0; state.test.vy = 0;
       state.trail = [{ x: state.test.x, y: state.test.y }];
+      relStart = { x: state.test.x, y: state.test.y };
+      tickCount = 0; baseTicks = 0; wallStart = performance.now();
       timer = setInterval(tick, 16);
     }
 
@@ -397,6 +415,52 @@
       render();
     }
 
+    function setReleasing(on) {
+      if (on) startRelease(); else stopRelease();
+      render();
+    }
+
+    function getCharge(id) {
+      var c = id === 'q1' ? state.q1 : state.q2;
+      return { x: c.x, y: c.y, q: c.q };
+    }
+
+    function setChargeState(id, v) {
+      var c = id === 'q1' ? state.q1 : state.q2; // แก้ที่ object เดิม (drag handler ถือ reference อยู่)
+      c.x = v.x; c.y = v.y; c.q = clamp(v.q, chargeRange[0], chargeRange[1]);
+      markLinesDirty();
+      render();
+    }
+
+    // ระหว่างปล่อยคืนตำแหน่งเริ่มปล่อย เพื่อให้ฝั่งรับ re-run integration แบบ deterministic ได้
+    function getTest() {
+      return state.releasing ? { x: relStart.x, y: relStart.y } : { x: state.test.x, y: state.test.y };
+    }
+
+    function setTest(p) {
+      stopRelease();
+      state.test.x = p.x; state.test.y = p.y;
+      state.test.vx = 0; state.test.vy = 0;
+      state.trail = [];
+      state.captured = false;
+      render();
+    }
+
+    function getPlayState() {
+      return { playing: state.releasing, t: tickCount };
+    }
+
+    function applyPlayState(ps) {
+      stopRelease();
+      if (ps.playing) {
+        startRelease();
+        var n = Math.min(4000, ps.t + Math.floor((ps.elapsedMs || 0) / 16));
+        for (var i = 0; i < n && state.releasing; i++) step();
+        if (state.releasing) { baseTicks = tickCount; wallStart = performance.now(); }
+      }
+      render();
+    }
+
     function reset() {
       stopRelease();
       state.q1.x = defaults.q1.x; state.q1.y = defaults.q1.y; state.q1.q = defaults.q1.q;
@@ -414,6 +478,13 @@
     return {
       setCharge: setCharge,
       toggleRelease: toggleRelease,
+      setReleasing: setReleasing,
+      getCharge: getCharge,
+      setChargeState: setChargeState,
+      getTest: getTest,
+      setTest: setTest,
+      getPlayState: getPlayState,
+      applyPlayState: applyPlayState,
       isReleasing: function () { return state.releasing; },
       reset: reset,
       destroy: function () { if (timer) clearInterval(timer); }
