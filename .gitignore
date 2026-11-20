@@ -16,3 +16,6 @@ skills-lock.json
 
 # superpowers subagent-driven-development scratch (ledger, briefs, reports)
 .superpowers/
+
+# wrangler dev local state
+.wrangler/

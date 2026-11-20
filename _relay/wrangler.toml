@@ -1,0 +1,14 @@
+name = "sky-physic-relay"
+main = "src/worker.mjs"
+compatibility_date = "2026-11-01"
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]
+
+[vars]
+ALLOWED_ORIGINS = "http://localhost:3000,http://localhost:5000"
