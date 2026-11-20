@@ -37,13 +37,14 @@ export function applyPatch(state, patch) {
 
 export function handleMessage(record, role, raw, now) {
   const none = { record, broadcast: null, reply: null };
-  if (typeof raw !== 'string' || raw.length > MAX_MSG_BYTES) return none;
+  if (typeof raw !== 'string' || new TextEncoder().encode(raw).length > MAX_MSG_BYTES) return none;
   let msg;
   try { msg = JSON.parse(raw); } catch { return none; }
   if (!isObj(msg)) return none;
 
   if (msg.type === 'ping') {
-    return { record, broadcast: null, reply: { type: 'pong', id: msg.id, serverNow: now } };
+    const next = role === 'teacher' ? { ...record, lastActivity: now } : record;
+    return { record: next, broadcast: null, reply: { type: 'pong', id: msg.id, serverNow: now } };
   }
   if (role !== 'teacher') return none;
 

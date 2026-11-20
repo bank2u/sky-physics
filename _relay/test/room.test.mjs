@@ -106,3 +106,24 @@ test('isExpired', () => {
   assert.equal(isExpired(createRecord('t', 0), TTL_MS), true);
   assert.equal(isExpired({ ...createRecord('t', 0), closed: true }, 1), true);
 });
+
+test('message cap is measured in UTF-8 bytes', () => {
+  const raw = JSON.stringify({ type: 'ping', id: 'ก'.repeat(6000) });
+  assert.ok(raw.length < 16_384 && new TextEncoder().encode(raw).length > 16_384);
+  const res = handleMessage(createRecord('t', 0), 'viewer', raw, 1);
+  assert.equal(res.reply, null);
+  assert.equal(res.broadcast, null);
+});
+
+test('teacher ping counts as activity', () => {
+  const rec = createRecord('t', 0);
+  const res = handleMessage(rec, 'teacher', '{"type":"ping","id":1}', 77);
+  assert.equal(res.record.lastActivity, 77);
+  assert.equal(rec.lastActivity, 0);
+  assert.deepEqual(res.reply, { type: 'pong', id: 1, serverNow: 77 });
+});
+
+test('viewer ping does not count as activity', () => {
+  const res = handleMessage(createRecord('t', 0), 'viewer', '{"type":"ping","id":1}', 77);
+  assert.equal(res.record.lastActivity, 0);
+});
