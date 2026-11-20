@@ -9,6 +9,7 @@
 
   var TEACHER_KEY = 'sky-physic-room';
   var STUDENT_KEY = 'sky-physic-student';
+  var CLOSING_KEY = 'sky-physic-room-closing';
   var stub = window.Sync || {};
   var queue = stub._queue || [];
 
@@ -243,44 +244,69 @@
   }
 
   function closeRoom() {
+    if (!room || !room.token) return;
     var rec = { code: room.code, token: room.token };
     disconnect();
     room = null;
-    // เก็บ code/token ไว้จนกว่า close จะถึง relay จริง (กันห้องค้างเมื่อหลุดขณะกดปิด)
-    writeJson(localStorage, TEACHER_KEY, { code: rec.code, token: rec.token, closing: true });
+    // เก็บ pending close แยกจากห้องที่ active จนกว่า close จะถึง relay จริง
+    var list = readClosing().filter(function (x) { return x.code !== rec.code; });
+    list.push(rec);
+    writeJson(localStorage, CLOSING_KEY, list);
+    drop(localStorage, TEACHER_KEY);
     setRole('none');
     hideOverlay();
     renderAll();
     deliverClose(rec, 0);
   }
 
-  // ส่ง close ผ่าน socket อายุสั้นของตัวเอง ลองใหม่ตาม backoff จนสำเร็จ
-  var closer = null;
+  function readClosing() {
+    var l = readJson(localStorage, CLOSING_KEY);
+    return Array.isArray(l) ? l.filter(function (x) { return x && x.code && x.token; }) : [];
+  }
+
+  // ส่ง close ผ่าน socket อายุสั้นของตัวเองต่อห้อง; รอ welcome ไม่เกิน 5 วิ; ลองซ้ำตาม backoff
+  // สูงสุด 10 ครั้งต่อการโหลดหน้า แล้วทิ้ง entry ไว้ให้หน้าถัดไปลองใหม่
+  var closers = {};
   function deliverClose(rec, n) {
-    if (closer) return;
+    if (closers[rec.code] && n === 0) return;
+    if (n >= 10) { delete closers[rec.code]; return; }
     var done = false;
-    function finish() { done = true; closer = null; drop(localStorage, TEACHER_KEY); }
-    function retry() {
-      closer = null;
-      if (!done) setTimeout(function () { deliverClose(rec, n + 1); }, Core.backoffFor(n));
+    var sock = null;
+    var timer = null;
+    closers[rec.code] = true;
+    function finish() {
+      done = true;
+      clearTimeout(timer);
+      delete closers[rec.code];
+      writeJson(localStorage, CLOSING_KEY, readClosing().filter(function (x) { return x.code !== rec.code; }));
+      if (!readClosing().length) drop(localStorage, CLOSING_KEY);
     }
-    var sock;
+    function shut() { try { sock.close(); } catch (e) { /* ignore */ } }
+    function retry() {
+      if (done) return;
+      clearTimeout(timer);
+      done = true; // กัน onclose/timeout ซ้ำ
+      shut();
+      timer = setTimeout(function () { deliverClose(rec, n + 1); }, Core.backoffFor(n));
+    }
     try {
       sock = new WebSocket(baseUrl.replace(/^http/, 'ws') + '/rooms/' + rec.code + '/ws?t=' + encodeURIComponent(rec.token));
     } catch (e) { return retry(); }
-    closer = sock;
+    timer = setTimeout(retry, 5000);
     sock.onmessage = function (ev) {
+      if (done) return;
       var m;
       try { m = JSON.parse(ev.data); } catch (e) { return; }
       if (m.type === 'welcome') {
         if (m.role === 'teacher') sock.send(JSON.stringify({ type: 'close' }));
         finish();
-        setTimeout(function () { try { sock.close(); } catch (e) { /* ignore */ } }, 300);
+        setTimeout(shut, 300);
       } else if (m.type === 'closed') {
         finish();
+        shut();
       }
     };
-    sock.onclose = function () { if (!done) retry(); };
+    sock.onclose = retry;
     sock.onerror = function () { /* onclose ตามมา */ };
   }
 
@@ -521,10 +547,7 @@
     mountJoin();
     var t = readJson(localStorage, TEACHER_KEY);
     var s = readJson(sessionStorage, STUDENT_KEY);
-    if (t && t.closing && t.code && t.token) {
-      deliverClose({ code: t.code, token: t.token }, 0);
-      t = null;
-    }
+    readClosing().forEach(function (x) { deliverClose(x, 0); });
     if (!(qRoom && s) && t && t.code && t.token) {
       room = { code: t.code, token: t.token };
       setRole('teacher');
