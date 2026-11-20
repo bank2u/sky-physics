@@ -1,7 +1,7 @@
 // Cloudflare Worker + Durable Object wrapper around the pure room logic.
 import { DurableObject } from 'cloudflare:workers';
 import {
-  TTL_MS, randomCode, createRecord, roleFor, handleMessage, isExpired,
+  TTL_MS, randomCode, createRecord, roleFor, handleMessage,
 } from './room.mjs';
 
 const MAX_CODE_TRIES = 20;
@@ -64,6 +64,16 @@ export default {
 export class Room extends DurableObject {
   record = undefined; // undefined = not loaded, null = no room
 
+  // ROOM_TTL_MS is a dev/test-only override (wrangler dev --var ROOM_TTL_MS:3000).
+  get ttl() {
+    const n = Number(this.env.ROOM_TTL_MS);
+    return Number.isFinite(n) && n > 0 ? n : TTL_MS;
+  }
+
+  isExpired(rec, now) {
+    return rec.closed || now - rec.lastActivity >= this.ttl;
+  }
+
   async load() {
     if (this.record === undefined) this.record = (await this.ctx.storage.get('record')) ?? null;
     return this.record;
@@ -71,25 +81,26 @@ export class Room extends DurableObject {
 
   async live() {
     const rec = await this.load();
-    return rec && !isExpired(rec, Date.now()) ? rec : null;
+    return rec && !this.isExpired(rec, Date.now()) ? rec : null;
   }
 
   async persist(rec) {
     this.record = rec;
     await this.ctx.storage.put('record', rec);
-    await this.ctx.storage.setAlarm(rec.lastActivity + TTL_MS);
+    await this.ctx.storage.setAlarm(rec.lastActivity + this.ttl);
   }
 
   async destroy(closeMsg) {
-    for (const ws of this.ctx.getWebSockets()) {
+    const sockets = this.ctx.getWebSockets();
+    await this.ctx.storage.deleteAlarm();
+    await this.ctx.storage.deleteAll();
+    this.record = null;
+    for (const ws of sockets) {
       try {
         if (closeMsg) ws.send(JSON.stringify(closeMsg));
         ws.close(1000, closeMsg ? closeMsg.reason : 'closed');
       } catch { /* already closed */ }
     }
-    await this.ctx.storage.deleteAlarm();
-    await this.ctx.storage.deleteAll();
-    this.record = null;
   }
 
   async fetch(request) {
@@ -149,10 +160,10 @@ export class Room extends DurableObject {
   async alarm() {
     const rec = await this.load();
     if (!rec) return;
-    if (isExpired(rec, Date.now())) {
+    if (this.isExpired(rec, Date.now())) {
       await this.destroy({ type: 'closed', reason: 'expired' });
     } else {
-      await this.ctx.storage.setAlarm(rec.lastActivity + TTL_MS);
+      await this.ctx.storage.setAlarm(rec.lastActivity + this.ttl);
     }
   }
 }

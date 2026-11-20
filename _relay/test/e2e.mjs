@@ -94,5 +94,29 @@ const c = await viewer3.next(type('closed'));
 assert.equal(c.reason, 'teacher');
 await viewer3.closedP;
 
+// 9. closed room's storage is gone
+const after = connect(code);
+await after.opened;
+assert.equal((await after.next(type('closed'))).reason, 'not-found');
+
+// 10. expiry (needs relay started with --var ROOM_TTL_MS:<E2E_TTL_MS>)
+const ttl = Number(process.env.E2E_TTL_MS);
+if (ttl > 0) {
+  const r2 = await (await fetch(`${base}/rooms`, { method: 'POST', headers: { Origin: ORIGIN } })).json();
+  const idle = connect(r2.code);
+  await idle.opened;
+  await idle.next(type('welcome'));
+  const exp = await idle.next(type('closed'), ttl + 2000);
+  assert.equal(exp.reason, 'expired');
+  // Hibernated sockets closed from alarm() are not reliably surfaced as a client
+  // close event by local `wrangler dev` (they are with live sockets); the closed
+  // message is the contract clients act on, so a missing close is only a warning.
+  const sockClosed = await Promise.race([idle.closedP.then(() => true), new Promise((r) => setTimeout(() => r(false), 2000))]);
+  if (!sockClosed) console.warn('WARN: socket close event not observed after expiry (wrangler dev quirk)');
+  const gone = connect(r2.code);
+  await gone.opened;
+  assert.equal((await gone.next(type('closed'))).reason, 'not-found');
+}
+
 console.log('E2E OK');
 process.exit(0);
