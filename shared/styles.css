@@ -391,3 +391,64 @@ body {
 .concept p { font-weight: 600; }
 
 button { font-family: var(--font); }
+
+/* ---- Live classroom sync (shared/sync.js inject UI เฉพาะเมื่อเปิดฟีเจอร์) ---- */
+.sync-open-btn, .sync-badge, .sync-bar, .sync-join, .sync-overlay { font-family: var(--font); color: var(--ink); }
+.sync-open-btn[hidden], .sync-badge[hidden], .sync-bar[hidden], .sync-join[hidden], .sync-overlay[hidden] { display: none; }
+
+.sync-open-btn, .sync-badge {
+  margin-left: auto; margin-right: var(--space-3);
+  border: var(--border-w) solid var(--ink); border-radius: var(--radius-pill);
+  background: var(--surface); font-size: var(--fs-label); font-weight: 800;
+  padding: var(--space-2) var(--space-3);
+}
+.sync-open-btn { cursor: pointer; }
+.sync-open-btn:disabled { opacity: .55; cursor: default; }
+.sync-badge { display: inline-flex; align-items: center; gap: var(--space-1); }
+.sync-badge button, .sync-bar button {
+  font: inherit; color: inherit; background: none; border: 0; padding: var(--space-1);
+  cursor: pointer; text-decoration: underline;
+}
+.sync-badge__note, .sync-bar__note { color: var(--text-muted); }
+
+.sync-bar {
+  position: fixed; left: var(--space-3); right: var(--space-3); bottom: var(--space-3); z-index: 50;
+  margin: 0 auto; max-width: 640px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-1) var(--space-2);
+  border: var(--border-w) solid var(--ink); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow-sm);
+  padding: var(--space-2) var(--space-3); font-size: var(--fs-label); font-weight: 800;
+}
+
+.sync-join {
+  display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center;
+  border: var(--border-w) solid var(--ink); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow-md); padding: var(--space-3) var(--space-4);
+}
+.sync-join__input {
+  flex: 1; min-width: 140px; min-height: var(--space-6);
+  border: var(--border-w) solid var(--ink); border-radius: var(--radius);
+  background: var(--paper); color: var(--ink);
+  font: 900 var(--fs-eq) var(--mono); letter-spacing: .3em; text-align: center; padding: 0 var(--space-3);
+}
+.sync-join__btn, .sync-overlay__start {
+  min-height: var(--space-6); border: var(--border-w) solid var(--ink); border-radius: var(--radius);
+  background: color-mix(in oklab, var(--accent-primary) 30%, var(--surface)); color: var(--accent-primary-fg);
+  font: 900 var(--fs-body) var(--font); padding: 0 var(--space-4); cursor: pointer;
+}
+
+.sync-overlay {
+  position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+  background: color-mix(in oklab, var(--ink) 55%, transparent); padding: var(--space-3);
+}
+.sync-overlay__box {
+  display: flex; flex-direction: column; align-items: center; gap: var(--space-3);
+  border: var(--border-w) solid var(--ink); border-radius: var(--radius-xl);
+  background: var(--surface); box-shadow: var(--shadow-lg); padding: var(--space-5);
+  max-width: 100%; text-align: center;
+}
+.sync-overlay__code { font: 900 var(--fs-value) var(--mono); letter-spacing: .25em; padding-left: .25em; }
+.sync-overlay__qr svg { display: block; width: min(60vw, 280px); height: auto; }
+.sync-overlay__url { font: 800 var(--fs-label) var(--mono); color: var(--text-muted); word-break: break-all; }
+
+.is-sync-locked { opacity: .6; cursor: not-allowed; }

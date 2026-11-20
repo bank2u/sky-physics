@@ -3,6 +3,7 @@
    อ่าน skin จาก shared/config.js (ต้องโหลดมาก่อน) แล้วแสตมป์ data-skin ก่อน paint
    skin ที่รองรับโหมดเดียวจะถูกบังคับโหมดนั้นและไม่แสดงปุ่ม toggle */
 (function () {
+  var layoutScript = document.currentScript;
   var STORAGE_KEY = 'sky-physic-theme';
 
   var config = window.PhysicsSimConfig || {
@@ -74,5 +75,34 @@
     }
   }
 
-  window.PhysicsSimLayout = { mountTopbar: mountTopbar, isDark: isDark, setTheme: setTheme };
+  // ---- live sync (ห้องเรียน) ----
+  // syncUrl ว่าง (และไม่ใช่ localhost) = ปิดฟีเจอร์: stub เป็น no-op ไม่โหลด script ใดๆ
+  var isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  var syncUrl = (isLocal ? config.syncUrlDev : config.syncUrl) || '';
+  var syncQueue = [];
+  function stubMethod(name) {
+    return function () {
+      if (syncUrl) syncQueue.push([name, Array.prototype.slice.call(arguments)]);
+    };
+  }
+  // หน้าเรื่องเรียก Sync.* ใน inline script ก่อน sync.js (โหลดทีหลัง) พร้อม — sync.js แทน window.Sync แล้ว drain _queue
+  window.Sync = {
+    param: stubMethod('param'), player: stubMethod('player'),
+    camera: stubMethod('camera'), changed: stubMethod('changed'),
+    role: function () { return 'none'; },
+    _queue: syncQueue
+  };
+  if (syncUrl && layoutScript && layoutScript.src) {
+    var base = layoutScript.src.replace(/layout\.js(\?.*)?$/, '');
+    ['sync-core.js', 'sync.js'].forEach(function (f) {
+      var el = document.createElement('script');
+      el.src = base + f;
+      el.async = false; // รันตามลำดับ sync-core → sync
+      document.head.appendChild(el);
+    });
+  }
+
+  window.PhysicsSimLayout = {
+    mountTopbar: mountTopbar, isDark: isDark, setTheme: setTheme, syncUrl: syncUrl, assetBase: layoutScript && layoutScript.src ? layoutScript.src.replace(/layout\.js(\?.*)?$/, '') : ''
+  };
 })();

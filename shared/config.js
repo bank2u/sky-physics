@@ -4,6 +4,11 @@
 window.PhysicsSimConfig = {
   skin: 'comic', // ← เปลี่ยนเป็น 'comic' เพื่อสลับทั้งเว็บ
 
+  /* live sync (ห้องเรียน): URL ของ relay (Cloudflare Worker) — ว่าง = ปิดฟีเจอร์ทั้งเว็บ
+     syncUrlDev ใช้เมื่อเปิดจาก localhost/127.0.0.1 (wrangler dev) */
+  syncUrl: '',
+  syncUrlDev: 'http://localhost:8787',
+
   /* ทะเบียน skin: แต่ละ skin ประกาศว่ารองรับโหมดไหน
      ถ้ารองรับโหมดเดียว layout.js จะบังคับโหมดนั้นและซ่อนปุ่ม toggle
      fontsUrl (ถ้ามี): layout.js จะแทรก <link rel="stylesheet"> ให้เฉพาะ skin ที่ active
