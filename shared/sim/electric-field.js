@@ -444,6 +444,7 @@
     function setTest(p) {
       stopRelease();
       state.test.x = p.x; state.test.y = p.y;
+      relStart = { x: p.x, y: p.y }; // จุดที่ครูปล่อยจริง — ใช้เป็นต้นทางตอน applyPlayState
       state.test.vx = 0; state.test.vy = 0;
       state.trail = [];
       state.captured = false;
@@ -457,6 +458,8 @@
     function applyPlayState(ps) {
       stopRelease();
       if (ps.playing) {
+        // เริ่มจากจุดปล่อยเดิมเสมอ (ไม่ใช่ตำแหน่งปัจจุบันกลางทาง) แล้ว fast-forward — ครู reconnect กลางการปล่อยจึงไม่ทำให้นักเรียนกระโดด
+        state.test.x = relStart.x; state.test.y = relStart.y;
         startRelease();
         var n = Math.min(MAX_RELEASE_TICKS, (ps.t || 0) + Math.floor((ps.elapsedMs || 0) / 16));
         for (var i = 0; i < n && state.releasing; i++) step();

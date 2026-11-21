@@ -57,6 +57,7 @@
     b.addEventListener('click', onClick);
     return b;
   }
+  function validTopic(id) { return typeof id === 'string' && /^[a-z0-9-]+$/.test(id); }
   function pageTopic() { return Core.topicIdFromPath(location.pathname); }
   function findParam(name) {
     for (var i = 0; i < params.length; i++) if (params[i].name === name) return params[i];
@@ -74,11 +75,11 @@
     player: function (def) { player = def; },
     camera: function (def) { cam = def; },
     changed: function (name) {
-      if (role !== 'teacher') return;
+      if (role !== 'teacher' || !canPublish()) return;
       if (name === 'play' || name === 'camera') {
         throttled(name, name === 'camera' ? 66 : 50, function () {
           var s = name === 'play' ? { play: readPlay() } : { camera: cam && cam.get() };
-          if (s[name]) send({ type: 'patch', state: s });
+          if (s[name]) { s.topicId = pageTopic(); send({ type: 'patch', state: s }); }
         });
         return;
       }
@@ -86,7 +87,7 @@
       if (!p || p.local) return;
       throttled('p:' + name, 50, function () {
         var o = {}; o[name] = p.get();
-        send({ type: 'patch', state: { params: o } });
+        send({ type: 'patch', state: { topicId: pageTopic(), params: o } });
       });
     },
     role: function () { return role; }
@@ -204,18 +205,26 @@
   }
 
   /* ---------- teacher ---------- */
+  // หน้า home (topicId null) และแท็บที่ซ่อนอยู่ไม่ publish: กัน reconnect พร้อมกันหลายแท็บทำให้ห้องกลับเป็น topicId null / params ผิดเรื่อง
+  function canPublish() { return pageTopic() !== null && !document.hidden; }
+
+  function publishFull() {
+    if (!canPublish()) return;
+    var state = {
+      topicId: pageTopic(),
+      supported: params.length > 0,
+      params: {}
+    };
+    params.forEach(function (p) { if (!p.local) state.params[p.name] = p.get(); });
+    var play = readPlay(); if (play) state.play = play;
+    if (cam) state.camera = cam.get();
+    send({ type: 'patch', state: state });
+  }
+
   function onWelcome(m) {
     if (role === 'teacher') {
       if (m.role !== 'teacher') { onClosed('not-found'); return; } // token ใช้ไม่ได้แล้ว
-      var state = {
-        topicId: pageTopic(),
-        supported: params.length > 0,
-        params: {}
-      };
-      params.forEach(function (p) { if (!p.local) state.params[p.name] = p.get(); });
-      var play = readPlay(); if (play) state.play = play;
-      if (cam) state.camera = cam.get();
-      send({ type: 'patch', state: state });
+      publishFull();
     } else {
       latest = m.state;
       evaluate(true);
@@ -349,11 +358,12 @@
     if (!st) return;
     var here = pageTopic();
     if (role === 'student-follow') {
-      if (st.topicId && st.topicId !== here) { location.href = '/topics/' + st.topicId + '/'; return; }
-      if (st.topicId === null || st.topicId === undefined) notice = 'รอครูเปิดเรื่อง…';
+      if (st.topicId && st.topicId !== here && validTopic(st.topicId)) { location.replace('/topics/' + st.topicId + '/'); return; }
+      if (st.topicId && !validTopic(st.topicId)) notice = 'รอครูเปิดเรื่อง…'; // topicId ผิดรูปแบบ: ไม่ redirect ไม่ apply
+      else if (st.topicId === null || st.topicId === undefined) notice = 'รอครูเปิดเรื่อง…';
       else if (st.supported === false) notice = 'เรื่องนี้ยังไม่รองรับการดูตามครู';
       else applyState(st, force);
-    } else if (role === 'student-explore' && st.topicId && st.topicId !== here) {
+    } else if (role === 'student-explore' && st.topicId && st.topicId !== here && validTopic(st.topicId)) {
       hint = { id: st.topicId, title: st.topicId };
       loadTitle(st.topicId);
     }
@@ -558,6 +568,10 @@
     renderAll();
     if (room) connect();
   }
+
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden && role === 'teacher') publishFull(); // แท็บที่กลับมาเป็น active ประกาศ state เต็มของตัวเอง
+  });
 
   window.Sync = api;
   queue.forEach(function (c) { if (api[c[0]]) api[c[0]].apply(null, c[1]); });

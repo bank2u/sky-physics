@@ -17,6 +17,7 @@
     var v0Range = options.v0Range || [5, 30];
     var g = options.g || 9.8;
     var onUpdate = options.onUpdate || function () {};
+    var onEnd = options.onEnd || function () {}; // เรียกเมื่อการยิงจบเองที่ t = T (ไม่เรียกตอน pause/reset)
 
     var state = {
       angle: clamp(options.angle != null ? options.angle : 42, angleRange[0], angleRange[1]),
@@ -103,14 +104,17 @@
       if (timer) clearInterval(timer);
       timer = setInterval(function () {
         var currT = computeValues().T;
+        var ended = false;
         state.t = tStart + ((performance.now() - wallStart) / 1000) * TIME_SCALE;
         if (state.t >= currT) {
           state.t = currT;
           state.playing = false;
           clearInterval(timer);
           timer = null;
+          ended = true;
         }
         render();
+        if (ended) onEnd();
       }, 16);
     }
 

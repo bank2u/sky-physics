@@ -117,6 +117,7 @@
     v0: 22,
     angleRange: [ANGLE_MIN, ANGLE_MAX],
     v0Range: [V0_MIN, V0_MAX],
+    onEnd: function () { Sync.changed('play'); }, // จบการยิงเอง → ให้นักเรียนที่เข้าห้องทีหลังเห็นสถานะจบ
     onUpdate: function (vals) {
       document.getElementById('tile-height').innerHTML = vals.H.toFixed(1) + '<span class="tile__unit">m</span>';
       document.getElementById('tile-range').innerHTML = vals.R.toFixed(1) + '<span class="tile__unit">m</span>';
