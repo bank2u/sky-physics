@@ -253,7 +253,7 @@
     panelBody.innerHTML = html;
   }
 
-  var sim = SimPatterns.vector3d.create(document.getElementById('sim-zone'), { initialZoom: 1.3 });
+  var sim = SimPatterns.vector3d.create(document.getElementById('sim-zone'), { initialZoom: 1.3, onViewChange: function () { Sync.changed('camera'); } });
 
   function highlightEquation(key) {
     Array.prototype.forEach.call(document.querySelectorAll('.equation-card'), function (card) {
@@ -410,6 +410,7 @@
     }
     renderPanel();
     computeAndApply();
+    Sync.changed('state');
   });
 
   panelBody.addEventListener('input', function (e) {
@@ -427,6 +428,7 @@
     else if (role === 'numR3') state.torque.r = val;
     else if (role === 'numF3') state.torque.mag = val;
     computeAndApply();
+    Sync.changed('state');
   });
 
   var modeTabs = document.getElementById('modeTabs');
@@ -434,15 +436,26 @@
     var btn = e.target.closest('button[data-mode]');
     if (!btn) return;
     state.mode = btn.dataset.mode;
-    Array.prototype.forEach.call(modeTabs.querySelectorAll('button'), function (b) {
-      b.classList.toggle('is-active', b === btn);
+    applyState();
+    Sync.changed('state');
+  });
+
+  /* sync class is-active ของแท็บโหมด + แผง + การคำนวณ — ใช้ทั้ง handler และ Sync */
+  function applyState() {
+    Array.prototype.forEach.call(modeTabs.querySelectorAll('button[data-mode]'), function (b) {
+      b.classList.toggle('is-active', b.dataset.mode === state.mode);
     });
     renderPanel();
     computeAndApply();
-  });
+  }
 
-  renderPanel();
-  computeAndApply();
+  Sync.param('state', {
+    get: function () { return JSON.parse(JSON.stringify(state)); },
+    set: function (v) { state = JSON.parse(JSON.stringify(v)); applyState(); }
+  });
+  Sync.camera({ get: sim.getView, set: sim.setView });
+
+  applyState();
 </script>
 </body>
 </html>

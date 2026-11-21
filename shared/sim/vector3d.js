@@ -233,6 +233,7 @@
       spherical.theta -= dx * 0.0065;
       spherical.phi -= dy * 0.0065;
       updateCamera();
+      if (options.onViewChange) options.onViewChange();
     });
     window.addEventListener('pointerup', function () { dragging = false; canvas.style.cursor = 'grab'; });
     canvas.addEventListener('wheel', function (e) {
@@ -246,6 +247,7 @@
       spherical.theta = DEFAULT_SPHERICAL.theta;
       spherical.phi = DEFAULT_SPHERICAL.phi;
       updateCamera();
+      if (options.onViewChange) options.onViewChange();
     });
 
     scene.add(new THREE.AmbientLight(0xbfe0f2, 0.75));
@@ -391,6 +393,18 @@
       updateCamera();
     }
 
+    /* มุมกล้อง (ไม่รวม radius — ซูมเป็นของแต่ละเครื่อง) ใช้ซิงก์ห้องเรียน; setView ไม่เรียก onViewChange */
+    function getView() {
+      return { theta: spherical.theta, phi: spherical.phi };
+    }
+
+    function setView(v) {
+      if (!v) return;
+      if (typeof v.theta === 'number' && isFinite(v.theta)) spherical.theta = v.theta;
+      if (typeof v.phi === 'number' && isFinite(v.phi)) spherical.phi = v.phi;
+      updateCamera();
+    }
+
     function refreshTheme() {
       clearResolveCache();
       COLORS = resolveColors();
@@ -433,6 +447,8 @@
       setVisible: setVisible,
       setPalmFlip: setPalmFlip,
       resetView: resetView,
+      getView: getView,
+      setView: setView,
       resize: resize,
       destroy: function () {
         if (rafId) cancelAnimationFrame(rafId);
