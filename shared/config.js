@@ -6,7 +6,7 @@ window.PhysicsSimConfig = {
 
   /* live sync (ห้องเรียน): URL ของ relay (Cloudflare Worker) — ว่าง = ปิดฟีเจอร์ทั้งเว็บ
      syncUrlDev ใช้เมื่อเปิดจาก localhost/127.0.0.1 (wrangler dev) */
-  syncUrl: '',
+  syncUrl: 'https://sky-physic-relay.banksibug.workers.dev',
   syncUrlDev: 'http://localhost:8787',
 
   /* ทะเบียน skin: แต่ละ skin ประกาศว่ารองรับโหมดไหน

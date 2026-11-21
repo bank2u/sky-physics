@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 const base = (process.argv[2] || 'http://localhost:8787').replace(/\/$/, '');
 const wsBase = base.replace(/^http/, 'ws');
-const ORIGIN = 'http://localhost:3000';
+const ORIGIN = process.env.E2E_ORIGIN || 'http://localhost:3000';
 
 function connect(code, token) {
   const url = `${wsBase}/rooms/${code}/ws${token ? `?t=${encodeURIComponent(token)}` : ''}`;
