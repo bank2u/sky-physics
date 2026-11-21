@@ -49,7 +49,7 @@ physics-sim/
 
 - **Minimal**: ไม่เพิ่ม dependency, ไม่เพิ่ม abstraction, ไม่เพิ่ม config จนกว่าจะจำเป็นจริง
 - **เพิ่ม-ลบเนื้อหาง่าย**: เพิ่มเรื่อง = สร้างโฟลเดอร์ใหม่ + 1 entry ใน topics.json (ไม่แตะไฟล์อื่น); ลบเรื่อง = soft-delete เท่านั้น (`active: false`) — ไม่ลบโฟลเดอร์เป็นส่วนหนึ่งของ workflow ปกติ เพราะ `spec.md` มีไว้ regenerate ทีหลัง การลบไฟล์จริงต้องเป็นคำสั่งแยกที่ชัดเจนจากครู ไม่ใช่ default behavior ของ skill ไหน
-- **Fast response**: **ห้ามผูก external font/CDN/analytics script เด็ดขาด** — ทุกอย่างต้อง self-contained ในไฟล์ static ของ project เพราะเพิ่ม dependency ภายนอกแค่ตัวเดียวก็ขัดกับเป้าหมายนี้ทันที และ agent มักเผลอเพิ่ม Google Fonts/CDN link โดยไม่รู้ตัวว่าผิดกฎ — นี่คือกฎที่ต้อง enforce ตอน verify (ดู §5)
+- **Fast response**: **ห้ามผูก external font/CDN/analytics script เด็ดขาด** — ทุกอย่างต้อง self-contained ในไฟล์ static ของ project (ยกเว้น relay ของ live sync ใน `_relay/` ซึ่งเป็น backend ที่ deploy แยก ดู §8 — client ฝั่งเว็บยังห้าม CDN/external script เหมือนเดิม) เพราะเพิ่ม dependency ภายนอกแค่ตัวเดียวก็ขัดกับเป้าหมายนี้ทันที และ agent มักเผลอเพิ่ม Google Fonts/CDN link โดยไม่รู้ตัวว่าผิดกฎ — นี่คือกฎที่ต้อง enforce ตอน verify (ดู §5)
 
 ## 4. Git Strategy
 
