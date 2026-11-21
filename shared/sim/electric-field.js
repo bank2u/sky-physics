@@ -43,6 +43,8 @@
   var MAX_SPEED = 90;        // จำกัดอัตราเร็วสูงสุดของประจุทดสอบตอนเคลื่อนที่ (ซม./วิ) กันวิ่งหลุดจอกะทันหันใกล้จุดจับ
   var DT = 1 / 60;
   var TRAIL_MAX = 400;
+  var MAX_RELEASE_TICKS = 4000; // ขีดจำกัดความยาวการปล่อย (ใช้ร่วมกับ fast-forward ฝั่งนักเรียน เพื่อให้จุดจบตรงกัน)
+  var MAX_STEPS_PER_CALLBACK = 200; // กันค้างหลังแท็บถูกพัก: ที่เหลือทำต่อใน callback ถัดไป (ไม่ทิ้ง tick เพื่อให้ deterministic)
 
   function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
 
@@ -378,12 +380,14 @@
         stopRelease();
       }
       tickCount++;
+      if (state.releasing && tickCount >= MAX_RELEASE_TICKS) stopRelease(); // เหมือนชนขอบ: ไม่ captured
     }
 
     // ตามเวลาจริง: ทำ tick ให้ครบ ticksDue (ไม่ render ระหว่างวน) แล้ว render ครั้งเดียว
     function tick() {
       var ticksDue = baseTicks + Math.floor((performance.now() - wallStart) / 16);
-      while (state.releasing && tickCount < ticksDue) step();
+      var n = 0;
+      while (state.releasing && tickCount < ticksDue && n < MAX_STEPS_PER_CALLBACK) { step(); n++; } // ไม่ re-anchor wallStart/baseTicks เมื่อชนเพดาน
       render();
     }
 
@@ -454,7 +458,7 @@
       stopRelease();
       if (ps.playing) {
         startRelease();
-        var n = Math.min(4000, ps.t + Math.floor((ps.elapsedMs || 0) / 16));
+        var n = Math.min(MAX_RELEASE_TICKS, (ps.t || 0) + Math.floor((ps.elapsedMs || 0) / 16));
         for (var i = 0; i < n && state.releasing; i++) step();
         if (state.releasing) { baseTicks = tickCount; wallStart = performance.now(); }
       }
