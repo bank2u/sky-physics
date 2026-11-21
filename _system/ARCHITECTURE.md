@@ -11,7 +11,10 @@ physics-sim/
 │   ├── config.js            # เลือก skin ระดับ deploy + ทะเบียน skin/modes/fontsUrl (ดู §7)
 │   ├── styles.css          # design tokens เดียว — ทุกเรื่องอ้างผ่านตรงนี้เท่านั้น (= dot-matrix skin)
 │   ├── skins/<name>.css     # skin อื่นนอกจาก dot-matrix — CSS ล้วน scope ใต้ [data-skin] (ดู §7)
-│   ├── layout.js            # โครง 5 ส่วน + dark/light toggle + stamp data-skin + dispatch themechange
+│   ├── layout.js            # โครง 5 ส่วน + dark/light toggle + stamp data-skin + dispatch themechange + โหลด sync (ถ้ามี syncUrl)
+│   ├── sync-core.js         # logic ล้วนของ live sync (merge state, clock, topicIdFromPath) — มี unit test ใน tests/
+│   ├── sync.js              # UI + WebSocket ของ live sync, expose window.Sync (ดู §8)
+│   ├── vendor/qrcode.js     # qrcode-generator 1.4.4 (MIT) — lazy-load เฉพาะตอนครูเปิด overlay
 │   └── sim/<pattern>.js     # คลัง simulation ใช้ซ้ำข้ามเรื่อง — ต้อง resolve สีจาก token + ฟัง themechange
 ├── topics/<id>/
 │   ├── index.html           # 1 เรื่อง = 1 หน้า = 1 ระดับชั้น
@@ -20,6 +23,10 @@ physics-sim/
 │   ├── topics.json          # แหล่งความจริงเดียวขับสารบัญ + active/soft-delete flag
 │   ├── spec-format.md        # ฟอร์มมาตรฐานของ spec.md
 │   └── ARCHITECTURE.md       # เอกสารนี้
+├── _relay/                  # relay ของ live sync (Cloudflare Worker + Durable Object) — ไม่ขึ้น Vercel (ดู §8)
+│   ├── src/ · test/ · wrangler.toml
+├── tests/                   # unit test ของ client (node --test)
+├── .vercelignore            # ยกเว้น _relay/ tests/ docs/ ออกจาก deploy
 ├── .claude/skills/           # workflow + knowledge skills (อ่านได้ทั้ง Claude Code และ opencode)
 ├── AGENTS.md / CLAUDE.md
 └── vercel.json
@@ -31,9 +38,10 @@ physics-sim/
 
 - **Vanilla HTML/CSS/JS เท่านั้น** — ไม่มี framework, ไม่มี build step, ไม่มี bundler, ไม่มี `package.json`/`node_modules` ที่ commit
 - Dev server: `npx serve .`
-- Deploy: push → Vercel auto-deploy (static hosting ตรงๆ)
+- Deploy: push → Vercel auto-deploy (static hosting ตรงๆ); relay deploy แยกด้วย `npx wrangler@4 deploy` จาก `_relay/`
 - Dev-time tooling ที่อนุญาต (ไม่ commit ผลลัพธ์, เรียกผ่าน `npx` เฉยๆ): Prettier (format), HTML/JS linter พื้นฐาน — ใช้ตอน dev เท่านั้น ไม่กระทบ "zero build step" ตอน deploy
-- ไม่มี backend, ไม่มี database, ไม่มี login — ทุกอย่าง static
+- ไม่มี database, ไม่มี login — เว็บทั้งหมดเป็น static **ข้อยกเว้นเดียว**: relay ของ live sync ใน `_relay/` (ดู §8) — เป็น backend ทึบ ไม่มี logic ฟิสิกส์ ไม่เก็บข้อมูลส่วนตัว deploy แยกจากเว็บ ถ้าไม่ตั้ง `syncUrl` เว็บก็ยัง static ล้วนเหมือนเดิม
+- ไม่มี `package.json` ที่ commit **รวม `_relay/`** — เรียก wrangler ผ่าน `npx wrangler@4` ตรงๆ
 
 ## 3. Tech Direction
 
@@ -86,7 +94,10 @@ Skill map ปัจจุบัน:
 | `topics.json` schema ต้องถูก (level/category/id) | publish-workflow |
 | ลบเรื่อง = soft-delete (`active:false`) เท่านั้น | publish-workflow |
 | commit ตรง `main`, Conventional Commits prefix | ทุก commit |
-| ไม่มี `package.json`/build step ที่ commit | ทั้ง repo |
+| ไม่มี `package.json`/build step ที่ commit (รวม `_relay/`) | ทั้ง repo |
+| backend มีได้ตัวเดียว = `_relay/` ห้ามใส่ logic ฟิสิกส์/ข้อมูลส่วนตัวใน relay; ห้ามตั้ง `ROOM_TTL_MS` ใน production | code review |
+| ห้าม CDN/external script ตอน runtime ของ sync — QR lib ต้อง vendor ใน `shared/vendor/` | build-workflow verify |
+| หน้าที่รองรับ sync ต้องผ่าน 2-tab smoke (ดู §8) | build-workflow verify |
 
 ## 7. Skin System (Theme)
 
@@ -107,3 +118,46 @@ Skill map ปัจจุบัน:
 **เปลี่ยน skin ที่ deploy อยู่:** แก้บรรทัด `skin: 'dot-matrix'` ใน `shared/config.js` เป็นชื่อ skin ที่ต้องการ แล้ว commit/push — ดูขั้นตอนเต็มใน `README.md` หัวข้อ "เปลี่ยน skin"
 
 **เพิ่ม skin ใหม่:** สร้าง `shared/skins/<name>.css` ตามกฎ token contract ข้างบน, ลิงก์ไฟล์นั้นในทุกหน้า (ต่อจาก `styles.css` ใน `<head>`), ลงทะเบียนใน `skins` ของ `config.js` (พร้อม `fontsUrl` ถ้าต้องใช้ฟอนต์ภายนอก) — รายละเอียดกฎเต็มอยู่ใน skill `page-template` ส่วน "Skin system"
+
+## 8. Live Sync (ห้องเรียน)
+
+เพิ่มเข้ามา 2026-11 (ดู `docs/superpowers/specs/2026-11-21-live-classroom-sync-design.md`) — ครูเปิดห้อง นักเรียนใส่รหัส 4 หลักแล้วตามค่า/เวลา/กล้องของครู
+เป็นฟีเจอร์เสริมที่ปิดได้ทั้งเว็บ: `syncUrl: ''` ใน `shared/config.js` = ไม่มีปุ่ม ไม่มี WebSocket ไม่โหลด `sync*.js` (เปิดจาก `localhost` จะใช้ `syncUrlDev` แทน)
+
+**ส่วนประกอบ**
+- `_relay/` — Cloudflare Worker + Durable Object 1 ตัวต่อห้อง เก็บ state ทึบ แล้ว broadcast ไม่ตีความฟิสิกส์ ไม่เก็บข้อมูลส่วนตัว; รหัสห้อง = ตัวเลข 4 หลัก, หมดอายุเมื่อไม่มี activity 3 ชม.; ตรวจ `Origin` กับ `ALLOWED_ORIGINS` ใน `wrangler.toml`; ทิ้งข้อความ > 16 KB / ที่ไม่ใช่ JSON / patch จากนักเรียนเงียบๆ
+- `shared/sync-core.js` (logic ล้วน, test ได้) + `shared/sync.js` (UI + socket) โหลดโดย `layout.js` — หน้าเรื่องเรียก `Sync.*` ก่อน sync.js พร้อมได้ (layout.js เก็บคิวไว้แล้ว drain ให้)
+- `shared/vendor/qrcode.js` = qrcode-generator 1.4.4 (MIT) lazy-load ตอนครูเปิด overlay เท่านั้น
+- ช่องเข้าห้องที่หน้าแรกถูก inject โดย `sync.js` — ไม่แก้ `index.html` ตรงๆ
+
+**บทบาท:** `none` → `teacher` | `student-follow` ⇄ `student-explore`; teacher resume จาก `localStorage` (reload/เปลี่ยนเรื่องแล้วยังเป็นครูห้องเดิม — ครูกับนักเรียนจึงต้องใช้คนละ browser profile ตอนทดสอบ); นักเรียนโหมด follow ถูก `inert` ที่ `.controls` และ `.sim-zone` โดย `sync.js` — หน้าเรื่อง**ไม่ต้อง**ล็อกอะไรเอง
+
+**Room state:** `{ topicId, supported, params: {name: value}, play: {playing, t, serverT0}, camera }` — patch merge: `topicId` เปลี่ยน → ล้างที่เหลือ, `params` merge ราย key, ที่เหลือแทนทั้งก้อน
+Wire: client→relay `patch|close|ping`, relay→client `welcome|state|pong|closed`; HTTP `POST /rooms` → `{code, teacherToken}`, `GET /rooms/:code/ws?t=<token>`
+Throttle: patch ครู 50 ms + ส่งค่าสุดท้ายเสมอ, camera 66 ms; reconnect backoff 1000→2000→5000→10000 ms
+ไม่มี `seed` ใน state ตอนนี้ (ยังไม่ implement — ฟิลด์เวลาของ play คือ `t` ไม่ใช่ `simT0`)
+
+**สัญญาของหน้าเรื่อง (Sync API):**
+- `Sync.param(name, {get, set, local?})` — ประกาศครบทุก control; `local: true` = ไม่ sync (เช่น เสียง)
+- `Sync.player({get, apply})` — ถ้ามีเล่น/หยุด; `get` = `sim.getPlayState()`, `apply` = `sim.applyPlayState()`
+- `Sync.camera({get, set})` — ถ้าเป็น 3D (`sim.getView`/`sim.setView`)
+- `Sync.changed(name)` — เรียกใน handler ทุกตัวที่เปลี่ยนค่า (`'play'` และ `'camera'` เป็นชื่อพิเศษ); no-op ถ้าไม่ใช่ครู
+- ตัวอย่างอ้างอิง: `topics/projectile-motion/index.html` (param + player), `topics/right-hand-rule/index.html` (camera)
+
+**สัญญาของ sim (ที่เรียนรู้จาก 3 pilot):**
+- มี getter ของทุก param และ setter แบบ absolute (ห้ามมีแค่ toggle)
+- เวลาอิงนาฬิกาจริง (wall-clock) ไม่ใช่นับ frame
+- `getPlayState(): {playing, t}` และ `applyPlayState({playing, t, elapsedMs})` — `elapsedMs` ทำให้นักเรียนที่เข้าทีหลัง/ต่อใหม่กระโดดไปเวลาปัจจุบันของครู ไม่ใช่เริ่ม 0
+- sim ที่ integrate ทีละ step: ใช้ DT คงที่, จำกัด catch-up ต่อ callback (ไม่ re-anchor เวลา) และใช้ค่า max-ticks ร่วมกันทั้ง live loop กับ fast-forward (ดู `shared/sim/electric-field.js` หลัง fix `0845252`)
+- drag บน canvas รายงานผ่าน option `onParamChange(name)` ให้หน้าเรียก `Sync.changed`
+- sim 3 มิติ: `getView`/`setView` + option `onViewChange`; `setView` ต้องไม่ยิง `onViewChange` และไม่ sync ระยะซูม (zoom radius)
+- sim ที่สุ่ม (เช่น `gas-particles`, `heat-transfer`) ต้องเพิ่ม seeded PRNG + `seed` ใน state ตอนแปลง — ยังไม่ทำ
+
+**Dev/Verify**
+- relay: `cd _relay && npx wrangler@4 dev --port 8787` / deploy: `npx wrangler@4 deploy`
+- unit: `node --test "_relay/test/*.test.mjs"` และ `node --test "tests/*.test.js"` (ใช้ glob ใน quote; ชื่อโฟลเดอร์เปล่าๆ fail บน Node 24)
+- relay e2e: `node _relay/test/e2e.mjs http://localhost:8787`; ทดสอบหมดอายุ (ไม่บังคับ): รัน `wrangler dev --var ROOM_TTL_MS:3000` แล้ว `E2E_TTL_MS=3000 node _relay/test/e2e.mjs ...` — **ห้ามตั้ง `ROOM_TTL_MS` ใน production**
+- 2-tab smoke: ครูแท็บ A / นักเรียนแท็บ B (ต้องคนละ browser profile เพราะ role ครูอยู่ใน `localStorage`) ทำด้วย claude-in-chrome หรือ headless Chrome ผ่าน CDP ก็ได้ — เช็ค: นักเรียนถูกพาไปเรื่องนั้น + control กดไม่ได้, ค่าตรงกันหลังครูปรับ, play แล้วเวลาตรงกัน/คนเข้าทีหลังไม่เริ่ม 0, `ทดลองเอง`/`กลับไปตามครู`, ครู reload แล้วรหัสเดิม, ไม่มี console error (ยกเว้น favicon 404 ที่รู้อยู่แล้ว) และแท็บที่ไม่อยู่ในห้องต้องไม่เปิด WebSocket
+- `.vercelignore` ยกเว้น `_relay/`, `tests/`, `docs/`
+
+**ปัญหาเดิมที่รู้แล้ว (ไม่เกี่ยวกับ sync):** หน้าเรื่องขอ `/topics/shared/favicon.svg` (404) เพราะ `<link>` ใช้ `../shared/` แทน `../../shared/` — ยังไม่แก้

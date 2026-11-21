@@ -1,7 +1,7 @@
 # sky-physics
 
 เว็บ static สื่อการสอนฟิสิกส์ ม.ต้น–ม.ปลาย เน้น simulation ปรับค่าได้
-ครูใช้แชร์จอประกอบการสอน. ไม่มี backend / ไม่มี login. host บน Vercel.
+ครูใช้แชร์จอประกอบการสอน. ไม่มี login. backend มีได้ตัวเดียว = `_relay/` (ดูด้านล่าง). host บน Vercel.
 
 ## หลักการที่ห้ามฝ่าฝืน
 - Layout 5 ส่วนของทุก page เหมือนกันเสมอ: หัวเรื่อง → simulation → แผงควบคุม → ค่า realtime → คำอธิบาย/สมการ
@@ -9,6 +9,8 @@
 - 1 เรื่อง = 1 ระดับชั้น (ม.ต้น และ ม.ปลาย แยกเป็นคนละ content)
 - `_system/topics.json` คือแหล่งความจริงเดียวที่ขับสารบัญ — อย่าแก้ `index.html` ตรงๆ
 - skin (`shared/skins/<name>.css`) ต้องเป็น CSS ล้วน scope ใต้ `[data-skin="<name>"]` เท่านั้น ห้ามแตะโครง DOM และ override ได้เฉพาะ token ที่ `shared/styles.css` ประกาศไว้แล้ว — เปลี่ยน skin ทั้งเว็บแก้ที่ `shared/config.js` จุดเดียว (ดู README.md หัวข้อ "เปลี่ยน skin")
+- **backend ตัวเดียวที่อนุญาต = `_relay/`** (Cloudflare Worker, relay ทึบ ไม่มี logic ฟิสิกส์ ไม่เก็บข้อมูลส่วนตัว, deploy แยกด้วย `npx wrangler@4 deploy`) ใช้ทำ live classroom sync เท่านั้น — `syncUrl: ''` ใน `shared/config.js` = ปิดฟีเจอร์ทั้งเว็บ
+- หน้าเรื่องที่รองรับ live sync ต้องประกาศ `Sync.param/player/camera` และเรียก `Sync.changed` ตามสัญญาใน skill `page-template` + `simulation-patterns` (รายละเอียดดู `_system/ARCHITECTURE.md` §8)
 
 ## โครงสร้าง
 - `topics/<id>/` — 1 เรื่อง: `index.html` (page) + `spec.md` (content spec, เก็บคู่ไว้เพื่อ regenerate)
@@ -16,6 +18,7 @@
 - `shared/config.js` — เลือก skin ระดับ deploy | `shared/skins/<name>.css` — skin เป็น CSS ล้วน scope ใต้ `[data-skin]` ต้องใช้ token contract เดิม ห้ามแตะ DOM
 - `_system/spec-format.md` — ฟอร์มมาตรฐาน | `_system/topics.json` — ทะเบียนเรื่อง
 - `.claude/skills/` — workflow + knowledge skills (อ่านได้ทั้ง Claude Code และ opencode)
+- `_relay/` — relay ของ live sync (ไม่ใช่ส่วนของเว็บ static, ไม่ขึ้น Vercel) | `shared/sync-core.js` + `shared/sync.js` — client ของ live sync (โหลดโดย `layout.js`)
 - `_system/ARCHITECTURE.md` — tech stack, git strategy, verify/test flow, guardrails (รายละเอียดเบื้องหลังไฟล์นี้)
 
 ## Workflow เพิ่มเรื่องใหม่ (ทำตามลำดับ)
@@ -35,3 +38,5 @@ Knowledge: `physics-content`, `page-template`, `simulation-patterns`, `navigatio
 ## คำสั่ง
 - dev: เปิด `index.html` ด้วย static server (เช่น `npx serve`)
 - deploy: push เข้า repo → Vercel deploy อัตโนมัติ
+- relay dev: `cd _relay && npx wrangler@4 dev --port 8787` | relay deploy: `npx wrangler@4 deploy` (จาก `_relay/`)
+- test: `node --test "_relay/test/*.test.mjs"` และ `node --test "tests/*.test.js"` (ต้องเป็น glob ใน quote — ใส่แค่ชื่อโฟลเดอร์จะ fail บน Node 24)

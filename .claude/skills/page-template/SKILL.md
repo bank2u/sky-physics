@@ -40,6 +40,16 @@ Component class สำเร็จรูป (ใช้แทนการเข�
 - ห้ามเกิน 3 สีเน้นต่อหน้า และอิ่มตัวเต็มเฉพาะใน sim zone/value tile (ที่อื่น tint 30–34%)
 - contrast สูง อ่านบนโปรเจกเตอร์ได้ (WCAG AA ขั้นต่ำ)
 
+## Live sync (ห้องเรียน)
+หน้าเรื่องที่รองรับ live sync ต้องทำตามนี้ (เรียก `Sync.*` ใน inline script ได้เลย — `layout.js` เก็บคิวไว้ให้ถ้า `sync.js` ยังไม่โหลด; ถ้าปิดฟีเจอร์ก็เป็น no-op):
+- `Sync.param(name, {get, set})` ประกาศ**ครบทุก control** ที่ปรับค่าได้; control ที่ไม่ควรตามครู (เช่น เสียง) ใส่ `local: true`
+- `Sync.player({get, apply})` ถ้ามีเล่น/หยุด/รีเซ็ต (ต่อกับ `getPlayState/applyPlayState` ของ sim)
+- `Sync.camera({get, set})` ถ้าเป็น 3D และ sim ต้องมี `onViewChange` เรียก `Sync.changed('camera')`
+- เรียก `Sync.changed(name)` ใน handler **ทุกตัว** ที่เปลี่ยนค่า (slider, ปุ่ม, drag บน canvas; ปุ่มเล่น/รีเซ็ตใช้ `'play'`)
+- ห้ามล็อก control ของนักเรียนเอง — `sync.js` ทำให้ `.controls` และ `.sim-zone` เป็น `inert` ตอนตามครู
+- ห้ามฝัง UI ของ sync ในหน้าเรื่อง (แถบ/ปุ่มห้องถูก inject โดย `sync.js`)
+- ตัวอย่างอ้างอิง: `topics/projectile-motion/index.html`; สัญญาเต็มดู `_system/ARCHITECTURE.md` §8
+
 ## Skin system
 
 - skin = visual identity เต็ม (สี ฟอนต์ เงา ลวดลาย) อยู่ที่ `shared/skins/<name>.css` — ทุก rule ต้อง scope ใต้ `:root[data-skin="<name>"]`

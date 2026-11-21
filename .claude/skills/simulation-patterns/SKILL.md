@@ -36,3 +36,13 @@ description: คลังแบบแผน simulation ที่ใช้ซ้�
 - รับ input เป็น config object, expose ฟังก์ชัน init/update ให้ control เรียก
 - เขียนให้ generic พอใช้ซ้ำในเรื่องอื่นได้ ไม่ผูกกับเรื่องเดียว
 - เพิ่มชื่อ pattern เข้ารายการด้านบนนี้ด้วย
+
+## สัญญาสำหรับ live sync (sim ใหม่ทุกตัวควรมี)
+- **getter ของทุก param** และ **setter แบบ absolute** (`setAngle(42)`) — ห้ามมีแค่ toggle/เพิ่มลด เพราะนักเรียนต้อง set ค่าตามครูได้ตรงๆ
+- **เวลาอิงนาฬิกาจริง** (wall-clock) ไม่ใช่นับ frame
+- `getPlayState(): {playing, t}` และ `applyPlayState({playing, t, elapsedMs})` — `t` คือหน่วยเวลาของ sim เอง; `elapsedMs` = เวลาที่ผ่านไปตั้งแต่ครูส่ง เพื่อกระโดดไปเวลาปัจจุบัน
+- sim ที่ integrate ทีละ step: DT คงที่ + จำกัด catch-up ต่อ callback (ห้าม re-anchor เวลา) + ค่า max-ticks เดียวที่ใช้ร่วมกันทั้ง live loop และ fast-forward (ดู `electric-field.js`)
+- drag บน canvas รายงานผ่าน option `onParamChange(name)`
+- sim 3 มิติ: `getView`/`setView` + option `onViewChange`; `setView` ต้องไม่ยิง `onViewChange` (กัน loop) และไม่ sync zoom radius (ดู `vector3d.js`)
+- **สุ่ม = ต้องใช้ seeded PRNG** (ไม่ใช้ `Math.random()` ตรงๆ) เพื่อให้ทุกจอได้ผลเหมือนกัน — `seed` ยังไม่ implement ใน state ของ sync ต้องเพิ่มตอนแปลง `gas-particles`/`heat-transfer`
+- สัญญาเต็มและเหตุผล: `_system/ARCHITECTURE.md` §8
