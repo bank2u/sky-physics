@@ -205,6 +205,7 @@
 
   wireTrack(document.getElementById('angle-track'), ANGLE_MIN, ANGLE_MAX, function (v) {
     sim.setAngle(Math.round(v));
+    Sync.changed('angle');
   });
 
   document.getElementById('n1-chips').addEventListener('click', function (e) {
@@ -213,6 +214,7 @@
     n1Key = btn.dataset.key;
     renderChips('n1-chips', 'n1', n1Key);
     sim.setN1(materialByKey(n1Key).n);
+    Sync.changed('n1');
   });
 
   document.getElementById('n2-chips').addEventListener('click', function (e) {
@@ -221,6 +223,7 @@
     n2Key = btn.dataset.key;
     renderChips('n2-chips', 'n2', n2Key);
     sim.setN2(materialByKey(n2Key).n);
+    Sync.changed('n2');
   });
 
   document.getElementById('reset-btn').addEventListener('click', function () {
@@ -229,6 +232,20 @@
     renderChips('n1-chips', 'n1', n1Key);
     renderChips('n2-chips', 'n2', n2Key);
     sim.reset();
+    Sync.changed('angle');
+    Sync.changed('n1');
+    Sync.changed('n2');
+  });
+
+  /* Live classroom sync — วัสดุเก็บเป็น key (n1Key/n2Key) ที่หน้า; มุมอยู่ที่ sim */
+  Sync.param('angle', { get: sim.getAngle, set: sim.setAngle });
+  Sync.param('n1', {
+    get: function () { return n1Key; },
+    set: function (k) { n1Key = materialByKey(k).key; renderChips('n1-chips', 'n1', n1Key); sim.setN1(materialByKey(n1Key).n); }
+  });
+  Sync.param('n2', {
+    get: function () { return n2Key; },
+    set: function (k) { n2Key = materialByKey(k).key; renderChips('n2-chips', 'n2', n2Key); sim.setN2(materialByKey(n2Key).n); }
   });
 </script>
 </body>

@@ -139,6 +139,7 @@
     f: 20,
     uRange: [U_MIN, U_MAX],
     fRange: [F_MIN, F_MAX],
+    onParamChange: function (name) { Sync.changed(name); }, // ลากวัตถุบน canvas เปลี่ยน u
     onUpdate: function (vals) {
       var vEl = document.getElementById('tile-v');
       var mEl = document.getElementById('tile-m');
@@ -184,19 +185,26 @@
 
   wireTrack(document.getElementById('u-track'), U_MIN, U_MAX, function (v) {
     sim.setU(Math.round(v));
+    Sync.changed('u');
   });
   wireTrack(document.getElementById('f-track'), F_MIN, F_MAX, function (f) {
     sim.setF(Math.round(f));
+    Sync.changed('f');
   });
 
   var deviceTabs = document.getElementById('deviceTabs');
+  function applyDevice(d) {
+    Array.prototype.forEach.call(deviceTabs.querySelectorAll('button'), function (b) {
+      b.classList.toggle('is-active', b.dataset.device === d);
+    });
+    sim.setDevice(d);
+  }
+
   deviceTabs.addEventListener('click', function (e) {
     var btn = e.target.closest('button[data-device]');
     if (!btn) return;
-    Array.prototype.forEach.call(deviceTabs.querySelectorAll('button'), function (b) {
-      b.classList.toggle('is-active', b === btn);
-    });
-    sim.setDevice(btn.dataset.device);
+    applyDevice(btn.dataset.device);
+    Sync.changed('device');
   });
 
   document.getElementById('reset-btn').addEventListener('click', function () {
@@ -204,7 +212,21 @@
       b.classList.toggle('is-active', b.dataset.device === 'concave-mirror');
     });
     sim.reset();
+    Sync.changed('device');
+    Sync.changed('u');
+    Sync.changed('f');
   });
+
+  /* Live classroom sync */
+  Sync.param('device', {
+    get: sim.getDevice,
+    set: function (d) {
+      if (['concave-mirror', 'convex-mirror', 'convex-lens', 'concave-lens'].indexOf(d) < 0) return;
+      applyDevice(d);
+    }
+  });
+  Sync.param('u', { get: sim.getU, set: sim.setU });
+  Sync.param('f', { get: sim.getF, set: sim.setF });
 </script>
 </body>
 </html>

@@ -232,6 +232,9 @@
       stopSound: stopSound,
       toggleSound: toggleSound,
       isSoundOn: function () { return state.soundOn; },
+      setSound: function (on) { if (on) { if (!state.soundOn) playSound(); } else if (state.soundOn) stopSound(); },
+      getFreq: function () { return state.freq; },
+      getAmp: function () { return state.amp; },
       destroy: function () {
         if (timer) { clearInterval(timer); timer = null; }
         if (audioCtx) {

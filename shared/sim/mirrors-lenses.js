@@ -46,6 +46,7 @@
     };
     var defaults = { device: state.device, u: state.u, f: state.f };
     var onUpdate = options.onUpdate || function () {};
+    var onParamChange = options.onParamChange || function () {};
 
     container.innerHTML = '';
     var svg = document.createElementNS(SVG_NS, 'svg');
@@ -235,6 +236,7 @@
           }
           function onMove(ev) {
             setU(Math.round(toU(ev.clientX)));
+            onParamChange('u');
           }
           function onUp() {
             window.removeEventListener('pointermove', onMove);
@@ -276,6 +278,9 @@
       setDevice: setDevice,
       setU: setU,
       setF: setF,
+      getDevice: function () { return state.device; },
+      getU: function () { return state.u; },
+      getF: function () { return state.f; },
       reset: reset,
       destroy: function () {}
     };

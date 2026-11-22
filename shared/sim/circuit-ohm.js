@@ -228,6 +228,8 @@
       setResistance: setResistance,
       setMode: setMode,
       getMode: function () { return state.mode; },
+      getVoltage: function () { return state.voltage; },
+      getResistance: function () { return state.resistance; },
       destroy: function () { if (rafId) cancelAnimationFrame(rafId); }
     };
   }

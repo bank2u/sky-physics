@@ -195,6 +195,9 @@
       setAngle: setAngle,
       setN1: setN1,
       setN2: setN2,
+      getAngle: function () { return state.angle; },
+      getN1: function () { return state.n1; },
+      getN2: function () { return state.n2; },
       reset: reset,
       destroy: function () {}
     };

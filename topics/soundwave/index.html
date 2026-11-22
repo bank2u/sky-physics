@@ -153,14 +153,21 @@
 
   wireTrack(document.getElementById('f-track'), F_MIN, F_MAX, function (v) {
     sim.setFreq(Math.round(v));
+    Sync.changed('freq');
   });
   wireTrack(document.getElementById('a-track'), A_MIN, A_MAX, function (v) {
     sim.setAmp(Math.round(v));
+    Sync.changed('amp');
   });
 
   document.getElementById('sound-btn').addEventListener('click', function () {
     sim.toggleSound();
   });
+
+  /* Live classroom sync — เสียงเป็นของแต่ละเครื่อง (local) ไม่ส่งถึงนักเรียน; phase ของคลื่นที่วิ่งเป็นแค่ภาพประกอบต่อเครื่อง */
+  Sync.param('freq', { get: sim.getFreq, set: sim.setFreq });
+  Sync.param('amp', { get: sim.getAmp, set: sim.setAmp });
+  Sync.param('sound', { get: sim.isSoundOn, set: sim.setSound, local: true });
 </script>
 </body>
 </html>
