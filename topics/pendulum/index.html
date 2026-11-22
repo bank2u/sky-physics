@@ -161,6 +161,10 @@
       document.getElementById('m-thumb').style.left = mPct + '%';
 
       document.getElementById('play-btn').textContent = vals.playing ? '❚❚ หยุด' : '▶ แกว่ง';
+
+      Array.prototype.forEach.call(document.querySelectorAll('#gTabs button'), function (b) {
+        b.classList.toggle('is-active', parseFloat(b.dataset.g) === vals.g);
+      });
     }
   });
 
@@ -185,26 +189,43 @@
 
   wireTrack(document.getElementById('l-track'), L_MIN, L_MAX, function (v) {
     sim.setL(Math.round(v * 10) / 10);
+    Sync.changed('L'); Sync.changed('play');
   });
   wireTrack(document.getElementById('theta-track'), THETA_MIN, THETA_MAX, function (v) {
     sim.setTheta0(Math.round(v));
+    Sync.changed('theta0'); Sync.changed('play');
   });
   wireTrack(document.getElementById('m-track'), M_MIN, M_MAX, function (v) {
     sim.setMass(Math.round(v * 10) / 10);
+    Sync.changed('mass');
   });
 
   var gTabs = document.getElementById('gTabs');
   gTabs.addEventListener('click', function (e) {
     var btn = e.target.closest('button[data-g]');
     if (!btn) return;
-    Array.prototype.forEach.call(gTabs.querySelectorAll('button'), function (b) {
-      b.classList.toggle('is-active', b === btn);
-    });
-    sim.setG(parseFloat(btn.dataset.g), btn.dataset.label);
+    sim.setG(parseFloat(btn.dataset.g), btn.dataset.label); // ปุ่ม is-active อัปเดตใน onUpdate
+    Sync.changed('g'); Sync.changed('play');
   });
 
-  document.getElementById('play-btn').addEventListener('click', function () { sim.play(); });
-  document.getElementById('reset-btn').addEventListener('click', function () { sim.reset(); });
+  // ค่า g รับเป็นตัวเลขสัมบูรณ์ → หา preset (ปุ่ม) ที่ตรงกัน
+  function setGValue(g) {
+    var btn = gTabs.querySelector('button[data-g="' + g + '"]');
+    if (!btn) return;
+    sim.setG(parseFloat(btn.dataset.g), btn.dataset.label);
+  }
+
+  document.getElementById('play-btn').addEventListener('click', function () { sim.play(); Sync.changed('play'); });
+  document.getElementById('reset-btn').addEventListener('click', function () {
+    sim.reset();
+    Sync.changed('play');
+  });
+
+  Sync.param('L', { get: sim.getL, set: sim.setL });
+  Sync.param('theta0', { get: sim.getTheta0, set: sim.setTheta0 });
+  Sync.param('mass', { get: sim.getMass, set: sim.setMass });
+  Sync.param('g', { get: sim.getG, set: setGValue });
+  Sync.player({ get: sim.getPlayState, apply: sim.applyPlayState });
 </script>
 </body>
 </html>

@@ -7,6 +7,9 @@
 (function () {
   var SVG_NS = 'http://www.w3.org/2000/svg';
 
+  // เวลา sim ใช้ wall-clock ไม่สะสมต่อเฟรม — 1 s จริง = 1 s sim (เท่าเดิมกับ dt จริงต่อเฟรมเดิม)
+  var TIME_SCALE = 1;
+
   function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
 
   function padDomain(dom, frac) {
@@ -46,7 +49,8 @@
       t: 0,
       playing: false
     };
-    var raf = null, lastTs = 0;
+    var raf = null;
+    var tStart = 0, wallStart = 0; // t = tStart + (now - wallStart)/1000 * TIME_SCALE ขณะเล่น
 
     container.innerHTML = '';
 
@@ -125,9 +129,9 @@
 
     function render() {
       var w = omega(), T = period(), A = state.A;
-      var t = state.t;
       var tMax = 2 * T; // แสดง 2 คาบเสมอ ไม่ว่าปรับ k/m/A อย่างไร
-      if (t > tMax) t = state.t = t % tMax;
+      // state.t โตต่อเนื่อง (ใช้ sync); เฉพาะการแสดงผลวนทุก 2 คาบ — cos/sin เป็นคาบ 2π/ω จึงไม่มีรอยต่อ
+      var t = state.t > tMax ? state.t % tMax : state.t;
 
       var curX = xAt(t), curV = vAt(t), curA = aAt(t);
       var vMax = A * w, aMax = A * w * w;
@@ -211,34 +215,54 @@
       });
     }
 
-    function frame(ts) {
+    function liveT() { return tStart + ((performance.now() - wallStart) / 1000) * TIME_SCALE; }
+    function frame() {
       if (!state.playing) return;
-      if (!lastTs) lastTs = ts;
-      var dt = (ts - lastTs) / 1000;
-      lastTs = ts;
-      if (dt > 0.05) dt = 0.05; // กัน tab หลุด/กระตุก
-      state.t += dt;
+      state.t = liveT();
       render();
       raf = requestAnimationFrame(frame);
     }
+    function anchor() { tStart = state.t; wallStart = performance.now(); }
+    function stopRaf() { if (raf) { cancelAnimationFrame(raf); raf = null; } }
 
     function play() {
       if (state.playing) { pause(); return; }
+      anchor();
       state.playing = true;
-      lastTs = 0;
+      stopRaf();
       render();
       raf = requestAnimationFrame(frame);
     }
     function pause() {
+      if (state.playing) state.t = liveT();
       state.playing = false;
-      if (raf) { cancelAnimationFrame(raf); raf = null; }
+      stopRaf();
       render();
     }
     function reset() {
       state.playing = false;
-      if (raf) { cancelAnimationFrame(raf); raf = null; }
+      stopRaf();
       state.t = 0;
       render();
+    }
+
+    function getPlayState() {
+      return { playing: state.playing, t: state.playing ? liveT() : state.t };
+    }
+    // ps = {playing, t, elapsedMs}; หยุดอยู่ → ไม่สนใจ elapsedMs
+    function applyPlayState(ps) {
+      stopRaf();
+      if (ps.playing) {
+        state.t = ps.t + ((ps.elapsedMs || 0) / 1000) * TIME_SCALE;
+        anchor();
+        state.playing = true;
+        render();
+        raf = requestAnimationFrame(frame);
+      } else {
+        state.playing = false;
+        state.t = ps.t;
+        render();
+      }
     }
 
     function setK(v) { state.k = clamp(v, kRange[0], kRange[1]); if (!state.playing) state.t = 0; render(); }
@@ -249,6 +273,10 @@
 
     return {
       setK: setK, setM: setM, setA: setA,
+      getK: function () { return state.k; },
+      getM: function () { return state.m; },
+      getA: function () { return state.A; },
+      getPlayState: getPlayState, applyPlayState: applyPlayState,
       play: play, pause: pause, reset: reset,
       isPlaying: function () { return state.playing; },
       destroy: function () { if (raf) cancelAnimationFrame(raf); }

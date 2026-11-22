@@ -23,6 +23,9 @@
     return maxT + 1;
   }
 
+  // 0.03 s ต่อ 16 ms เดิม = 1.875 s ของ sim ต่อ 1 s จริง (ความเร็วภาพเท่าเดิม) — เวลาใช้ wall-clock ไม่สะสมต่อเฟรม
+  var TIME_SCALE = 1.875;
+
   var T_MAX = 6; // will be overridden in create()
 
   function clamp(v, min, max) {
@@ -85,6 +88,7 @@
     var v0Range = options.v0Range || [-20, 20];
     var aRange = options.aRange || [-10, 10];
     var onUpdate = options.onUpdate || function () {};
+    var onEnd = options.onEnd || function () {}; // เรียกเมื่อเล่นจนจบเองที่ t = T_MAX (ไม่เรียกตอน pause/reset)
 
     T_MAX = options.T_MAX || computeMaxInterestingTime(v0Range, aRange);
     var fixedDomains = computeFixedDomains(v0Range, aRange, T_MAX);
@@ -225,24 +229,39 @@
       });
     }
 
-    function play() {
-      if (state.playing) { pause(); return; }
-      if (state.t >= T_MAX - 0.001) state.t = 0;
-      state.playing = true;
-      render();
+    var tStart = 0, wallStart = 0;
+    // เวลา sim ปัจจุบันจาก wall-clock (ใช้ใน getPlayState/pause ให้ตรงจริง ไม่ค้างที่ tick ล่าสุด)
+    function liveT() { return Math.min(T_MAX, tStart + ((performance.now() - wallStart) / 1000) * TIME_SCALE); }
+
+    function startLoop() {
+      tStart = state.t;
+      wallStart = performance.now();
+      if (timer) clearInterval(timer);
       timer = setInterval(function () {
-        state.t += 0.03;
+        var ended = false;
+        state.t = tStart + ((performance.now() - wallStart) / 1000) * TIME_SCALE;
         if (state.t >= T_MAX) {
           state.t = T_MAX;
           state.playing = false;
           clearInterval(timer);
           timer = null;
+          ended = true;
         }
         render();
+        if (ended) onEnd();
       }, 16);
     }
 
+    function play() {
+      if (state.playing) { pause(); return; }
+      if (state.t >= T_MAX - 0.001) state.t = 0;
+      state.playing = true;
+      render();
+      startLoop();
+    }
+
     function pause() {
+      if (state.playing) state.t = liveT();
       if (timer) { clearInterval(timer); timer = null; }
       state.playing = false;
       render();
@@ -253,6 +272,27 @@
       state.t = 0;
       state.playing = false;
       render();
+    }
+
+    function getPlayState() {
+      return { playing: state.playing, t: state.playing ? liveT() : state.t };
+    }
+
+    // ps = {playing, t, elapsedMs}; หยุดอยู่ → ไม่สนใจ elapsedMs; ชน T_MAX → clamp
+    function applyPlayState(ps) {
+      if (timer) { clearInterval(timer); timer = null; }
+      var t = ps.t;
+      if (ps.playing) t += ((ps.elapsedMs || 0) / 1000) * TIME_SCALE;
+      t = Math.min(T_MAX, Math.max(0, t));
+      state.t = t;
+      if (ps.playing && t < T_MAX) {
+        state.playing = true;
+        render();
+        startLoop();
+      } else {
+        state.playing = false;
+        render();
+      }
     }
 
     function setV0(v) {
@@ -272,6 +312,10 @@
     return {
       setV0: setV0,
       setA: setA,
+      getV0: function () { return state.v0; },
+      getA: function () { return state.a; },
+      getPlayState: getPlayState,
+      applyPlayState: applyPlayState,
       play: play,
       pause: pause,
       reset: reset,

@@ -7,6 +7,9 @@
 (function () {
   var SVG_NS = 'http://www.w3.org/2000/svg';
 
+  // เวลา sim ใช้เวลานาฬิกาจริง (wall-clock) ไม่สะสมต่อเฟรม — 1 s จริง = 1 s ของ sim (เท่าเดิมกับ dt จริงต่อเฟรมเดิม)
+  var TIME_SCALE = 1;
+
   function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
 
   function create(container, options) {
@@ -30,7 +33,8 @@
       t: 0,
       playing: false
     };
-    var rafId = null, lastTs = 0;
+    var rafId = null;
+    var tStart = 0, wallStart = 0; // จุดยึดเวลา: t = tStart + (now - wallStart)/1000 * TIME_SCALE ขณะเล่น
 
     container.innerHTML = '';
     var svg = document.createElementNS(SVG_NS, 'svg');
@@ -109,29 +113,50 @@
       });
     }
 
-    function tick(ts) {
+    function liveT() { return tStart + ((performance.now() - wallStart) / 1000) * TIME_SCALE; }
+    function tick() {
       rafId = requestAnimationFrame(tick);
-      if (!state.playing) { lastTs = ts; return; }
-      var dt = lastTs ? (ts - lastTs) / 1000 : 0;
-      dt = Math.min(dt, 0.05);
-      lastTs = ts;
-      state.t += dt;
+      if (!state.playing) return;
+      state.t = liveT();
       render();
     }
-    function startRaf() { if (!rafId) { lastTs = 0; rafId = requestAnimationFrame(tick); } }
+    function startRaf() { if (!rafId) { rafId = requestAnimationFrame(tick); } }
     function stopRaf() { if (rafId) { cancelAnimationFrame(rafId); rafId = null; } }
 
+    function anchor() { tStart = state.t; wallStart = performance.now(); }
+
     function play() {
-      state.playing = !state.playing;
-      if (state.playing) startRaf(); else render();
+      if (state.playing) { pause(); return; }
+      anchor();
+      state.playing = true;
+      startRaf();
+      render();
     }
     function pause() {
+      if (state.playing) state.t = liveT();
       state.playing = false;
       render();
     }
     function reset() {
       state.playing = false;
       state.t = 0;
+      render();
+    }
+
+    function getPlayState() {
+      return { playing: state.playing, t: state.playing ? liveT() : state.t };
+    }
+    // ps = {playing, t, elapsedMs}; หยุดอยู่ → ไม่สนใจ elapsedMs
+    function applyPlayState(ps) {
+      if (ps.playing) {
+        state.t = ps.t + ((ps.elapsedMs || 0) / 1000) * TIME_SCALE;
+        anchor();
+        state.playing = true;
+        startRaf();
+      } else {
+        state.playing = false;
+        state.t = ps.t;
+      }
       render();
     }
 
@@ -145,6 +170,11 @@
 
     return {
       setL: setL, setTheta0: setTheta0, setMass: setMass, setG: setG,
+      getL: function () { return state.L; },
+      getTheta0: function () { return state.theta0; },
+      getMass: function () { return state.mass; },
+      getG: function () { return state.g; },
+      getPlayState: getPlayState, applyPlayState: applyPlayState,
       play: play, pause: pause, reset: reset,
       isPlaying: function () { return state.playing; },
       destroy: function () { stopRaf(); }

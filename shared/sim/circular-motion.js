@@ -19,23 +19,23 @@
     // เรขาคณิตของ SVG (หน่วยพิกัด SVG ไม่ใช่ CSS px)
     var VBW = 700, VBH = 580, CX = 350, CY = 290;
     var R_MIN_PX = 95, R_MAX_PX = 205;
-    var DT = 0.02;          // time step (s) ต่อเฟรม สำหรับความเร็วการหมุนที่เห็นชัด
+    // เดิม θ += ω·0.02 ต่อเฟรม (60 fps) = 1.2·ω rad ต่อ 1 s จริง → TIME_SCALE = 0.02 × 60 = 1.2 (ความเร็วภาพเท่าเดิม)
+    // เฟสใช้ wall-clock ไม่สะสมต่อเฟรม: phase = phaseStart + ω·TIME_SCALE·(now − wallStart)/1000
+    var TIME_SCALE = 1.2;
     var BALL = 16;
 
     var state = {
       r: clamp(options.r != null ? options.r : 1.5, rRange[0], rRange[1]),
       v: clamp(options.v != null ? options.v : 6, vRange[0], vRange[1]),
       mass: clamp(options.mass != null ? options.mass : 2.0, massRange[0], massRange[1]),
-      theta: 0,             // ตำแหน่งเชิงมุม (rad)
-      playing: false,
+      phase: 0,             // เฟสสะสม (rad) = ค่า t ของ player: ก่อนตัด = ตำแหน่งเชิงมุม θ, หลังตัดเดินต่อด้วยอัตราเดิม
+      playing: false,       // กำลังหมุน หรือ (หลังตัด) วัตถุกำลังพุ่งอยู่ในจอ
       cut: false,
-      cutPt: null,          // {x, y} จุดที่ตัดเชือก
-      cutDir: null,         // {x, y} ทิศสัมผัสหนึ่งหน่วย ขณะตัด
-      cutRadial: null,      // {x, y} ทิศรัศมีออกหนึ่งหน่วย ขณะตัด (คำตอบที่ผิด)
-      flightPos: null,      // {x, y} ตำแหน่งวัตถุหลังตัด
-      flightStep: null      // {x, y} การขยับต่อเฟรม (px) หลังตัด
+      cutAngle: 0           // θ ขณะตัด (rad) — จุดตัด/ทิศพุ่งคำนวณจากค่านี้ทั้งหมด ระยะพุ่ง = R·(phase − cutAngle)
     };
     var rafId = null;
+    var phaseStart = 0, wallStart = 0;
+    var onEnd = options.onEnd || function () {}; // เรียกเมื่อวัตถุที่ถูกตัดพุ่งพ้นจอเอง
 
     container.innerHTML = '';
     var svg = document.createElementNS(SVG_NS, 'svg');
@@ -77,6 +77,24 @@
              '" font-size="24" font-weight="800" text-anchor="middle" dominant-baseline="middle">' + text + '</text>';
     }
 
+    function livePhase() { return phaseStart + omega() * TIME_SCALE * ((performance.now() - wallStart) / 1000); }
+    function anchor() { phaseStart = state.phase; wallStart = performance.now(); }
+    // ก่อนเปลี่ยน r/v ขณะหมุน: เก็บเฟสปัจจุบัน แล้วยึดจุดเวลาใหม่หลังเปลี่ยน (θ ต่อเนื่องเหมือนเดิม)
+    function settle() { if (state.playing) state.phase = livePhase(); }
+
+    // ตำแหน่งวัตถุหลังตัด (คำนวณแบบ closed-form จากเฟส)
+    function flightGeom() {
+      var Rpx = radiusPx(), c = state.cutAngle;
+      var cp = { x: CX + Rpx * Math.cos(c), y: CY + Rpx * Math.sin(c) };
+      var dir = { x: -Math.sin(c), y: Math.cos(c) };
+      var rad = { x: Math.cos(c), y: Math.sin(c) };
+      var dist = Rpx * Math.max(0, state.phase - c);
+      return { cp: cp, dir: dir, rad: rad, fp: { x: cp.x + dir.x * dist, y: cp.y + dir.y * dist } };
+    }
+    function flightOut(fp) {
+      return fp.x < -60 || fp.x > VBW + 60 || fp.y < -60 || fp.y > VBH + 60;
+    }
+
     function render() {
       var Rpx = radiusPx();
       var parts = [];
@@ -89,7 +107,7 @@
 
       if (!state.cut) {
         // ---- ขณะหมุน ----
-        var th = state.theta;
+        var th = state.phase;
         var bx = CX + Rpx * Math.cos(th), by = CY + Rpx * Math.sin(th);
         var tang = { x: -Math.sin(th), y: Math.cos(th) };   // ทิศสัมผัส (ทิศ v)
         var cent = { x: -Math.cos(th), y: -Math.sin(th) };  // ทิศเข้าศูนย์กลาง (ทิศ a)
@@ -111,7 +129,8 @@
           '" fill="var(--accent-tertiary)" stroke="var(--ink)" stroke-width="4"/>');
       } else {
         // ---- หลังตัดเชือก ----
-        var cp = state.cutPt, dir = state.cutDir, rad = state.cutRadial, fp = state.flightPos;
+        var fg = flightGeom();
+        var cp = fg.cp, dir = fg.dir, rad = fg.rad, fp = fg.fp;
         // แนวรัศมี (คำตอบที่ผิด) — เส้นประ muted + ✗
         var radLen = 120;
         var rex = cp.x + rad.x * radLen, rey = cp.y + rad.y * radLen;
@@ -150,64 +169,96 @@
 
     function tick() {
       rafId = requestAnimationFrame(tick);
-      if (state.cut && state.flightPos) {
-        state.flightPos.x += state.flightStep.x;
-        state.flightPos.y += state.flightStep.y;
-        var out = state.flightPos.x < -60 || state.flightPos.x > VBW + 60 ||
-                  state.flightPos.y < -60 || state.flightPos.y > VBH + 60;
-        render();
-        if (out) { stopRaf(); }
-        return;
+      if (!state.playing) return;
+      state.phase = livePhase();
+      if (state.cut) {
+        var out = flightOut(flightGeom().fp);
+        if (out) {
+          // พุ่งพ้นจอแล้ว → หยุด (เฟสค้างที่ค่านี้) แล้วแจ้งหน้าให้ publish สถานะจบ
+          state.playing = false;
+          stopRaf();
+          render();
+          onEnd();
+          return;
+        }
       }
-      if (state.playing) {
-        state.theta += omega() * DT;
-        render();
-      }
+      render();
     }
     function startRaf() { if (!rafId) rafId = requestAnimationFrame(tick); }
     function stopRaf() { if (rafId) { cancelAnimationFrame(rafId); rafId = null; } }
 
     function play() {
       if (state.cut) return;          // ต้อง reset ก่อนหมุนใหม่
-      state.playing = !state.playing;
-      if (state.playing) startRaf(); else { stopRaf(); render(); }
+      if (state.playing) {
+        state.phase = livePhase();
+        state.playing = false;
+        stopRaf();
+        render();
+      } else {
+        state.playing = true;
+        anchor();
+        startRaf();
+        render();
+      }
     }
 
     function cut() {
       if (state.cut) return;
-      var Rpx = radiusPx(), th = state.theta;
-      var bx = CX + Rpx * Math.cos(th), by = CY + Rpx * Math.sin(th);
-      var dir = { x: -Math.sin(th), y: Math.cos(th) };        // ทิศสัมผัส = ทิศ v
-      var rad = { x: Math.cos(th), y: Math.sin(th) };         // ทิศรัศมีออก (คำตอบผิด)
-      // ก้าวเดินหลังตัด = อัตราเร็วเชิงเส้นบนจอ (ต่อเนื่องกับความเร็วขณะหมุน)
-      var speedPx = Rpx * omega() * DT;
+      if (state.playing) state.phase = livePhase();
       state.cut = true;
-      state.playing = false;
-      state.cutPt = { x: bx, y: by };
-      state.cutDir = dir;
-      state.cutRadial = rad;
-      state.flightPos = { x: bx, y: by };
-      state.flightStep = { x: dir.x * speedPx, y: dir.y * speedPx };
+      state.cutAngle = state.phase;     // ตัดที่ θ ปัจจุบัน
+      state.playing = true;             // วัตถุเริ่มพุ่ง (แม้ตัดตอนหยุดอยู่ก็พุ่ง เหมือนเดิม)
+      anchor();
       startRaf();
       render();
     }
 
     function reset() {
       stopRaf();
-      state.theta = 0;
+      state.phase = 0;
       state.playing = false;
       state.cut = false;
-      state.cutPt = state.cutDir = state.cutRadial = state.flightPos = state.flightStep = null;
+      state.cutAngle = 0;
       render();
     }
 
-    function setR(r) {
-      state.r = clamp(r, rRange[0], rRange[1]);
-      if (state.cut) reset(); else render();
+    // cut เป็น state สัมบูรณ์: false = ยังไม่ตัด, ตัวเลข = ตัดที่ θ นั้น (rad). ไม่แตะ playing/เฟส — ให้ applyPlayState จัดการ
+    function getCut() { return state.cut ? state.cutAngle : false; }
+    function setCut(v) {
+      if (typeof v === 'number' && isFinite(v)) { state.cut = true; state.cutAngle = v; }
+      else { state.cut = false; state.cutAngle = 0; }
+      render();
     }
-    function setV(v) {
+
+    function getPlayState() {
+      return { playing: state.playing, t: state.playing ? livePhase() : state.phase };
+    }
+    // ps = {playing, t, elapsedMs}; t = เฟสสะสม (rad); หยุดอยู่ → ไม่สนใจ elapsedMs
+    function applyPlayState(ps) {
+      stopRaf();
+      if (ps.playing) {
+        state.phase = ps.t + omega() * TIME_SCALE * ((ps.elapsedMs || 0) / 1000);
+        state.playing = true;
+        anchor();
+        startRaf();
+      } else {
+        state.playing = false;
+        state.phase = ps.t;
+      }
+      render();
+    }
+
+    // opts.keepCut = true (ทางรับ sync จากครู): อัปเดตค่าโดยไม่ reset แม้ตัดเชือกแล้ว — ให้ param 'cut' และ player
+    // ที่ถูก apply ทีหลังตัดสินสถานะสุดท้าย (ไม่ผูกกับลำดับการ register). ผู้ใช้ลาก slider เอง (ไม่ส่ง opts) ยัง reset เหมือนเดิม
+    function setR(r, opts) {
+      settle();
+      state.r = clamp(r, rRange[0], rRange[1]);
+      if (state.cut && !(opts && opts.keepCut)) reset(); else { anchor(); render(); }
+    }
+    function setV(v, opts) {
+      settle();
       state.v = clamp(v, vRange[0], vRange[1]);
-      if (state.cut) reset(); else render();
+      if (state.cut && !(opts && opts.keepCut)) reset(); else { anchor(); render(); }
     }
     function setMass(m) {
       state.mass = clamp(m, massRange[0], massRange[1]);
@@ -218,6 +269,11 @@
 
     return {
       setR: setR, setV: setV, setMass: setMass,
+      getR: function () { return state.r; },
+      getV: function () { return state.v; },
+      getMass: function () { return state.mass; },
+      getCut: getCut, setCut: setCut,
+      getPlayState: getPlayState, applyPlayState: applyPlayState,
       play: play, cut: cut, reset: reset,
       isPlaying: function () { return state.playing; },
       isCut: function () { return state.cut; },
