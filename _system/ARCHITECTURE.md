@@ -135,7 +135,7 @@ Skill map ปัจจุบัน:
 **Room state:** `{ topicId, supported, params: {name: value}, play: {playing, t, serverT0}, camera }` — patch merge: `topicId` เปลี่ยน → ล้างที่เหลือ, `params` merge ราย key, ที่เหลือแทนทั้งก้อน
 Wire: client→relay `patch|close|ping`, relay→client `welcome|state|pong|closed`; HTTP `POST /rooms` → `{code, teacherToken}`, `GET /rooms/:code/ws?t=<token>`
 Throttle: patch ครู 50 ms + ส่งค่าสุดท้ายเสมอ, camera 66 ms; reconnect backoff 1000→2000→5000→10000 ms
-ไม่มี `seed` ใน state ตอนนี้ (ยังไม่ implement — ฟิลด์เวลาของ play คือ `t` ไม่ใช่ `simT0`)
+ไม่มี `seed` ใน state (ตัดสินใจแล้ว: sim ที่สุ่มใช้ seeded PRNG แบบ seed คงที่ฝังใน sim แทน — ฟิลด์เวลาของ play คือ `t` ไม่ใช่ `simT0`)
 
 **สัญญาของหน้าเรื่อง (Sync API):**
 - `Sync.param(name, {get, set, local?})` — ประกาศครบทุก control; `local: true` = ไม่ sync (เช่น เสียง)
@@ -144,14 +144,14 @@ Throttle: patch ครู 50 ms + ส่งค่าสุดท้ายเส�
 - `Sync.changed(name)` — เรียกใน handler ทุกตัวที่เปลี่ยนค่า (`'play'` และ `'camera'` เป็นชื่อพิเศษ); no-op ถ้าไม่ใช่ครู
 - ตัวอย่างอ้างอิง: `topics/projectile-motion/index.html` (param + player), `topics/right-hand-rule/index.html` (camera)
 
-**สัญญาของ sim (ที่เรียนรู้จาก 3 pilot):**
+**สัญญาของ sim (ที่เรียนรู้จาก pilot 3 เรื่องแรก แล้วใช้กับทุกเรื่อง):**
 - มี getter ของทุก param และ setter แบบ absolute (ห้ามมีแค่ toggle)
 - เวลาอิงนาฬิกาจริง (wall-clock) ไม่ใช่นับ frame
 - `getPlayState(): {playing, t}` และ `applyPlayState({playing, t, elapsedMs})` — `elapsedMs` ทำให้นักเรียนที่เข้าทีหลัง/ต่อใหม่กระโดดไปเวลาปัจจุบันของครู ไม่ใช่เริ่ม 0
 - sim ที่ integrate ทีละ step: ใช้ DT คงที่, จำกัด catch-up ต่อ callback (ไม่ re-anchor เวลา) และใช้ค่า max-ticks ร่วมกันทั้ง live loop กับ fast-forward (ดู `shared/sim/electric-field.js` หลัง fix `0845252`)
 - drag บน canvas รายงานผ่าน option `onParamChange(name)` ให้หน้าเรียก `Sync.changed`
 - sim 3 มิติ: `getView`/`setView` + option `onViewChange`; `setView` ต้องไม่ยิง `onViewChange` และไม่ sync ระยะซูม (zoom radius)
-- sim ที่สุ่ม (เช่น `gas-particles`, `heat-transfer`) ต้องเพิ่ม seeded PRNG + `seed` ใน state ตอนแปลง — ยังไม่ทำ
+- sim ที่สุ่ม (`gas-particles`, `heat-transfer`) ใช้ seeded PRNG (mulberry32) ด้วย seed คงที่ที่สร้างใหม่ทุกครั้งที่ init/reset — ทุกจอได้ layout เริ่มต้นเหมือนกัน แต่ microstate หลังจากนั้นอาจต่างกันได้ (ค่ามหภาคใน tile ต้องตรงกัน) ไม่ส่ง seed ผ่าน protocol
 
 **Dev/Verify**
 - relay: `cd _relay && npx wrangler@4 dev --port 8787` / deploy: `npx wrangler@4 deploy`

@@ -44,5 +44,5 @@ description: คลังแบบแผน simulation ที่ใช้ซ้�
 - sim ที่ integrate ทีละ step: DT คงที่ + จำกัด catch-up ต่อ callback (ห้าม re-anchor เวลา) + ค่า max-ticks เดียวที่ใช้ร่วมกันทั้ง live loop และ fast-forward (ดู `electric-field.js`)
 - drag บน canvas รายงานผ่าน option `onParamChange(name)`
 - sim 3 มิติ: `getView`/`setView` + option `onViewChange`; `setView` ต้องไม่ยิง `onViewChange` (กัน loop) และไม่ sync zoom radius (ดู `vector3d.js`)
-- **สุ่ม = ต้องใช้ seeded PRNG** (ไม่ใช้ `Math.random()` ตรงๆ) เพื่อให้ทุกจอได้ผลเหมือนกัน — `seed` ยังไม่ implement ใน state ของ sync ต้องเพิ่มตอนแปลง `gas-particles`/`heat-transfer`
+- **สุ่ม = ต้องใช้ seeded PRNG** (mulberry32, seed คงที่ที่สร้างใหม่ทุกครั้งที่ init/reset; ไม่ใช้ `Math.random()` ตรงๆ) เพื่อให้ layout เริ่มต้นเหมือนกันทุกจอ — ไม่ส่ง seed ผ่าน protocol (ดู `shared/sim/gas-particles.js`) · ค่าที่ลดลงต่อเฟรมต้องคิดตาม `dt` (เช่น `Math.pow(k, dt*60)`) ไม่งั้นจอ 120 Hz กับ 60 Hz จะได้ค่าต่างกัน
 - สัญญาเต็มและเหตุผล: `_system/ARCHITECTURE.md` §8
