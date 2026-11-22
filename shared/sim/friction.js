@@ -180,14 +180,23 @@
     }
 
     // เริ่มช่วงใหม่: origin = สถานะปัจจุบัน, นับ tick จาก 0
+    // เก็บเศษเวลาที่ยังไม่ครบ 1 tick (loop ทำงานตลอด) ไว้ ไม่ทิ้ง — ลากสไลเดอร์ถี่ๆ กล่องต้องไม่ช้าลง
+    function flushDue() { // ทำ tick ที่ค้างด้วยค่าเดิม ก่อนผู้เรียกเปลี่ยนค่า
+      var ticksDue = baseTicks + Math.floor((nowMs() - wallStart) / 16);
+      var n = 0;
+      while (tickCount < ticksDue && tickCount < MAX_TICKS && n < MAX_STEPS_PER_CALLBACK) { stepPhysics(DT); tickCount++; n++; }
+    }
     function beginSegment() {
+      var now = nowMs();
+      var rem = Math.max(0, (now - wallStart) - (tickCount - baseTicks) * 16);
       origin = { x: state.x, v: state.v, seq: origin.seq + 1 };
-      tickCount = 0; baseTicks = 0; wallStart = nowMs();
+      tickCount = 0; baseTicks = 0; wallStart = now - rem;
     }
 
     function setPushing(p) {
       p = !!p;
       if (p === state.pushing) return false;
+      flushDue();
       state.pushing = p;
       beginSegment();
       return true;
@@ -195,23 +204,24 @@
     function getPushing() { return state.pushing; }
     function setFPush(f) {
       f = clamp(f, fRange[0], fRange[1]);
-      if (f !== state.fPush) { state.fPush = f; beginSegment(); }
+      if (f !== state.fPush) { flushDue(); state.fPush = f; beginSegment(); }
       if (!Math.abs(state.v)) render();
     }
     function getFPush() { return state.fPush; }
     function setMu(m) {
       m = clamp(m, muRange[0], muRange[1]);
-      if (m !== state.mu) { state.mu = m; beginSegment(); }
+      if (m !== state.mu) { flushDue(); state.mu = m; beginSegment(); }
     }
     function getMu() { return state.mu; }
     function setMass(m) {
       m = clamp(m, massRange[0], massRange[1]);
-      if (m !== state.mass) { state.mass = m; beginSegment(); }
+      if (m !== state.mass) { flushDue(); state.mass = m; beginSegment(); }
       render();
     }
     function getMass() { return state.mass; }
 
     function reset() {
+      flushDue();
       state.x = 0; state.v = 0; state.a = 0; state.net = 0; state.friction = 0;
       state.pushing = false;
       beginSegment();

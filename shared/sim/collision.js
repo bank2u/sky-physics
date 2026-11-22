@@ -97,10 +97,13 @@
       state.pos1 = o.pos1; state.pos2 = o.pos2; state.vel1 = o.vel1; state.vel2 = o.vel2; state.collided = o.collided;
       state.impulseTimer = o.impulseTimer; state.contactX = o.contactX; state.dir1 = o.dir1; state.impulseMag = o.impulseMag;
     }
-    function beginSegment() {
+    // carry=true (เรียกระหว่างเล่นจากการเปลี่ยนค่า): เก็บเศษเวลาที่ยังไม่ครบ 1 tick ไว้ ไม่ทิ้ง — ลากสไลเดอร์ถี่ๆ รถต้องไม่ช้าลง
+    function beginSegment(carry) {
+      var now = nowMs();
+      var rem = carry ? Math.max(0, (now - wallStart) - (tickCount - baseTicks) * 16) : 0;
       originSeq++;
       origin = snapDyn();
-      tickCount = 0; baseTicks = 0; wallStart = nowMs();
+      tickCount = 0; baseTicks = 0; wallStart = now - rem;
     }
 
     container.innerHTML = '';
@@ -304,6 +307,15 @@
       if (ended) onEnd();
     }
 
+    // ทำ tick ที่ครบกำหนดตามค่าเดิมก่อนเปลี่ยนค่า (ระหว่างเล่น) แล้วค่อยเริ่มช่วงใหม่
+    function flushDue() {
+      if (!state.playing) return;
+      var ticksDue = baseTicks + Math.floor((nowMs() - wallStart) / 16);
+      var n = 0;
+      while (state.playing && tickCount < ticksDue && n < MAX_STEPS_PER_CALLBACK) { stepTick(); n++; }
+      if (!state.playing) { stopTimer(); render(); onEnd(); }
+    }
+
     function play() {
       if (state.playing) { pause(); return; }
       // ถ้าจบรอบแล้ว (ชนและออกนอกจอ) เริ่มใหม่
@@ -332,18 +344,41 @@
 
     function applyChange() {
       if (!state.playing) { resetPositions(); }
-      beginSegment(); // ระหว่างเล่น ค่าใหม่มีผลต่อการชน → เริ่มช่วงใหม่จากสถานะปัจจุบัน
+      beginSegment(state.playing); // ระหว่างเล่น ค่าใหม่มีผลต่อการชน → เริ่มช่วงใหม่จากสถานะปัจจุบัน (เก็บเศษเวลาไว้)
       render();
     }
 
-    function setM1(v) { state.m1 = clamp(v, massRange[0], massRange[1]); applyChange(); }
-    function setM2(v) { state.m2 = clamp(v, massRange[0], massRange[1]); applyChange(); }
-    function setU1(v) { state.u1 = clamp(v, velRange[0], velRange[1]); applyChange(); }
-    function setU2(v) { state.u2 = clamp(v, velRange[0], velRange[1]); applyChange(); }
-    function setE(v) { state.e = clamp(v, eRange[0], eRange[1]); applyChange(); }
+    function setM1(v) {
+      var nv = clamp(v, massRange[0], massRange[1]);
+      if (state.playing && nv === state.m1) return; // ค่าไม่เปลี่ยน → ไม่เริ่มช่วงใหม่
+      flushDue(); state.m1 = nv; applyChange();
+    }
+    function setM2(v) {
+      var nv = clamp(v, massRange[0], massRange[1]);
+      if (state.playing && nv === state.m2) return; // ค่าไม่เปลี่ยน → ไม่เริ่มช่วงใหม่
+      flushDue(); state.m2 = nv; applyChange();
+    }
+    function setU1(v) {
+      var nv = clamp(v, velRange[0], velRange[1]);
+      if (state.playing && nv === state.u1) return; // ค่าไม่เปลี่ยน → ไม่เริ่มช่วงใหม่
+      flushDue(); state.u1 = nv; applyChange();
+    }
+    function setU2(v) {
+      var nv = clamp(v, velRange[0], velRange[1]);
+      if (state.playing && nv === state.u2) return; // ค่าไม่เปลี่ยน → ไม่เริ่มช่วงใหม่
+      flushDue(); state.u2 = nv; applyChange();
+    }
+    function setE(v) {
+      var nv = clamp(v, eRange[0], eRange[1]);
+      if (state.playing && nv === state.e) return; // ค่าไม่เปลี่ยน → ไม่เริ่มช่วงใหม่
+      flushDue(); state.e = nv; applyChange();
+    }
     function setTimeScale(v) {
-      state.timeScale = clamp(v, timeScaleRange[0], timeScaleRange[1]);
-      if (state.playing) beginSegment(); // อัตราเวลาเปลี่ยนกลางทาง → ช่วงใหม่ (tick ต่อไปใช้อัตราใหม่)
+      var nv = clamp(v, timeScaleRange[0], timeScaleRange[1]);
+      if (state.playing && nv === state.timeScale) return;
+      flushDue();
+      state.timeScale = nv;
+      if (state.playing) beginSegment(true); // อัตราเวลาเปลี่ยนกลางทาง → ช่วงใหม่ (tick ต่อไปใช้อัตราใหม่ เก็บเศษเวลาไว้)
       render();
     }
 
