@@ -227,17 +227,29 @@
     sim.setMass(m);
   }
 
-  wireTrack(document.getElementById('f-track'), F_MIN, F_MAX, applyF);
-  wireTrack(document.getElementById('mu-track'), MU_MIN, MU_MAX, applyMu);
-  wireTrack(document.getElementById('mass-track'), M_MIN, M_MAX, applyMass);
+  // ช่วงการเคลื่อนที่ใหม่ (origin) เริ่มทุกครั้งที่ค่าเปลี่ยน — ต้องส่ง motion + play ตามหลังเสมอ
+  function syncSegment() { Sync.changed('motion'); Sync.changed('play'); }
+
+  wireTrack(document.getElementById('f-track'), F_MIN, F_MAX, function (v) { applyF(v); Sync.changed('fPush'); syncSegment(); });
+  wireTrack(document.getElementById('mu-track'), MU_MIN, MU_MAX, function (v) { applyMu(v); Sync.changed('mu'); syncSegment(); });
+  wireTrack(document.getElementById('mass-track'), M_MIN, M_MAX, function (v) { applyMass(v); Sync.changed('mass'); syncSegment(); });
 
   // init slider fills
   applyF(25); applyMass(2); applyMu(0.3);
 
   // ปุ่มผลัก: กดค้าง = ออกแรง, ปล่อย = หยุดออกแรง (แรงเสียดทานทำงานต่อ)
   var pushBtn = document.getElementById('push-btn');
-  function startPush(e) { e.preventDefault(); sim.setPushing(true); pushBtn.classList.add('is-pushing'); }
-  function endPush() { sim.setPushing(false); pushBtn.classList.remove('is-pushing'); }
+  function startPush(e) {
+    e.preventDefault();
+    var changed = sim.setPushing(true);
+    pushBtn.classList.add('is-pushing');
+    if (changed) { Sync.changed('pushing'); syncSegment(); }
+  }
+  function endPush() {
+    var changed = sim.setPushing(false);
+    pushBtn.classList.remove('is-pushing');
+    if (changed) { Sync.changed('pushing'); syncSegment(); }
+  }
   pushBtn.addEventListener('pointerdown', startPush);
   pushBtn.addEventListener('pointerup', endPush);
   pushBtn.addEventListener('pointerleave', endPush);
@@ -245,7 +257,21 @@
 
   document.getElementById('reset-btn').addEventListener('click', function () {
     sim.reset();
+    pushBtn.classList.remove('is-pushing');
+    Sync.changed('pushing'); syncSegment();
   });
+
+  // ค่า "กำลังผลัก" เป็น boolean สัมบูรณ์ — นักเรียนเห็นแค่ผลลัพธ์ (ปุ่มเป็นของครู) ไม่มีปุ่มค้างฝั่งนักเรียน
+  Sync.param('fPush', { get: sim.getFPush, set: applyF });
+  Sync.param('mu', { get: sim.getMu, set: applyMu });
+  Sync.param('mass', { get: sim.getMass, set: applyMass });
+  Sync.param('pushing', { get: sim.getPushing, set: function (v) {
+    sim.setPushing(v);
+    pushBtn.classList.toggle('is-pushing', !!v);
+  } });
+  // ต้องลงทะเบียนหลัง param อื่น: apply ตามลำดับ แล้ว motion (origin) ทับสถานะของช่วงที่ setter เพิ่งเริ่มเอง
+  Sync.param('motion', { get: sim.getMotion, set: sim.setMotion });
+  Sync.player({ get: sim.getPlayState, apply: sim.applyPlayState });
 </script>
 </body>
 </html>

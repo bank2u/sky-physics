@@ -54,6 +54,10 @@
       playing: true
     };
     var timer = null;
+    /* เวลาคลื่นมาจากนาฬิกาจริง (ไม่สะสมต่อเฟรม): t = tStart + (now - wallStart) ขณะเล่น — นักเรียนที่เข้า/ต่อใหม่กลางทางจึงกระโดดไปเวลาของครูได้ */
+    var tStart = 0, wallStart = 0;
+    function nowMs() { return (typeof performance !== 'undefined' ? performance.now() : Date.now()); }
+    function timeNow() { return state.playing ? tStart + (nowMs() - wallStart) / 1000 : tStart; }
 
     container.innerHTML = '';
     var svg = document.createElementNS(SVG_NS, 'svg');
@@ -159,6 +163,7 @@
     }
 
     function render() {
+      state.t = timeNow();
       var vals = computeValues();
 
       var svgContent = '';
@@ -209,36 +214,55 @@
     }
 
     function tick() {
-      state.t += 0.016;
       render();
     }
 
-    function play() {
-      state.playing = true;
-      if (timer) return;
-      timer = setInterval(tick, 16);
+    function setPlaying(on) {
+      on = !!on;
+      if (on === state.playing) { render(); return; }
+      if (on) {
+        tStart = state.t; wallStart = nowMs();
+        state.playing = true;
+        if (!timer) timer = setInterval(tick, 16);
+      } else {
+        tStart = timeNow();
+        state.playing = false;
+        if (timer) { clearInterval(timer); timer = null; }
+      }
       render();
     }
 
-    function pause() {
-      state.playing = false;
-      if (timer) { clearInterval(timer); timer = null; }
-      render();
-    }
-
-    function toggle() {
-      if (state.playing) pause(); else play();
-    }
+    function play() { setPlaying(true); }
+    function pause() { setPlaying(false); }
+    function toggle() { setPlaying(!state.playing); }
 
     function reset() {
-      state.t = 0;
+      tStart = 0; wallStart = nowMs();
+      render();
+    }
+
+    function getPlayState() {
+      return { playing: state.playing, t: timeNow() };
+    }
+
+    function applyPlayState(ps) {
+      var t = ps.t || 0;
+      if (ps.playing) t += (ps.elapsedMs || 0) / 1000; // หยุดอยู่ = ไม่สนใจ elapsedMs
+      tStart = t; wallStart = nowMs();
+      state.playing = !!ps.playing;
+      if (state.playing) { if (!timer) timer = setInterval(tick, 16); }
+      else if (timer) { clearInterval(timer); timer = null; }
       render();
     }
 
     function setF(v) { state.f = clamp(v, fRange[0], fRange[1]); render(); }
     function setA(v) { state.A = clamp(v, aRange[0], aRange[1]); render(); }
     function setD(v) { state.d = clamp(v, dRange[0], dRange[1]); render(); }
+    function getF() { return state.f; }
+    function getA() { return state.A; }
+    function getD() { return state.d; }
 
+    wallStart = nowMs();
     render();
     if (state.playing) { timer = setInterval(tick, 16); }
 
@@ -249,7 +273,11 @@
       play: play,
       pause: pause,
       toggle: toggle,
+      setPlaying: setPlaying,
       reset: reset,
+      getF: getF, getA: getA, getD: getD,
+      getPlayState: getPlayState,
+      applyPlayState: applyPlayState,
       isPlaying: function () { return state.playing; },
       destroy: function () { if (timer) clearInterval(timer); }
     };

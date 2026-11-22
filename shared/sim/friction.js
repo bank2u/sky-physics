@@ -27,7 +27,17 @@
       net: 0, friction: 0, a: 0
     };
     var timer = null;
-    var lastT = 0;
+
+    /* ---- เวลาแบบ fixed-step (deterministic) ----
+       1 tick = 16 ms จริง = DT วินาทีในฟิสิกส์ — ใช้ตัวเดียวกันทั้ง live loop และ fast-forward ฝั่งนักเรียน
+       การเคลื่อนที่ขึ้นกับประวัติ (แรงผลักเปลี่ยนเป็นช่วงๆ) จึงเก็บ "origin" = สถานะ (x,v) ณ จุดที่ช่วงปัจจุบันเริ่ม
+       (เริ่มช่วงใหม่ทุกครั้งที่ pushing/fPush/mu/mass/reset เปลี่ยน) แล้ว replay จาก origin ด้วยจำนวน tick เท่ากับของครู */
+    var DT = 0.016;
+    var MAX_TICKS = 700000;            // ~3 ชม. (เท่าอายุห้อง) — ใช้ร่วม live loop และ fast-forward
+    var MAX_STEPS_PER_CALLBACK = 200;  // กันค้างหลังแท็บถูกพัก: ที่เหลือทำต่อ callback ถัดไป (ไม่ re-anchor)
+    var origin = { x: 0, v: 0, seq: 0 };
+    var tickCount = 0, baseTicks = 0, wallStart = 0;
+    function nowMs() { return (typeof performance !== 'undefined' ? performance.now() : Date.now()); }
 
     container.innerHTML = '';
     var svg = document.createElementNS(SVG_NS, 'svg');
@@ -157,28 +167,74 @@
 
     /* ---- loop (เดินตลอด เพื่อให้แรงเสียดทานหน่วงแบบเรียลไทม์) ---- */
     function loop() {
-      var now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
-      var dt = (now - lastT) / 1000;
-      lastT = now;
-      if (dt > 0.05) dt = 0.05; // กัน spike ตอนสลับแท็บ
-      stepPhysics(dt);
+      var ticksDue = baseTicks + Math.floor((nowMs() - wallStart) / 16);
+      var n = 0;
+      while (tickCount < ticksDue && tickCount < MAX_TICKS && n < MAX_STEPS_PER_CALLBACK) { stepPhysics(DT); tickCount++; n++; }
       render();
     }
 
     function start() {
       if (timer) return;
-      lastT = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+      wallStart = nowMs();
       timer = setInterval(loop, 16);
     }
 
-    function setPushing(p) { state.pushing = !!p; }
-    function setFPush(f) { state.fPush = clamp(f, fRange[0], fRange[1]); if (!Math.abs(state.v)) render(); }
-    function setMu(m) { state.mu = clamp(m, muRange[0], muRange[1]); }
-    function setMass(m) { state.mass = clamp(m, massRange[0], massRange[1]); render(); }
+    // เริ่มช่วงใหม่: origin = สถานะปัจจุบัน, นับ tick จาก 0
+    function beginSegment() {
+      origin = { x: state.x, v: state.v, seq: origin.seq + 1 };
+      tickCount = 0; baseTicks = 0; wallStart = nowMs();
+    }
+
+    function setPushing(p) {
+      p = !!p;
+      if (p === state.pushing) return false;
+      state.pushing = p;
+      beginSegment();
+      return true;
+    }
+    function getPushing() { return state.pushing; }
+    function setFPush(f) {
+      f = clamp(f, fRange[0], fRange[1]);
+      if (f !== state.fPush) { state.fPush = f; beginSegment(); }
+      if (!Math.abs(state.v)) render();
+    }
+    function getFPush() { return state.fPush; }
+    function setMu(m) {
+      m = clamp(m, muRange[0], muRange[1]);
+      if (m !== state.mu) { state.mu = m; beginSegment(); }
+    }
+    function getMu() { return state.mu; }
+    function setMass(m) {
+      m = clamp(m, massRange[0], massRange[1]);
+      if (m !== state.mass) { state.mass = m; beginSegment(); }
+      render();
+    }
+    function getMass() { return state.mass; }
 
     function reset() {
       state.x = 0; state.v = 0; state.a = 0; state.net = 0; state.friction = 0;
       state.pushing = false;
+      beginSegment();
+      render();
+    }
+
+    // origin ของช่วงปัจจุบัน (ส่งเป็น param 'motion' เพื่อให้นักเรียน replay จากจุดเดียวกัน)
+    function getMotion() { return { x: origin.x, v: origin.v, seq: origin.seq }; }
+    function setMotion(m) {
+      origin = { x: m.x, v: m.v, seq: m.seq };
+      state.x = m.x; state.v = m.v;
+      tickCount = 0; baseTicks = 0; wallStart = nowMs();
+      render();
+    }
+
+    function getPlayState() { return { playing: true, t: tickCount }; }
+    function applyPlayState(ps) {
+      // replay จาก origin ด้วยฟิสิกส์ชุดเดียวกับครู (params ของช่วงนี้ถูก apply มาก่อนแล้ว)
+      state.x = origin.x; state.v = origin.v;
+      var n = Math.min(MAX_TICKS, (ps.t || 0) + Math.floor((ps.elapsedMs || 0) / 16));
+      tickCount = 0;
+      for (var i = 0; i < n; i++) { stepPhysics(DT); tickCount++; }
+      baseTicks = tickCount; wallStart = nowMs();
       render();
     }
 
@@ -190,6 +246,9 @@
       setMu: setMu,
       setMass: setMass,
       setPushing: setPushing,
+      getPushing: getPushing, getFPush: getFPush, getMu: getMu, getMass: getMass,
+      getMotion: getMotion, setMotion: setMotion,
+      getPlayState: getPlayState, applyPlayState: applyPlayState,
       reset: reset,
       destroy: function () { if (timer) { clearInterval(timer); timer = null; } }
     };

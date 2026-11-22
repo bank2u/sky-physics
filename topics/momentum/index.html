@@ -180,6 +180,7 @@
     velRange: [U_MIN, U_MAX],
     eRange: [E_MIN, E_MAX],
     timeScaleRange: [T_MIN, T_MAX],
+    onEnd: function () { Sync.changed('play'); }, // รอบเล่นจบเอง (รถออกนอกจอ) → แจ้งนักเรียนให้หยุดที่สถานะเดียวกัน
     onUpdate: function (vals) {
       document.getElementById('tile-p-before').innerHTML = vals.pBefore.toFixed(1) + '<span class="tile__unit">kg·m/s</span>';
       document.getElementById('tile-p-after').innerHTML = vals.pAfter.toFixed(1) + '<span class="tile__unit">kg·m/s</span>';
@@ -243,33 +244,59 @@
     });
   }
 
+  // ทุกค่าที่เปลี่ยนเริ่ม "ช่วง" ใหม่ในซิม (origin) → ส่ง param + run (origin) + play ตามหลังเสมอ
+  function changedParam(name) { Sync.changed(name); Sync.changed('run'); Sync.changed('play'); }
+
   wireTrack(document.getElementById('e-track'), E_MIN, E_MAX, function (v) {
     sim.setE(Math.round(v * 100) / 100);
+    changedParam('e');
   });
   wireTrack(document.getElementById('m1-track'), M_MIN, M_MAX, function (v) {
     sim.setM1(Math.round(v * 10) / 10);
+    changedParam('m1');
   });
   wireTrack(document.getElementById('m2-track'), M_MIN, M_MAX, function (v) {
     sim.setM2(Math.round(v * 10) / 10);
+    changedParam('m2');
   });
   wireTrack(document.getElementById('u1-track'), U_MIN, U_MAX, function (v) {
     sim.setU1(Math.round(v * 10) / 10);
+    changedParam('u1');
   });
   wireTrack(document.getElementById('u2-track'), U_MIN, U_MAX, function (v) {
     sim.setU2(Math.round(v * 10) / 10);
+    changedParam('u2');
   });
   wireTrack(document.getElementById('time-track'), T_MIN, T_MAX, function (v) {
     sim.setTimeScale(Math.round(v * 10) / 10);
+    changedParam('timeScale');
   });
 
   document.getElementById('modeTabs').addEventListener('click', function (e) {
     var btn = e.target.closest('button[data-mode]');
     if (!btn) return;
     sim.setE(btn.dataset.mode === 'elastic' ? 1 : 0);
+    changedParam('e');
   });
 
-  document.getElementById('play-btn').addEventListener('click', function () { sim.play(); });
-  document.getElementById('reset-btn').addEventListener('click', function () { sim.reset(); });
+  document.getElementById('play-btn').addEventListener('click', function () {
+    sim.play();
+    Sync.changed('run'); Sync.changed('play');
+  });
+  document.getElementById('reset-btn').addEventListener('click', function () {
+    sim.reset();
+    Sync.changed('run'); Sync.changed('play');
+  });
+
+  Sync.param('e', { get: sim.getE, set: sim.setE });
+  Sync.param('m1', { get: sim.getM1, set: sim.setM1 });
+  Sync.param('m2', { get: sim.getM2, set: sim.setM2 });
+  Sync.param('u1', { get: sim.getU1, set: sim.setU1 });
+  Sync.param('u2', { get: sim.getU2, set: sim.setU2 });
+  Sync.param('timeScale', { get: sim.getTimeScale, set: sim.setTimeScale });
+  // ลงทะเบียนหลัง param อื่น: setter ข้างบนเริ่มช่วงของตัวเอง แล้ว run (origin ของครู) ทับ
+  Sync.param('run', { get: sim.getRun, set: sim.setRun });
+  Sync.player({ get: sim.getPlayState, apply: sim.applyPlayState });
 </script>
 </body>
 </html>

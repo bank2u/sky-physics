@@ -189,16 +189,24 @@
 
   wireTrack(document.getElementById('f-track'), F_MIN, F_MAX, function (v) {
     sim.setF(Math.round(v * 2) / 2);
+    Sync.changed('f');
   });
   wireTrack(document.getElementById('a-track'), A_MIN, A_MAX, function (v) {
     sim.setA(Math.round(v * 10) / 10);
+    Sync.changed('a');
   });
   wireTrack(document.getElementById('d-track'), D_MIN, D_MAX, function (v) {
     sim.setD(Math.round(v * 10) / 10);
+    Sync.changed('d');
   });
 
-  document.getElementById('play-btn').addEventListener('click', function () { sim.toggle(); });
-  document.getElementById('reset-btn').addEventListener('click', function () { sim.reset(); });
+  document.getElementById('play-btn').addEventListener('click', function () { sim.toggle(); Sync.changed('play'); });
+  document.getElementById('reset-btn').addEventListener('click', function () { sim.reset(); Sync.changed('play'); });
+
+  Sync.param('f', { get: sim.getF, set: sim.setF });
+  Sync.param('a', { get: sim.getA, set: sim.setA });
+  Sync.param('d', { get: sim.getD, set: sim.setD });
+  Sync.player({ get: sim.getPlayState, apply: sim.applyPlayState });
 </script>
 </body>
 </html>

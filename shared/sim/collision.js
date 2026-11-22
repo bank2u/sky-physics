@@ -59,6 +59,7 @@
     var eRange = options.eRange || [0, 1];
     var timeScaleRange = options.timeScaleRange || [0.1, 1.0];
     var onUpdate = options.onUpdate || function () {};
+    var onEnd = options.onEnd || function () {}; // เรียกเมื่อรอบเล่นจบเอง (รถออกนอกจอ) เพื่อให้หน้าแจ้ง Sync
 
     var state = {
       m1: clamp(options.m1 != null ? options.m1 : 4, massRange[0], massRange[1]),
@@ -76,7 +77,31 @@
       impulseMag: 0,
       playing: false
     };
-    var rafId = null, lastTs = null;
+    var timer = null;
+
+    /* ---- เวลาแบบ fixed-step (deterministic) ----
+       1 tick = 16 ms จริง = TICK_S * timeScale วินาทีในซิม (timeScale คงที่ภายใน 1 "ช่วง")
+       การชนขึ้นกับประวัติ จึงเก็บ origin = snapshot สถานะของรถ ณ จุดเริ่มช่วงปัจจุบัน
+       ช่วงใหม่เริ่มเมื่อ: กดเล่น, reset, เปลี่ยนค่า (m/u/e/timeScale) ระหว่างเล่น แล้ว replay จาก origin ด้วยจำนวน tick ของครู */
+    var TICK_S = 0.016;
+    var MAX_RUN_TICKS = 200000;         // ~53 นาที — ใช้ร่วม live loop และ fast-forward (รอบที่ไม่เคยชน/ออกจอจะหยุดเองที่นี่)
+    var MAX_STEPS_PER_CALLBACK = 200;   // กันค้างหลังแท็บถูกพัก: ที่เหลือทำต่อ callback ถัดไป (ไม่ re-anchor)
+    var origin = null, originSeq = 0;
+    var tickCount = 0, baseTicks = 0, wallStart = 0;
+    function nowMs() { return (typeof performance !== 'undefined' ? performance.now() : Date.now()); }
+    function snapDyn() {
+      return { pos1: state.pos1, pos2: state.pos2, vel1: state.vel1, vel2: state.vel2, collided: state.collided,
+        impulseTimer: state.impulseTimer, contactX: state.contactX, dir1: state.dir1, impulseMag: state.impulseMag, seq: originSeq };
+    }
+    function loadDyn(o) {
+      state.pos1 = o.pos1; state.pos2 = o.pos2; state.vel1 = o.vel1; state.vel2 = o.vel2; state.collided = o.collided;
+      state.impulseTimer = o.impulseTimer; state.contactX = o.contactX; state.dir1 = o.dir1; state.impulseMag = o.impulseMag;
+    }
+    function beginSegment() {
+      originSeq++;
+      origin = snapDyn();
+      tickCount = 0; baseTicks = 0; wallStart = nowMs();
+    }
 
     container.innerHTML = '';
     var svg = document.createElementNS(SVG_NS, 'svg');
@@ -256,17 +281,27 @@
 
       // หยุดเมื่อรถออกนอกจอ
       if (state.pos1 < LEFT_BOUND || state.pos1 > RIGHT_BOUND || state.pos2 < LEFT_BOUND || state.pos2 > RIGHT_BOUND) {
-        pause();
+        state.playing = false; // จบรอบเอง — ผู้เรียก (live loop / fast-forward) เป็นคนหยุด timer และแจ้ง onEnd
       }
     }
 
-    function tick(ts) {
-      if (lastTs == null) lastTs = ts;
-      var dtReal = Math.min(0.05, (ts - lastTs) / 1000);
-      lastTs = ts;
-      step(dtReal * state.timeScale);
+    function stepTick() {
+      step(TICK_S * state.timeScale);
+      tickCount++;
+      if (state.playing && tickCount >= MAX_RUN_TICKS) state.playing = false;
+    }
+
+    function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+
+    // ตามเวลาจริง: ทำ tick ให้ครบ ticksDue (ไม่ render ระหว่างวน) แล้ว render ครั้งเดียว
+    function tick() {
+      var ticksDue = baseTicks + Math.floor((nowMs() - wallStart) / 16);
+      var n = 0;
+      while (state.playing && tickCount < ticksDue && n < MAX_STEPS_PER_CALLBACK) { stepTick(); n++; }
+      var ended = !state.playing;
+      if (ended) stopTimer();
       render();
-      if (state.playing) rafId = requestAnimationFrame(tick);
+      if (ended) onEnd();
     }
 
     function play() {
@@ -276,25 +311,28 @@
       state.vel1 = state.collided ? state.vel1 : state.u1;
       state.vel2 = state.collided ? state.vel2 : state.u2;
       state.playing = true;
-      lastTs = null;
-      rafId = requestAnimationFrame(tick);
+      beginSegment();
+      stopTimer();
+      timer = setInterval(tick, 16);
     }
 
     function pause() {
-      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      stopTimer();
       state.playing = false;
       render();
     }
 
     function reset() {
-      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      stopTimer();
       state.playing = false;
       resetPositions();
+      beginSegment();
       render();
     }
 
     function applyChange() {
       if (!state.playing) { resetPositions(); }
+      beginSegment(); // ระหว่างเล่น ค่าใหม่มีผลต่อการชน → เริ่มช่วงใหม่จากสถานะปัจจุบัน
       render();
     }
 
@@ -303,16 +341,50 @@
     function setU1(v) { state.u1 = clamp(v, velRange[0], velRange[1]); applyChange(); }
     function setU2(v) { state.u2 = clamp(v, velRange[0], velRange[1]); applyChange(); }
     function setE(v) { state.e = clamp(v, eRange[0], eRange[1]); applyChange(); }
-    function setTimeScale(v) { state.timeScale = clamp(v, timeScaleRange[0], timeScaleRange[1]); render(); }
+    function setTimeScale(v) {
+      state.timeScale = clamp(v, timeScaleRange[0], timeScaleRange[1]);
+      if (state.playing) beginSegment(); // อัตราเวลาเปลี่ยนกลางทาง → ช่วงใหม่ (tick ต่อไปใช้อัตราใหม่)
+      render();
+    }
+
+    /* ---- getter สัมบูรณ์ + player สำหรับ Sync ---- */
+    function getPlayState() { return { playing: state.playing, t: tickCount }; }
+
+    // origin ของช่วงปัจจุบัน (param 'run') — นักเรียน replay จากจุดเดียวกัน
+    function getRun() { return origin; }
+    function setRun(o) {
+      origin = o; originSeq = o.seq;
+      loadDyn(o);
+      tickCount = 0; baseTicks = 0; wallStart = nowMs();
+      render();
+    }
+
+    function applyPlayState(ps) {
+      stopTimer();
+      loadDyn(origin);
+      tickCount = 0;
+      var n = Math.min(MAX_RUN_TICKS, (ps.t || 0) + (ps.playing ? Math.floor((ps.elapsedMs || 0) / 16) : 0)); // หยุดอยู่ = ไม่สนใจ elapsedMs
+      state.playing = true;
+      for (var i = 0; i < n && state.playing; i++) stepTick();
+      if (!ps.playing) state.playing = false;
+      if (state.playing) { baseTicks = tickCount; wallStart = nowMs(); timer = setInterval(tick, 16); }
+      render();
+    }
 
     resetPositions();
+    beginSegment();
     render();
 
     return {
       setM1: setM1, setM2: setM2, setU1: setU1, setU2: setU2, setE: setE, setTimeScale: setTimeScale,
       play: play, pause: pause, reset: reset,
       isPlaying: function () { return state.playing; },
-      destroy: function () { if (rafId) cancelAnimationFrame(rafId); }
+      getM1: function () { return state.m1; }, getM2: function () { return state.m2; },
+      getU1: function () { return state.u1; }, getU2: function () { return state.u2; },
+      getE: function () { return state.e; }, getTimeScale: function () { return state.timeScale; },
+      getRun: getRun, setRun: setRun,
+      getPlayState: getPlayState, applyPlayState: applyPlayState,
+      destroy: stopTimer
     };
   }
 
