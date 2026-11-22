@@ -142,20 +142,33 @@
 
   wireTrack(document.getElementById('source-track'), SRC_MIN, SRC_MAX, function (v) {
     sim.setSourceTemp(Math.round(v));
+    Sync.changed('source');
   });
   wireTrack(document.getElementById('target-track'), TGT_MIN, TGT_MAX, function (v) {
     sim.setTargetTemp(Math.round(v));
+    Sync.changed('target');
   });
 
   var modeTabs = document.getElementById('modeTabs');
   modeTabs.addEventListener('click', function (e) {
     var btn = e.target.closest('button[data-mode]');
     if (!btn) return;
-    Array.prototype.forEach.call(modeTabs.querySelectorAll('button'), function (b) {
-      b.classList.toggle('is-active', b === btn);
-    });
-    sim.setMode(btn.dataset.mode);
+    applyMode(btn.dataset.mode);
+    Sync.changed('mode');
   });
+
+  /* sync class is-active ของแท็บโหมด + sim — ใช้ทั้ง handler และ Sync */
+  function applyMode(mode) {
+    sim.setMode(mode);
+    var m = sim.getMode();
+    Array.prototype.forEach.call(modeTabs.querySelectorAll('button'), function (b) {
+      b.classList.toggle('is-active', b.dataset.mode === m);
+    });
+  }
+
+  Sync.param('mode', { get: sim.getMode, set: applyMode });
+  Sync.param('source', { get: sim.getSourceTemp, set: sim.setSourceTemp });
+  Sync.param('target', { get: sim.getTargetTemp, set: sim.setTargetTemp });
 </script>
 </body>
 </html>

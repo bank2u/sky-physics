@@ -20,6 +20,17 @@
 
   function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
 
+  /* PRNG แบบ seeded (mulberry32) — seed คงที่ สร้างใหม่ทุกครั้งที่ spawn อนุภาค เพื่อให้ layout เริ่มต้นเหมือนกันทุกเครื่อง (live sync) */
+  var SEED = 20240611;
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
   /* ---- geometry คงที่ (viewBox 700x640) ---- */
   var BOX_LEFT = 70, BOX_TOP = 30, BOX_H = 230, BOX_W_MAX = 380;
   var BOX_BOTTOM = BOX_TOP + BOX_H; // 260
@@ -67,17 +78,19 @@
       return { left: BOX_LEFT, top: BOX_TOP, right: BOX_LEFT + w, bottom: BOX_BOTTOM, width: w, height: BOX_H };
     }
 
-    function randomAngle() { return Math.random() * Math.PI * 2; }
+    var rand = mulberry32(SEED);
+    function randomAngle() { return rand() * Math.PI * 2; }
 
     function spawnParticles(n) {
+      rand = mulberry32(SEED);
       var rect = boxRect();
       var list = [];
       for (var i = 0; i < n; i++) {
         var pos = null;
         for (var attempt = 0; attempt < 24; attempt++) {
           var cand = {
-            x: rect.left + PARTICLE_R + Math.random() * (rect.width - 2 * PARTICLE_R),
-            y: rect.top + PARTICLE_R + Math.random() * (rect.height - 2 * PARTICLE_R)
+            x: rect.left + PARTICLE_R + rand() * (rect.width - 2 * PARTICLE_R),
+            y: rect.top + PARTICLE_R + rand() * (rect.height - 2 * PARTICLE_R)
           };
           var ok = true;
           for (var j = 0; j < list.length; j++) {
@@ -88,8 +101,8 @@
         }
         if (!pos) {
           pos = {
-            x: rect.left + PARTICLE_R + Math.random() * Math.max(1, rect.width - 2 * PARTICLE_R),
-            y: rect.top + PARTICLE_R + Math.random() * Math.max(1, rect.height - 2 * PARTICLE_R)
+            x: rect.left + PARTICLE_R + rand() * Math.max(1, rect.width - 2 * PARTICLE_R),
+            y: rect.top + PARTICLE_R + rand() * Math.max(1, rect.height - 2 * PARTICLE_R)
           };
         }
         var angle = randomAngle();
@@ -324,6 +337,7 @@
       setMoleculeCount: setMoleculeCount,
       getVolumeFraction: function () { return state.volumeFraction; },
       getMoleculeCount: function () { return state.moleculeCount; },
+      getParticles: function () { return state.particles.map(function (p) { return { x: p.x, y: p.y, vx: p.vx, vy: p.vy }; }); },
       destroy: function () { if (rafId) cancelAnimationFrame(rafId); }
     };
   }

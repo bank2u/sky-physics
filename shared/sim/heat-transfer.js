@@ -21,6 +21,17 @@
   function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
   function lerp(a, b, t) { return a + (b - a) * t; }
 
+  /* PRNG แบบ seeded (mulberry32) — seed คงที่ สร้างใหม่ตอน init เพื่อให้ layout เริ่มต้นเหมือนกันทุกเครื่อง (live sync) */
+  var SEED = 20240612;
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
   /* ---- geometry คงที่ (viewBox 700x570 เหมือน pattern อื่นในคลัง) ---- */
   var VB_W = 700, VB_H = 570;
   var ROD_X0 = 60, ROD_X1 = 640, ROD_Y = 285, ROD_H = 140;
@@ -71,13 +82,14 @@
     container.appendChild(legend);
 
     /* ---- สถานะการนำ: อุณหภูมิของ N_NODES จุดตามแนวแท่ง ---- */
+    var rand = mulberry32(SEED);
     var rodTemps = new Array(N_NODES);
     var rodPhase = new Array(N_NODES);
     (function initRod() {
       for (var i = 0; i < N_NODES; i++) {
         var frac = i / (N_NODES - 1);
         rodTemps[i] = lerp(state.sourceTemp, state.targetTemp, frac);
-        rodPhase[i] = Math.random() * Math.PI * 2;
+        rodPhase[i] = rand() * Math.PI * 2;
       }
     })();
 
@@ -97,10 +109,10 @@
     (function initFluid() {
       for (var i = 0; i < N_PARTICLES; i++) {
         fluid.push({
-          x: lerp(BOX_X0 + 20, BOX_X1 - 20, Math.random()),
-          y: lerp(BOX_Y0 + 20, BOX_Y1 - 20, Math.random()),
+          x: lerp(BOX_X0 + 20, BOX_X1 - 20, rand()),
+          y: lerp(BOX_Y0 + 20, BOX_Y1 - 20, rand()),
           vx: 0, vy: 0,
-          temp: lerp(state.targetTemp, state.sourceTemp, Math.random())
+          temp: lerp(state.targetTemp, state.sourceTemp, rand())
         });
       }
     })();
@@ -132,8 +144,9 @@
         p.vx += circulate * dt;
 
         // แรงหน่วง กันความเร็วพุ่งไม่จำกัด
-        p.vx *= 0.94;
-        p.vy *= 0.94;
+        var damp = Math.pow(0.94, dt * 60); // ต่อเฟรมที่ 60 Hz = 0.94 เท่าเดิม แต่ไม่ขึ้นกับ refresh rate
+        p.vx *= damp;
+        p.vy *= damp;
         p.vx = clamp(p.vx, -70, 70);
         p.vy = clamp(p.vy, -70, 70);
 
@@ -285,6 +298,10 @@
       setTargetTemp: setTargetTemp,
       setMode: setMode,
       getMode: function () { return state.mode; },
+      getSourceTemp: function () { return state.sourceTemp; },
+      getTargetTemp: function () { return state.targetTemp; },
+      getFluid: function () { return fluid.map(function (p) { return { x: p.x, y: p.y, temp: p.temp }; }); },
+      getRodPhase: function () { return rodPhase.slice(); },
       destroy: function () { if (rafId) cancelAnimationFrame(rafId); }
     };
   }

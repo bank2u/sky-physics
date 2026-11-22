@@ -149,10 +149,15 @@
 
   wireTrack(document.getElementById('volume-track'), VOL_MIN, VOL_MAX, function (v) {
     sim.setVolumeFraction(Math.round(v) / 100);
+    Sync.changed('volume');
   });
   wireTrack(document.getElementById('count-track'), COUNT_MIN, COUNT_MAX, function (n) {
     sim.setMoleculeCount(Math.round(n));
+    Sync.changed('count');
   });
+
+  Sync.param('volume', { get: sim.getVolumeFraction, set: sim.setVolumeFraction });
+  Sync.param('count', { get: sim.getMoleculeCount, set: sim.setMoleculeCount });
 </script>
 </body>
 </html>
