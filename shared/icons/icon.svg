@@ -1,24 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- SKY-PHYSICS app icon: เมฆ + วิถีโพรเจกไทล์ (full-bleed — ใช้เป็น maskable ได้ เนื้อหาอยู่ใน safe zone 80%) -->
-  <defs>
-    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#4a7dff"/>
-      <stop offset="1" stop-color="#2456e6"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" fill="url(#sky)"/>
-  <!-- วิถีโพรเจกไทล์: ส่วนที่ผ่านมาแล้ว (ชัด) → ส่วนที่จะไป (จาง) -->
-  <path d="M112 360 Q 216 40 340 196" fill="none" stroke="#ffffff" stroke-opacity=".7"
-        stroke-width="12" stroke-linecap="round" stroke-dasharray="1 26"/>
-  <path d="M340 196 Q 382 250 404 330" fill="none" stroke="#ffffff" stroke-opacity=".28"
-        stroke-width="12" stroke-linecap="round" stroke-dasharray="1 26"/>
-  <!-- เมฆ -->
-  <g fill="#ffffff">
-    <circle cx="196" cy="330" r="52"/>
-    <circle cx="262" cy="314" r="66"/>
-    <circle cx="316" cy="346" r="40"/>
-    <rect x="144" y="330" width="212" height="56" rx="28"/>
-  </g>
-  <!-- ลูกบอล -->
-  <circle cx="346" cy="203" r="24" fill="#ffc93c"/>
+  <!-- SKY-PHYSICS app icon: ลูกตุ้มแกว่งห้อยจากเมฆ (full-bleed — ใช้เป็น maskable ได้ เนื้อหาอยู่ใน safe zone 80%) -->
+<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a7dff"/><stop offset="1" stop-color="#2456e6"/></linearGradient></defs><rect width="512" height="512" fill="url(#sky)"/>
+<path d="M148 356 A 220 220 0 0 0 364 356" fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="12" stroke-linecap="round" stroke-dasharray="1 26"/>
+<line x1="256" y1="150" x2="186" y2="352" stroke="#fff" stroke-opacity=".25" stroke-width="10" stroke-linecap="round"/>
+<circle cx="186" cy="352" r="34" fill="#fff" fill-opacity=".22"/>
+<line x1="256" y1="150" x2="330" y2="358" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
+<g fill="#fff" transform="translate(256 118) scale(0.82)"><circle cx="-60" cy="0" r="52"/><circle cx="6" cy="-16" r="66"/><circle cx="60" cy="16" r="40"/><rect x="-112" y="0" width="212" height="56" rx="28"/></g>
+<circle cx="330" cy="358" r="42" fill="#ffc93c"/>
 </svg>
