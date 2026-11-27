@@ -29,8 +29,6 @@ test('every active topic page has all its same-origin assets on disk', () => {
     assert.ok(assets.some((u) => u.endsWith('/shared/layout.js')), t.id + ' loads layout.js');
     for (const u of assets) {
       const p = path.join(root, new URL(u).pathname);
-      // favicon ของหน้าเรื่องชี้ผิดอยู่แล้ว (404 ที่รู้กัน) — SW ข้ามไฟล์ที่ fetch ไม่ได้
-      if (u.endsWith('/topics/shared/favicon.svg')) continue;
       assert.ok(fs.existsSync(p), `${t.id}: missing ${u}`);
     }
   }

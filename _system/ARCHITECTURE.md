@@ -160,10 +160,10 @@ Throttle: patch ครู 50 ms + ส่งค่าสุดท้ายเส�
 - relay: `cd _relay && npx wrangler@4 dev --port 8787` / deploy: `npx wrangler@4 deploy`
 - unit: `node --test "_relay/test/*.test.mjs"` และ `node --test "tests/*.test.js"` (ใช้ glob ใน quote; ชื่อโฟลเดอร์เปล่าๆ fail บน Node 24)
 - relay e2e: `node _relay/test/e2e.mjs http://localhost:8787`; ทดสอบหมดอายุ (ไม่บังคับ): รัน `wrangler dev --var ROOM_TTL_MS:3000` แล้ว `E2E_TTL_MS=3000 node _relay/test/e2e.mjs ...` — **ห้ามตั้ง `ROOM_TTL_MS` ใน production**
-- 2-tab smoke: ครูแท็บ A / นักเรียนแท็บ B (ต้องคนละ browser profile เพราะ role ครูอยู่ใน `localStorage`) ทำด้วย claude-in-chrome หรือ headless Chrome ผ่าน CDP ก็ได้ — เช็ค: นักเรียนถูกพาไปเรื่องนั้น + control กดไม่ได้, ค่าตรงกันหลังครูปรับ, play แล้วเวลาตรงกัน/คนเข้าทีหลังไม่เริ่ม 0, `ทดลองเอง`/`กลับไปตามครู`, ครู reload แล้วรหัสเดิม, ไม่มี console error (ยกเว้น favicon 404 ที่รู้อยู่แล้ว) และแท็บที่ไม่อยู่ในห้องต้องไม่เปิด WebSocket
+- 2-tab smoke: ครูแท็บ A / นักเรียนแท็บ B (ต้องคนละ browser profile เพราะ role ครูอยู่ใน `localStorage`) ทำด้วย claude-in-chrome หรือ headless Chrome ผ่าน CDP ก็ได้ — เช็ค: นักเรียนถูกพาไปเรื่องนั้น + control กดไม่ได้, ค่าตรงกันหลังครูปรับ, play แล้วเวลาตรงกัน/คนเข้าทีหลังไม่เริ่ม 0, `ทดลองเอง`/`กลับไปตามครู`, ครู reload แล้วรหัสเดิม, ไม่มี console error และแท็บที่ไม่อยู่ในห้องต้องไม่เปิด WebSocket
 - `.vercelignore` ยกเว้น `_relay/`, `tests/`, `docs/`
 
-**ปัญหาเดิมที่รู้แล้ว (ไม่เกี่ยวกับ sync):** หน้าเรื่องขอ `/topics/shared/favicon.svg` (404) เพราะ `<link>` ใช้ `../shared/` แทน `../../shared/` — ยังไม่แก้
+favicon ของหน้าเรื่องต้องเป็น `../../shared/favicon.svg` (เคยเป็น `../shared/` → 404, แก้แล้ว — test ใน `tests/sw.test.js` จับได้ถ้าหน้าใหม่อ้างไฟล์ที่ไม่มีจริง)
 
 ## 9. Offline (Service Worker)
 
