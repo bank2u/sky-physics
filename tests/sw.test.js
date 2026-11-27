@@ -50,3 +50,14 @@ test('extractImports finds the base font @import in shared/styles.css', () => {
   assert.deepStrictEqual(extractImports(`@import "a.css"; @import url('b.css');`), ['a.css', 'b.css']);
   assert.deepStrictEqual(extractImports(`@import url('https://f.test/css2?family=A:wght@6;7&x=1');`), ['https://f.test/css2?family=A:wght@6;7&x=1']);
 });
+
+test('manifest icons are PNGs Chrome accepts for install (192 + 512, files exist)', () => {
+  const root = path.join(__dirname, '..');
+  const m = JSON.parse(fs.readFileSync(path.join(root, 'shared/manifest.webmanifest'), 'utf8'));
+  // icon SVG ใน manifest ทำให้ Chrome ขึ้น no-acceptable-icon → ไม่มีปุ่มติดตั้ง (เคยเกิดจริง)
+  for (const i of m.icons) {
+    assert.strictEqual(i.type, 'image/png', i.src);
+    assert.ok(fs.existsSync(path.join(root, i.src)), i.src);
+  }
+  for (const size of ['192x192', '512x512']) assert.ok(m.icons.some((i) => i.sizes === size), size);
+});

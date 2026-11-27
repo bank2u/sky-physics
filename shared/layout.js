@@ -135,6 +135,7 @@
   document.head.appendChild(manifest);
   [['link', { rel: 'apple-touch-icon', href: '/shared/icons/apple-touch-icon.png' }],
    ['meta', { name: 'theme-color', content: '#2f6bff' }],
+   ['meta', { name: 'mobile-web-app-capable', content: 'yes' }],
    ['meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }],
    ['meta', { name: 'apple-mobile-web-app-title', content: 'SKY-PHYSICS' }]
   ].forEach(function (d) {
