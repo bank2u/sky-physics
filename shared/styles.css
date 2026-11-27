@@ -437,6 +437,7 @@ button { font-family: var(--font); }
   background: color-mix(in oklab, var(--accent-primary) 30%, var(--surface)); color: var(--accent-primary-fg);
   font: 900 var(--fs-body) var(--font); padding: 0 var(--space-4); cursor: pointer;
 }
+.sync-join__input:disabled, .sync-join__btn:disabled { opacity: .55; cursor: default; }
 
 .sync-overlay {
   position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;

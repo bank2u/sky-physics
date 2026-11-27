@@ -7,6 +7,7 @@
 ```
 physics-sim/
 ├── index.html              # สารบัญ — render จาก _system/topics.json ห้ามแก้ตรงๆ
+├── sw.js                   # service worker ของโหมด offline — ต้องอยู่ root (scope ทั้งเว็บ) ดู §9
 ├── shared/
 │   ├── config.js            # เลือก skin ระดับ deploy + ทะเบียน skin/modes/fontsUrl (ดู §7)
 │   ├── styles.css          # design tokens เดียว — ทุกเรื่องอ้างผ่านตรงนี้เท่านั้น (= dot-matrix skin)
@@ -14,6 +15,7 @@ physics-sim/
 │   ├── layout.js            # โครง 5 ส่วน + dark/light toggle + stamp data-skin + dispatch themechange + โหลด sync (ถ้ามี syncUrl)
 │   ├── sync-core.js         # logic ล้วนของ live sync (merge state, clock, topicIdFromPath) — มี unit test ใน tests/
 │   ├── sync.js              # UI + WebSocket ของ live sync, expose window.Sync (ดู §8)
+│   ├── manifest.webmanifest # PWA manifest (layout.js แทรก <link rel="manifest"> ให้ทุกหน้า)
 │   ├── vendor/qrcode.js     # qrcode-generator 1.4.4 (MIT) — lazy-load เฉพาะตอนครูเปิด overlay
 │   └── sim/<pattern>.js     # คลัง simulation ใช้ซ้ำข้ามเรื่อง — ต้อง resolve สีจาก token + ฟัง themechange
 ├── topics/<id>/
@@ -161,3 +163,14 @@ Throttle: patch ครู 50 ms + ส่งค่าสุดท้ายเส�
 - `.vercelignore` ยกเว้น `_relay/`, `tests/`, `docs/`
 
 **ปัญหาเดิมที่รู้แล้ว (ไม่เกี่ยวกับ sync):** หน้าเรื่องขอ `/topics/shared/favicon.svg` (404) เพราะ `<link>` ใช้ `../shared/` แทน `../../shared/` — ยังไม่แก้
+
+## 9. Offline (Service Worker)
+
+`/sw.js` ทำให้เว็บใช้งานได้ตอนไม่มีเน็ต หลังเปิดเว็บออนไลน์ครั้งแรกหนึ่งครั้ง — ลงทะเบียนโดย `shared/layout.js` (ข้ามบน localhost กัน cache ค้างตอน dev, เปิดทดสอบด้วย `?sw=1`)
+
+- **precache อัตโนมัติ**: เปลือกเว็บ + ทุกเรื่อง `active` ใน `topics.json` + asset ที่แต่ละหน้าอ้างด้วย `src`/`href` (แกะจาก HTML) + ฟอนต์ Google (`fontsUrl` ของ skin ที่ active และ `@import` ใน `styles.css`) — **เพิ่มเรื่อง/ไฟล์ใหม่ไม่ต้องแก้ `sw.js`** ยกเว้น asset ที่โหลดแบบ dynamic นอก `src`/`href` ของหน้า (ต้องเติมใน `SHELL`)
+- เปิดหน้าเว็บตอนออนไลน์ = ส่ง `{type:'refresh'}` ให้ SW เติม cache ใหม่ (throttle 10 นาที)
+- same-origin: network-first (timeout 4 วิ แล้วใช้ cache) → ออนไลน์ได้ของใหม่เสมอ | ฟอนต์ภายนอก: cache-first (`ignoreVary` เพราะ Google ส่ง `Vary`)
+- **offline = live sync ใช้ไม่ได้**: `sync.js` เช็ค `navigator.onLine` + ฟัง `online`/`offline` → ปุ่ม `📡 เปิดห้อง` กลายเป็น `📡 ออฟไลน์` (disabled) และช่องเข้าห้องในสารบัญ disabled; ห้องที่เปิดอยู่แล้วใช้ reconnect เดิม
+- เปลี่ยนกลยุทธ์ cache แบบไม่เข้ากันของเดิม → เปลี่ยนชื่อ `CACHE`/`FONT_CACHE` ใน `sw.js` (activate จะลบ cache เก่าทิ้ง)
+- unit test: `tests/sw.test.js` (แกะ asset + เช็คว่าทุก asset ของทุกเรื่องมีไฟล์จริง)

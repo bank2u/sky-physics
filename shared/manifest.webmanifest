@@ -1,0 +1,13 @@
+{
+  "name": "SKY-PHYSICS — สื่อการสอนฟิสิกส์",
+  "short_name": "SKY-PHYSICS",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "lang": "th",
+  "background_color": "#eef2fb",
+  "theme_color": "#eef2fb",
+  "icons": [
+    { "src": "/shared/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

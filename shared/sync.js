@@ -233,6 +233,7 @@
   }
 
   function openRoom() {
+    if (!navigator.onLine) { renderAll(); return; }
     els.open.disabled = true;
     fetch(baseUrl + '/rooms', { method: 'POST' })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
@@ -418,8 +419,11 @@
     [els.open, els.badge].forEach(function (n) {
       if (n.parentNode !== bar) bar.insertBefore(n, toggle);
     });
+    var offline = !navigator.onLine;
     els.open.hidden = !(params.length > 0 && role === 'none');
-    els.open.disabled = false;
+    els.open.disabled = offline;
+    els.open.textContent = offline ? '📡 ออฟไลน์' : '📡 เปิดห้อง';
+    els.open.title = offline ? 'ไม่มีอินเทอร์เน็ต — แชร์สอน (เปิดห้อง) ใช้ไม่ได้ตอนออฟไลน์' : '';
     els.badge.hidden = role !== 'teacher';
     els.badge.textContent = '';
     if (role === 'teacher') {
@@ -515,7 +519,12 @@
   }
 
   function renderJoin() {
-    if (els.join) els.join.hidden = role !== 'none';
+    if (!els.join) return;
+    var offline = !navigator.onLine;
+    els.join.hidden = role !== 'none';
+    els.joinInput.disabled = offline;
+    els.joinBtn.disabled = offline;
+    els.joinInput.placeholder = offline ? 'ออฟไลน์ — เข้าห้องไม่ได้' : 'รหัสห้อง 4 หลัก';
   }
 
   function mountJoin() {
@@ -536,12 +545,14 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var code = input.value.trim();
-      if (!/^\d{4}$/.test(code)) { input.focus(); return; }
+      if (!/^\d{4}$/.test(code) || !navigator.onLine) { input.focus(); return; }
       input.value = '';
       joinRoom(code, 'follow');
     });
     main.insertBefore(form, main.firstChild);
     els.join = form;
+    els.joinInput = input;
+    els.joinBtn = go;
   }
 
   /* ---------- init ---------- */
@@ -568,6 +579,10 @@
     renderAll();
     if (room) connect();
   }
+
+  // เน็ตหลุด/กลับมา: อัปเดตปุ่มเปิดห้อง/ช่องเข้าห้อง (ห้องที่เปิดอยู่แล้วใช้ reconnect เดิม)
+  window.addEventListener('online', function () { renderAll(); });
+  window.addEventListener('offline', function () { renderAll(); });
 
   document.addEventListener('visibilitychange', function () {
     if (!document.hidden && role === 'teacher') publishFull(); // แท็บที่กลับมาเป็น active ประกาศ state เต็มของตัวเอง

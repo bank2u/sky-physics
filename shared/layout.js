@@ -102,6 +102,22 @@
     });
   }
 
+  // ---- offline (service worker ที่ /sw.js) ----
+  // precache ทุกเรื่องไว้ใช้ตอนไม่มีเน็ต; ข้ามบน localhost เพื่อไม่ให้ cache ค้างตอน dev (เปิดได้ด้วย ?sw=1)
+  // offline = live sync ใช้ไม่ได้: sync.js เช็ค navigator.onLine แล้วปิดปุ่มเปิดห้อง/เข้าห้องเอง
+  var manifest = document.createElement('link');
+  manifest.rel = 'manifest';
+  manifest.href = '/shared/manifest.webmanifest';
+  document.head.appendChild(manifest);
+  if ('serviceWorker' in navigator && (!isLocal || /[?&]sw=1\b/.test(location.search))) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js').then(function (reg) {
+        // ออนไลน์อยู่: ขอให้ SW เติม cache เรื่องใหม่/ไฟล์ที่เปลี่ยน (SW throttle เอง)
+        if (navigator.onLine && reg.active) reg.active.postMessage({ type: 'refresh' });
+      }).catch(function () { /* เบราว์เซอร์ไม่รองรับ/ถูกบล็อก = ใช้แบบออนไลน์ตามเดิม */ });
+    });
+  }
+
   window.PhysicsSimLayout = {
     mountTopbar: mountTopbar, isDark: isDark, setTheme: setTheme, syncUrl: syncUrl, assetBase: layoutScript && layoutScript.src ? layoutScript.src.replace(/layout\.js(\?.*)?$/, '') : ''
   };
