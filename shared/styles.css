@@ -403,6 +403,16 @@ button { font-family: var(--font); }
   padding: var(--space-2) var(--space-3);
 }
 .sync-open-btn { cursor: pointer; }
+/* ปุ่มติดตั้งแอป (PWA) — layout.js โชว์เมื่อเบราว์เซอร์บอกว่าติดตั้งได้ (beforeinstallprompt) */
+.install-btn {
+  margin-left: auto; margin-right: var(--space-3); cursor: pointer;
+  font-family: var(--font); color: var(--ink);
+  border: var(--border-w) solid var(--ink); border-radius: var(--radius-pill);
+  background: var(--surface); font-size: var(--fs-label); font-weight: 800;
+  padding: var(--space-2) var(--space-3);
+}
+.install-btn[hidden] { display: none; }
+.install-btn:not([hidden]) ~ .sync-open-btn, .install-btn:not([hidden]) ~ .sync-badge { margin-left: 0; }
 .sync-open-btn:disabled { opacity: .55; cursor: default; }
 .sync-badge { display: inline-flex; align-items: center; gap: var(--space-1); }
 .sync-badge button, .sync-bar button {

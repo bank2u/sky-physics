@@ -19,6 +19,10 @@ var SHELL = [
   '/shared/layout.js',
   '/shared/favicon.svg',
   '/shared/manifest.webmanifest',
+  '/shared/icons/icon.svg',
+  '/shared/icons/icon-192.png',
+  '/shared/icons/icon-512.png',
+  '/shared/icons/apple-touch-icon.png',
   '/shared/sync-core.js',
   '/shared/sync.js',
   '/shared/vendor/qrcode.js'

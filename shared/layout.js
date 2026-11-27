@@ -66,7 +66,10 @@
       '<a class="topbar__brand" href="' + homeHref + '">' +
       '<span class="topbar__logo">☁️</span>' +
       '<span class="topbar__name">SKY-PHYSICS</span>' +
-      '</a>' + toggleHtml + '</div>';
+      '</a>' +
+      '<button type="button" class="install-btn"' + (installPrompt ? '' : ' hidden') + '>⬇ ติดตั้งแอป</button>' +
+      toggleHtml + '</div>';
+    root.querySelector('.install-btn').addEventListener('click', promptInstall);
     var toggle = root.querySelector('.toggle');
     if (toggle) {
       toggle.addEventListener('click', function () {
@@ -102,6 +105,27 @@
     });
   }
 
+  // ---- ติดตั้งเป็นแอป (PWA) ----
+  // Chrome/Edge/Android ยิง beforeinstallprompt เมื่อเว็บติดตั้งได้ → โชว์ปุ่ม "ติดตั้งแอป" ใน topbar
+  // (iOS Safari ไม่มี event นี้: ติดตั้งผ่าน Share → Add to Home Screen — ใช้ apple-touch-icon ด้านล่าง)
+  var installPrompt = null;
+  function showInstall(show) {
+    document.querySelectorAll('.install-btn').forEach(function (b) { b.hidden = !show; });
+  }
+  function promptInstall() {
+    if (!installPrompt) return;
+    var p = installPrompt;
+    installPrompt = null;
+    showInstall(false);
+    p.prompt();
+  }
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    installPrompt = e;
+    showInstall(true);
+  });
+  window.addEventListener('appinstalled', function () { installPrompt = null; showInstall(false); });
+
   // ---- offline (service worker ที่ /sw.js) ----
   // precache ทุกเรื่องไว้ใช้ตอนไม่มีเน็ต; ข้ามบน localhost เพื่อไม่ให้ cache ค้างตอน dev (เปิดได้ด้วย ?sw=1)
   // offline = live sync ใช้ไม่ได้: sync.js เช็ค navigator.onLine แล้วปิดปุ่มเปิดห้อง/เข้าห้องเอง
@@ -109,6 +133,15 @@
   manifest.rel = 'manifest';
   manifest.href = '/shared/manifest.webmanifest';
   document.head.appendChild(manifest);
+  [['link', { rel: 'apple-touch-icon', href: '/shared/icons/apple-touch-icon.png' }],
+   ['meta', { name: 'theme-color', content: '#2f6bff' }],
+   ['meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }],
+   ['meta', { name: 'apple-mobile-web-app-title', content: 'SKY-PHYSICS' }]
+  ].forEach(function (d) {
+    var n = document.createElement(d[0]);
+    Object.keys(d[1]).forEach(function (k) { n.setAttribute(k, d[1][k]); });
+    document.head.appendChild(n);
+  });
   if ('serviceWorker' in navigator && (!isLocal || /[?&]sw=1\b/.test(location.search))) {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('/sw.js').then(function (reg) {

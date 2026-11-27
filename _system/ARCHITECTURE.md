@@ -15,7 +15,8 @@ physics-sim/
 │   ├── layout.js            # โครง 5 ส่วน + dark/light toggle + stamp data-skin + dispatch themechange + โหลด sync (ถ้ามี syncUrl)
 │   ├── sync-core.js         # logic ล้วนของ live sync (merge state, clock, topicIdFromPath) — มี unit test ใน tests/
 │   ├── sync.js              # UI + WebSocket ของ live sync, expose window.Sync (ดู §8)
-│   ├── manifest.webmanifest # PWA manifest (layout.js แทรก <link rel="manifest"> ให้ทุกหน้า)
+│   ├── manifest.webmanifest # PWA manifest (layout.js แทรก <link rel="manifest"> + apple-touch-icon/theme-color ให้ทุกหน้า)
+│   ├── icons/               # ไอคอนแอป: icon.svg (ต้นฉบับ) → icon-192/512.png, apple-touch-icon.png (render จาก svg)
 │   ├── vendor/qrcode.js     # qrcode-generator 1.4.4 (MIT) — lazy-load เฉพาะตอนครูเปิด overlay
 │   └── sim/<pattern>.js     # คลัง simulation ใช้ซ้ำข้ามเรื่อง — ต้อง resolve สีจาก token + ฟัง themechange
 ├── topics/<id>/
@@ -174,3 +175,5 @@ Throttle: patch ครู 50 ms + ส่งค่าสุดท้ายเส�
 - **offline = live sync ใช้ไม่ได้**: `sync.js` เช็ค `navigator.onLine` + ฟัง `online`/`offline` → ปุ่ม `📡 เปิดห้อง` กลายเป็น `📡 ออฟไลน์` (disabled) และช่องเข้าห้องในสารบัญ disabled; ห้องที่เปิดอยู่แล้วใช้ reconnect เดิม
 - เปลี่ยนกลยุทธ์ cache แบบไม่เข้ากันของเดิม → เปลี่ยนชื่อ `CACHE`/`FONT_CACHE` ใน `sw.js` (activate จะลบ cache เก่าทิ้ง)
 - unit test: `tests/sw.test.js` (แกะ asset + เช็คว่าทุก asset ของทุกเรื่องมีไฟล์จริง)
+- **ติดตั้งเป็นแอป (PWA)**: Chrome/Edge/Android → ปุ่ม `⬇ ติดตั้งแอป` ใน topbar (โชว์เมื่อได้ `beforeinstallprompt`) หรือไอคอนติดตั้งใน address bar | iOS Safari → Share → Add to Home Screen. แอปที่ติดตั้งใช้ cache เดียวกับเว็บ จึงทำงาน offline ได้เหมือนกัน
+- แก้ไอคอน: แก้ `shared/icons/icon.svg` แล้ว render PNG ใหม่ทั้ง 3 ขนาด (192, 512, 180) — เนื้อหาต้องอยู่ใน safe zone วงกลม 80% กลางภาพ เพราะ 512 ใช้เป็น `maskable` ด้วย
